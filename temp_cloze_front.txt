@@ -1,0 +1,15 @@
+<div class="card">
+  <main class="front">
+    <div class="prompt">{{cloze:front}}</div>
+
+    {{#back}}
+    <details class="hint">
+      <summary>Hint</summary>
+      <div class="hint-body">{{back}}</div>
+    </details>
+    {{/back}}
+  </main>
+  <footer class="footer">
+    {{#source}}<span class="pill">{{source}}</span>{{/source}}
+  </footer>
+</div>

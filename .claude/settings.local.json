@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b C:UsersShadowDocuments)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(for f in \"E:/Repo/project-astartes/notion-learning-sync/docs/CCNA/\"*.txt)",
+      "Bash(done)",
+      "Bash(find:*)",
+      "Bash(python scripts/ccna_assessment.py:*)",
+      "Bash(python scripts/ccna_detailed_analysis.py:*)",
+      "Bash(python scripts/ccna_prefix_analysis.py:*)",
+      "Bash(python -c:*)",
+      "Bash(python scripts/ccna_generate.py:*)",
+      "Bash(tee:*)",
+      "Bash(cat:*)",
+      "WebSearch",
+      "Bash(python scripts/anki_full_sync.py:*)",
+      "Bash(python scripts/reading_progress.py:*)",
+      "Bash(tasklist /FI 'IMAGENAME eq python.exe')",
+      "Bash(python scripts/populate_prerequisites.py:*)",
+      "Bash(python scripts/compute_optimal_atoms.py:*)",
+      "Bash(xargs ls:*)",
+      "Bash(python scripts/adaptive_study.py:*)",
+      "Bash(python scripts/hydrate_db.py:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(psql:*)",
+      "Bash(tree:*)",
+      "Bash(git reset:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

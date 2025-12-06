@@ -1,0 +1,368 @@
+Systems Development II (E2025)
+EASV Skabelon til nye kurser
+Announcements
+
+About this course
+Announcements
+
+Curriculum: Curriculum for System Development 2 (Link to easv.dk)
+
+Executive order: BEK nr 708 af 09/06/2023
+
+Week 	Topic	Learning objectives
+35	Course Startup	K1
+36	Advanced VCS / Git / Branching / Pull Requests / Code Review	K1, S3, S4, C3
+37	Advanced VCS / Git / Branching Workflows	K1, S3, C3
+38	CI / CD intro / GitHub Actions	K1, S3, C3
+39	CI / CD pipelines / GitHub Actions continued	K1, S3, C3
+40	Linting & Formatting	K1, S3, S4, C1, C2, C3
+41	Code Generation & Scaffolding	K1, S1, S4, C1, C3
+42	Autumn Holiday	 
+43	Git Hooks (Pre-commit Hooks)	K1, S3, S4, C1, C2
+44	Environments & Configuration Management	K1, S1, S4, C1, C2
+45	Smoke Testing	K1, S3, S4, C1, C2, C3
+46	Course Recap	 
+
+W35 - 28. Aug (Course Startup)
+Before Class
+Watch videos:
+Git under the hood (a bit advanced)
+
+If you need to catch-up on Git and Version Control Systems (VCS), complete this learning path:
+GitHub Foundations Part 1 of 2
+
+
+During Class
+Introduction to the course, expectations etc.
+Moodle etc.
+Recap Matrix
+
+Git advanced
+- How Git works
+- Git as a graph
+- Branches in Git
+- How to create and merge branches
+
+
+Workshop
+- Complete Git Branching exercises
+
+
+
+Quiz
+
+
+
+
+
+
+Learning resources
+Welcome to Systems Development 2 (PDF)
+
+VCS Git Branching 1 (PDF)
+
+Learning activities
+W36 - 04. Sep (Advanced VCS - Branching / Pull Requests etc.)
+Before Class
+Make sure you have finished the Learn Git Branching exercise
+
+
+During Class
+Catch-up from last class
+
+Git advanced
+- Collaboration
+- Synchronize changes
+- Pull requests
+
+
+Workshop
+- Manage repository changes by using pull requests on GitHub
+- Settle competing commits by using merge conflict resolution on GitHub
+
+
+Quiz
+
+After Class
+Additional branch + merge training: https://learn.microsoft.com/en-us/training/modules/use-branch-merge-git/
+
+
+
+
+Learning Resources
+VCS Git Branching 2 (PDF)
+
+W37 - 11. Sep CANCELLED - (Advanced VCS / Branching Workflows)
+Before Class
+Read about Git Workflows: Git Workflows
+
+
+During Class
+You have to work on your own as I'm unable to attend classes.
+
+Recommendations for using branches
+Git under the hood
+
+Branching strategies and workflows
+- Git flow
+- GitHub flow
+- GitLab Flow
+
+Common git commands + cheat sheet: https://education.github.com/git-cheat-sheet-education.pdf
+
+
+Workshop
+- GitHub Minesweeper
+For the reminder of the time you are going to play Minesweeper... using Git.
+The way you play is designed to help you build muscle memory of the most common git commands you will be using.
+The workflow you will be practicing they call it trunk-based development, but effectively it is the same as GitHub Flow.
+
+- Read this great article about Continuous Integration: https://www.atlassian.com/continuous-delivery/continuous-integration
+
+
+
+Quiz :)
+
+
+
+
+
+
+W38 - 18. Sep (CI / CD intro / GitHub Actions)
+Before Class
+Read about Continuous Integration: https://www.atlassian.com/continuous-delivery/continuous-integration
+Read about CI / CD: https://www.atlassian.com/continuous-delivery/principles/continuous-integration-vs-delivery-vs-deployment
+
+
+During Class
+Follow-up on last class with GitHub MineSweeper etc.
+Recap quiz on Git Workflows
+
+
+Continuous Integration / Continuous Delivery Automation
+Github Actions
+
+
+Workshop
+- Complete Exercise: Introduction to GitHub Actions (https://github.com/skills/hello-github-actions)
+- Complete Exercise: Setting up a CI pipeline (https://github.com/sspangsberg/tutorial-react-ci)
+
+
+
+
+
+
+
+Learning resources
+CI-CD (PDF)
+
+W39 - 25. Sep (CI / CD / GitHub Actions continued
+Before Class
+Finish the front-end React CI workflow exercise from last class.
+https://github.com/sspangsberg/tutorial-react-ci
+
+
+During Class
+You need to work on your own.
+Please note: Anne-Mette has also scheduled recap classes in CDS.Network (9-13).
+
+
+Workshop
+- Complete Exercise: Setting up a full-stack CI workflow (https://github.com/rpede/tutorial-fullstack-ci)
+
+
+Career Fair 25/9 at 13-17
+Remember the career fair at Blue Water Dokken. It's a fair where you can meet both small and large companies from Esbjerg.
+You'll have the chance to explore potential student jobs or start looking for internships.
+You can register for free here:https://www.businessesbjerg.com/da/arrangementer/karrieremesse-esbjerg-2025
+
+
+
+From next week and until course end, Patrick will take over.
+It has been a pleasure conducting classes with you :)
+
+
+
+
+
+
+
+W40: Linting & Formatting
+About this week
+
+This lecture will cover linting and formatting. Specifically we'll work with ESLint for TypeScript. The point of this lecture is for you to understand how you can use linters and formatters to improve the quality of your code.
+
+During the lecture you'll learn about:
+
+What is linting?
+What does linting "fix"?
+How can you improve code quality using linting
+
+Learning resources
+
+
+Read: Linters aren't in your way. They're on your side
+
+Prepare: Setting up Node
+
+Prepare: Clone the repository
+
+Prepare: Set up ESLint
+
+Presentation
+
+Learning activities
+
+
+Assignments
+Task 01: Configure ESLint
+
+Task 02: Automate Formatting
+
+Task 03: Linting Rules
+
+Task 04: Custom Linting Rules
+
+Solution
+Custom ESLint Rule
+
+W41: Code Generation & Scaffolding
+About this week
+
+This lecture is about code generation and how you can use it to simplify the development process while maintaining quality and consistency across your codebase.
+
+And why should you use code generation?
+
+Time saved through automation
+
+
+Learning resources
+
+
+Read: Using Generators to Improve Developer Productivity
+
+Read: Improve Developer Productivity with Generators and Team Conventions
+
+Presentation
+
+Learning activities
+
+The setup
+You'll be working on the codebase from last week. The linting assignments are not a prerequisite for doing this assignment.
+
+If you want to start from scratch, you can clone the repository from last week:
+
+git clone https://github.com/patrickstolc/sd2-linting-formatting
+
+Task 01: Installing Plop.js
+
+Task 02: Configure Plop.js
+
+Task 03: Generators
+
+Task 04: Templates
+
+Task 05: Using a Generator
+
+Task 06: Component Generator
+
+Solution: Component Generator
+
+W42: Autumn holiday
+W43: Git Hooks
+About this week
+
+This lecture is about Git hooks. You'll learn about the different events triggered by Git and how you can tap into them to enforce code quality and security checks before the code leaves the developer's machine.
+
+
+Learning resources
+
+
+Read: Git Hooks
+
+Read: ESLint, Prettier, Husky & lint-staged
+
+Learning activities
+
+The setup
+You'll continue work on the same codebase as the previous two lectures. The completion of the previous lectures exercises are not a prerequisite for working on this lectures exercises.
+
+If you want to start from scratch, you can clone the repository from last week:
+
+git clone https://github.com/patrickstolc/sd2-linting-formatting
+
+Docs: Git Hooks
+
+Docs: Husky
+
+Docs: lint-staged
+
+Docs: Conventional Commits
+
+Task 01: Install Husky
+
+Task 02: Git Hooks
+
+Task 03: Pre-commit - formatting & linting
+
+Task 04: Commit message convention (commitlint)
+
+Task 05: Pre-push - typecheck and tests
+
+Task 06: Secretlint
+
+Presentation
+
+W44: Environments & Configuration Management
+About this week
+
+This week we’re shifting from “how code looks” to how code behaves across environments.
+
+We’ll learn to build for multiple environments using a single codebase, leveraging configurations and environment variables to change how the application behaves - without touching the code.
+
+You’ll see how development, preview/staging, and production differ only by data, not code, and how small guardrails (typing, validation, .env.example, CI variables) help prevent deployment of applications that will eventually fail.
+
+
+Learning resources
+
+
+Read: Env Variables and Modes
+
+Read: The Twelve-Factor App: Config
+
+Learning activities
+
+
+Docs: Envalid
+
+Docs: Zod
+
+Repo: Starter Code
+
+Presentation
+
+W45: Smoke & Sanity Testing
+About this week
+
+This week you are going to work on adding smoke and sanity tests to the room-booking application.
+
+Adding these types of tests will help you to catch critical bugs before the code reaches production. These tests differ from unit tests, integration tests and end-to-end tests by not testing the code or the functionality, but rather the build and the application itself.
+
+
+Learning resources
+
+
+Read: Smoke Testing - Engineering Fundamentals Playbook
+
+Learning activities
+
+
+Presentation: Smoketesting
+
+Code: Config module using Zod
+
+Code: useConfig hook
+
+Repository: Room Booking
+
+W46: No Lesson [Exam Project starts]

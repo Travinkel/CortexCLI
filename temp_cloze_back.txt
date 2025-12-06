@@ -1,0 +1,18 @@
+{{cloze:front}}
+<hr class="divider" />
+
+<div class="card back">
+  {{#tags}}
+  <span class="pill module">{{tags}}</span>
+  {{/tags}}
+
+  {{#source}}
+  <span class="pill batch">{{source}}</span>
+  {{/source}}
+
+  {{#back}}
+  <div class="explanation">
+    <strong>Answer:</strong> {{back}}
+  </div>
+  {{/back}}
+</div>

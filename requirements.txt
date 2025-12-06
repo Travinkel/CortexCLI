@@ -1,0 +1,58 @@
+# notion-learning-sync dependencies
+
+# Web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Database
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+psycopg2-binary>=2.9.0
+# pgvector>=0.2.0  # Vector type - disabled, using BYTEA storage instead
+
+# Data validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Notion API
+notion-client>=2.2.0
+
+# CLI
+typer>=0.12.0
+rich>=13.0.0
+
+# Logging
+loguru>=0.7.0
+
+# Utilities
+python-dateutil>=2.8.0
+rapidfuzz>=3.5.0
+
+# AI/ML (for cleaning/semantic dedupe)
+sentence-transformers>=2.2.0
+scikit-learn>=1.3.0
+google-generativeai>=0.3.0
+# google-genai>=0.1.0  # Uncomment for Vertex AI
+json_repair>=0.28.0  # Robust LLM JSON output parsing
+
+# Google Calendar Integration (Cortex CLI)
+google-auth>=2.0.0
+google-auth-oauthlib>=1.0.0
+google-api-python-client>=2.0.0
+
+# Quality validation (perplexity + grammar)
+transformers>=4.30.0  # For GPT-2 perplexity scoring
+torch>=2.0.0  # PyTorch backend for transformers
+spacy>=3.5.0  # For POS grammar validation
+# Run after install: python -m spacy download en_core_web_sm
+
+# HTTP clients
+httpx>=0.25.0
+requests>=2.31.0  # For AnkiConnect (sync HTTP)
+
+# Scheduling (optional)
+apscheduler>=3.10.0
+
+# Testing (dev)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

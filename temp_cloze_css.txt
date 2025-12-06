@@ -1,0 +1,88 @@
+/* Base layout */
+.card {
+  font-family: -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  font-size: 19px;
+  line-height: 1.5;
+  text-align: left;
+  color: #e8eaf1;
+  background-color: #0f1115;
+  padding: 14px 18px;
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+/* Light mode variant */
+@media (prefers-color-scheme: light) {
+  .card {
+    color: #1b1f2a;
+    background-color: #ffffff;
+  }
+}
+
+/* Cloze highlight */
+.cloze {
+  color: #ffdd57;
+  font-weight: 700;
+  background: rgba(255, 221, 87, 0.08);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+/* Hint section */
+.hint {
+  margin-top: 0.75rem;
+}
+.hint summary {
+  cursor: pointer;
+  color: #7aa2f7;
+  font-weight: 600;
+}
+.hint-body {
+  margin-top: 6px;
+  color: #a6adba;
+}
+
+/* Metadata pills */
+.pill {
+  display: inline-block;
+  border-radius: 999px;
+  font-size: 0.8em;
+  padding: 2px 8px;
+  margin-right: 4px;
+  background-color: #1b1f2a;
+  color: #c9d4f5;
+}
+.pill.module {
+  background-color: #312e81;
+  color: #c7d2fe;
+}
+.pill.batch {
+  background-color: #1f2937;
+  color: #cbd5e1;
+}
+
+/* Divider line */
+.divider {
+  border: none;
+  border-top: 1px solid #202536;
+  margin: 12px 0;
+}
+
+/* Link appearance */
+a {
+  color: #7aa2f7;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(122,162,247,.4);
+}
+a:hover {
+  border-bottom-style: solid;
+}
+
+/* Light mode override */
+.nightMode .card {
+  color: #e8eaf1;
+  background-color: #0f1115;
+}
+.nightMode .cloze {
+  color: #ffdd57;
+}

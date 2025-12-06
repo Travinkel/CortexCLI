@@ -1,0 +1,273 @@
+# CCNA Module 5: Number Systems
+
+**Source:** Cisco Networking Academy — Introduction to Networks v7.0 (ITN)
+
+---
+
+## 📋 Module Overview
+
+**Module Title:** Number Systems
+
+**Module Objective:** Convert between binary, decimal, and hexadecimal numbering systems for network addressing.
+
+### Why This Module Matters
+
+IPv4 addresses in binary: `11000000.10101000.00001010.00001010`
+
+IPv4 addresses in decimal: `192.168.10.10`
+
+IPv6 addresses in hexadecimal: `2001:0db8:85a3:0000:0000:8a2e:0370:7334`
+
+Network devices think in binary. Humans work in decimal and hexadecimal. As a network administrator, you must convert between these numbering systems fluently.
+
+---
+
+## 5.1 Binary Number System
+
+### 5.1.1 Binary and IPv4 Addresses
+
+**Binary** is a base-2 numbering system consisting of only **0s and 1s** (called bits). Decimal uses base-10 (digits 0-9).
+
+**Why binary matters:** Hosts, servers, and network devices use binary IPv4 addresses to identify each other.
+
+**IPv4 Address Structure:**
+
+- 32 bits total
+- Divided into 4 octets
+- Each octet = 8 bits (1 byte)
+- Separated by dots
+
+**Example:**
+
+- Binary: `11000000.10101000.00001010.00001010`
+- Decimal: `192.168.10.10`
+
+---
+
+### 5.1.2 Binary Positional Notation
+
+**Decimal Positional Notation (Base 10):**
+
+| Radix | 10 | 10 | 10 | 10 |
+| --- | --- | --- | --- | --- |
+| Position | 3 | 2 | 1 | 0 |
+| Calculation | 10³ | 10² | 10¹ | 10⁰ |
+| Positional Value | 1000 | 100 | 10 | 1 |
+
+**Example: 1234 in decimal**
+
+- (1 × 1000) + (2 × 100) + (3 × 10) + (4 × 1) = **1234**
+
+**Binary Positional Notation (Base 2):**
+
+| Radix | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Position | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+| Calculation | 2⁷ | 2⁶ | 2⁵ | 2⁴ | 2³ | 2² | 2¹ | 2⁰ |
+| Positional Value | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+
+**Example: 11000000 in binary**
+
+- (1 × 128) + (1 × 64) + (0 × 32) + (0 × 16) + (0 × 8) + (0 × 4) + (0 × 2) + (0 × 1) = **192**
+
+---
+
+### 5.1.3 Convert Binary to Decimal
+
+**Process:**
+
+1. Divide IPv4 address into four 8-bit octets
+2. Apply binary positional values to each octet
+3. Add up the values where bit = 1
+4. Write the four decimal numbers with dots between them
+
+**Example: Convert `11000000.10101000.00001011.00001010`**
+
+**First octet: 11000000**
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+128 + 64 = **192**
+
+**Second octet: 10101000**
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0 | 1 | 0 | 1 | 0 | 0 | 0 |
+
+128 + 32 + 8 = **168**
+
+**Third octet: 00001011**
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0 | 0 | 0 | 1 | 0 | 1 | 1 |
+
+8 + 2 + 1 = **11**
+
+**Fourth octet: 00001010**
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+
+8 + 2 = **10**
+
+**Result:** `192.168.11.10`
+
+---
+
+### 5.1.4 Convert Decimal to Binary
+
+**Process:**
+
+1. Start with the leftmost position (128)
+2. Ask: Is the decimal number ≥ 128?
+    - **Yes:** Place a 1, subtract 128 from the number
+    - **No:** Place a 0
+3. Move to next position (64) with the remainder
+4. Repeat until all 8 positions filled
+
+**Example: Convert 192 to binary**
+
+| Position Value | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Binary Digit | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+- 192 ≥ 128? Yes → 1, remainder: 192 - 128 = 64
+- 64 ≥ 64? Yes → 1, remainder: 64 - 64 = 0
+- 0 ≥ 32? No → 0
+- All remaining positions: 0
+
+**Result:** `11000000`
+
+**Example: Convert 192.168.10.11 to binary**
+
+- 192 → `11000000`
+- 168 → `10101000`
+- 10 → `00001010`
+- 11 → `00001011`
+
+**Result:** `11000000.10101000.00001010.00001011`
+
+---
+
+## 5.2 Hexadecimal Number System
+
+### 5.2.1 Hexadecimal and IPv6 Addresses
+
+**Hexadecimal** is a base-16 numbering system using digits **0-9** and letters **A-F**.
+
+**Hexadecimal Values:**
+
+| Decimal | Binary | Hex |
+| --- | --- | --- |
+| 0 | 0000 | 0 |
+| 1 | 0001 | 1 |
+| 2 | 0010 | 2 |
+| 3 | 0011 | 3 |
+| 4 | 0100 | 4 |
+| 5 | 0101 | 5 |
+| 6 | 0110 | 6 |
+| 7 | 0111 | 7 |
+| 8 | 1000 | 8 |
+| 9 | 1001 | 9 |
+| 10 | 1010 | A |
+| 11 | 1011 | B |
+| 12 | 1100 | C |
+| 13 | 1101 | D |
+| 14 | 1110 | E |
+| 15 | 1111 | F |
+
+**Why hexadecimal matters:** Used for IPv6 addresses and MAC addresses.
+
+**IPv6 Address Format:** `x:x:x:x:x:x:x:x`
+
+- 128 bits total
+- 8 groups (hextets)
+- Each hextet = 16 bits = 4 hex digits
+- Example: `2001:0db8:85a3:0000:0000:8a2e:0370:7334`
+
+**Hextet:** Unofficial term for 16-bit segment (4 hex digits) in IPv6
+
+---
+
+### 5.2.2 Convert Decimal to Hexadecimal
+
+**Process:**
+
+1. Convert decimal to 8-bit binary
+2. Divide binary into groups of 4 bits (from right to left)
+3. Convert each 4-bit group to hex digit
+
+**Example: Convert 168 to hexadecimal**
+
+1. 168 in binary: `10101000`
+2. Group into 4-bit chunks: `1010 | 1000`
+3. Convert each group:
+    - `1010` = 10 in decimal = **A** in hex
+    - `1000` = 8 in decimal = **8** in hex
+
+**Result:** `A8`
+
+---
+
+### 5.2.3 Convert Hexadecimal to Decimal
+
+**Process:**
+
+1. Convert each hex digit to 4-bit binary
+2. Combine into 8-bit binary grouping
+3. Convert 8-bit binary to decimal
+
+**Example: Convert D2 to decimal**
+
+1. D2 in 4-bit binary:
+    - D = `1101`
+    - 2 = `0010`
+2. Combine: `11010010`
+3. Convert to decimal:
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1 | 0 | 1 | 0 | 0 | 1 | 0 |
+
+128 + 64 + 16 + 2 = **210**
+
+**Result:** `210`
+
+---
+
+## 📊 Summary
+
+### Binary Number System
+
+- Base-2 system (0 and 1)
+- Used by all network devices
+- IPv4 addresses are 32-bit binary
+- Divided into 4 octets (8 bits each)
+- Must convert binary ↔ decimal for IPv4 addressing
+
+### Hexadecimal Number System
+
+- Base-16 system (0-9, A-F)
+- Used for IPv6 addresses and MAC addresses
+- IPv6 addresses are 128-bit hexadecimal
+- Every 4 bits = 1 hex digit
+- Must convert decimal → binary → hexadecimal
+
+### Key Conversion Steps
+
+- **Binary → Decimal:** Use positional values (128, 64, 32, 16, 8, 4, 2, 1)
+- **Decimal → Binary:** Subtract positional values from high to low
+- **Decimal → Hex:** Convert to binary, group by 4 bits, map to hex
+- **Hex → Decimal:** Convert to binary, group by 8 bits, calculate decimal
+
+---
+
+## 🎯 Practice Resources
+
+- **Binary Game:** Available at Cisco Learning Network
+- **Mobile Apps:** Search "binary game" in app stores
+- **Conversion Practice:** NetAcad interactive activities included in course
