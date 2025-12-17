@@ -1,201 +1,373 @@
-# Notion Learning Sync Documentation
+# Cortex Documentation
 
-Welcome to the documentation for **notion-learning-sync**, a content synchronization and cleaning service for learning systems.
+Cortex is an adaptive learning system that synchronizes learning content from Notion databases, generates flashcards and quiz questions using LLM, integrates with Anki for spaced repetition, and provides a CLI for interactive study sessions with cognitive diagnosis and Socratic tutoring.
 
-## Overview
+---
 
-Notion Learning Sync is a Python service that creates a clean, canonical data pipeline from Notion to your learning tools. It syncs content from Notion databases (flashcards, concepts, modules, tracks, programs), cleans it through a quality pipeline, and manages bidirectional sync with Anki.
+## What's New
+
+**Visual Engine**: 3D ASCII art animation system using asciimatics. Volumetric depth shading with gradient characters for terminal-based cyberbrain boot sequences.
+
+**Socratic Tutoring**: LLM-powered interactive dialogue system that guides learners through questions instead of revealing answers directly. Progressive scaffolding from pure Socratic to worked examples.
+
+**Dynamic Struggle Tracking**: Real-time NCDE-driven weight updates with complete audit trail in `struggle_weight_history` table.
+
+---
+
+## Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with DATABASE_URL and NOTION_API_KEY
+
+# Initialize database
+nls db migrate --migration 001
+
+# Sync from Notion
+nls sync notion
+
+# Start studying
+nls cortex start
+```
+
+---
+
+## Documentation Structure
+
+This documentation follows the [Diataxis](https://diataxis.fr/) framework:
+
+| Category | Purpose | When to Use |
+|----------|---------|-------------|
+| **Tutorials** | Learning-oriented | First-time setup, getting started |
+| **How-To Guides** | Task-oriented | Accomplish specific goals |
+| **Reference** | Information-oriented | Look up commands, settings, schemas |
+| **Explanation** | Understanding-oriented | Understand system design and theory |
+
+---
+
+## Tutorials
+
+Step-by-step guides for learning by doing.
+
+| Document | Description |
+|----------|-------------|
+| [Getting Started](tutorials/getting-started.md) | Install, configure, and run your first sync |
+| [First Study Session](tutorials/first-study-session.md) | Run your first adaptive study session |
+
+---
+
+## How-To Guides
+
+Task-focused instructions for specific goals.
+
+| Document | Description |
+|----------|-------------|
+| [Configure Anki Sync](how-to/configure-anki-sync.md) | Set up bidirectional Anki synchronization |
+| [Generate Atoms](how-to/generate-atoms.md) | Create learning atoms (flashcards, MCQs, cloze) |
+| [Run Quality Audit](how-to/run-quality-audit.md) | Audit and improve content quality |
+| [Maximize Retention](how-to/maximize-retention.md) | Evidence-based strategies for optimal learning |
+| [Use Study Notes](how-to/use-study-notes.md) | Browse, generate, and rate remediation notes |
+| [Use Signals Dashboard](how-to/use-signals-dashboard.md) | View transfer testing and memorization detection |
+| [Configure Type Quotas](how-to/configure-type-quotas.md) | Balance question types in study sessions |
+
+---
+
+## Reference
+
+Technical specifications for precise lookup.
+
+| Document | Description |
+|----------|-------------|
+| [CLI Commands](reference/cli-commands.md) | Complete command reference for `nls` |
+| [Configuration](reference/configuration.md) | Environment variables and settings |
+| [Database Schema](reference/database-schema.md) | PostgreSQL tables and relationships |
+| [API Endpoints](reference/api-endpoints.md) | REST API specification |
+| [JIT Generation](reference/jit-generation.md) | On-demand content generation |
+| [ML Personalization](reference/ml-personalization.md) | Signals and models for adaptive learning |
+
+---
+
+## Explanation
+
+Conceptual explanations of system design.
+
+| Document | Description |
+|----------|-------------|
+| [Architecture Overview](explanation/architecture.md) | System components and data flow |
+| [FSRS Algorithm](explanation/fsrs-algorithm.md) | Spaced repetition scheduling |
+| [Adaptive Learning](explanation/adaptive-learning.md) | Content selection and prioritization |
+| [Cognitive Diagnosis](explanation/cognitive-diagnosis.md) | NCDE error analysis and remediation |
+| [Session Remediation](explanation/session-remediation.md) | Hints, retry logic, and study notes |
+| [Struggle-Aware System](explanation/struggle-aware-system.md) | Targeted weakness identification |
+| [Transfer Testing](explanation/transfer-testing.md) | Memorization detection via format consistency |
+
+---
+
+## Core Concepts
+
+### Learning Atom
+
+A **learning atom** is the fundamental unit of content in Cortex. Each atom represents a single, atomic piece of knowledge that can be tested.
+
+**Atom Types:**
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `flashcard` | Question/answer pair | "What does TCP stand for?" / "Transmission Control Protocol" |
+| `cloze` | Fill-in-the-blank | "TCP provides {{c1::reliable}} data delivery" |
+| `mcq` | Multiple choice question | Four options, one correct |
+| `true_false` | Binary true/false | Statement verification |
+| `parsons` | Code ordering problem | Arrange Cisco commands in sequence |
+| `matching` | Term-definition pairs | Match protocols to port numbers |
+
+### Anki Integration
+
+Cortex integrates with Anki via [AnkiConnect](https://foosoft.net/projects/anki-connect/):
+
+- **Push**: Learning atoms are pushed to Anki as cards
+- **Pull**: FSRS review statistics are pulled back to update mastery state
+- **Sync**: Bidirectional sync keeps both systems aligned
+
+### FSRS (Free Spaced Repetition Scheduler)
+
+Cortex uses FSRS-4 for spaced repetition scheduling:
+
+| Metric | Description |
+|--------|-------------|
+| **Stability** | Days until memory decays to 90% retention |
+| **Difficulty** | Intrinsic difficulty of the atom (0-1) |
+| **Retrievability** | Current probability of successful recall |
+
+---
+
+## CLI Quick Reference
+
+### Study Commands
+
+| Command | Description |
+|---------|-------------|
+| `nls cortex start` | Start adaptive study session |
+| `nls cortex optimize` | FSRS-optimized session |
+| `nls cortex start --mode war` | Intensive cramming mode |
+| `nls cortex resume` | Resume saved session |
+| `nls cortex suggest` | Get study suggestions |
+| `nls cortex stats` | View study statistics |
+| `nls cortex today` | Daily session summary |
+| `nls cortex path` | Show learning path progress |
+
+### Reading Commands
+
+| Command | Description |
+|---------|-------------|
+| `nls cortex read <N>` | Read module N content |
+| `nls cortex read <N> --toc` | Show table of contents |
+| `nls cortex read <N> --section X.Y` | Read specific section |
+
+### Sync Commands
+
+| Command | Description |
+|---------|-------------|
+| `nls sync notion` | Pull content from Notion |
+| `nls sync anki-push` | Push learning atoms to Anki |
+| `nls sync anki-pull` | Pull FSRS stats from Anki |
+| `nls sync all` | Full sync pipeline |
+
+### Content Generation Commands
+
+| Command | Description |
+|---------|-------------|
+| `nls generate concept <uuid>` | Generate atoms for a concept |
+| `nls generate gaps` | Find and fill content gaps |
+| `nls generate stats` | Show JIT generation statistics |
+
+### Session Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Space` | Reveal answer |
+| `1-4` | Rate recall quality |
+| `A-D` | Answer MCQ |
+| `?` / `idk` | "I don't know" (honest path) |
+| `h` | Show hint |
+| `q` | Quit session |
+| `Ctrl+C` | Save and quit |
+
+---
+
+## System Requirements
+
+| Component | Version | Notes |
+|-----------|---------|-------|
+| Python | 3.11+ | Required |
+| PostgreSQL | 15+ | Required |
+| Anki | 2.1.54+ | Optional, for spaced repetition |
+| AnkiConnect | 6+ | Required if using Anki |
+
+---
 
 ## Key Features
 
-- **Notion Sync**: Pull content from multiple Notion databases
-- **Quality Pipeline**: Validate atomicity, detect duplicates, normalize content
-- **AI Rewriting**: Automatically improve verbose flashcards using Gemini/Vertex AI
-- **Review Queue**: Manual approval workflow for AI-generated content
-- **Anki Integration**: Bidirectional sync (push cards, pull review stats)
-- **Clean Output**: Canonical tables for personal use and future right-learning ETL
+### Spaced Repetition
 
-## Architecture Philosophy
+- FSRS-4 algorithm for optimal scheduling
+- Memory stability and retrievability tracking
+- Bidirectional Anki sync for mobile study
 
-The service follows a **staging -> cleaning -> canonical** pattern:
+### Adaptive Learning
 
-```
-Notion (Source of Truth)
-    | sync
-+----------------------------------+
-|  Staging Tables (stg_*)          |  <- Raw JSONB from Notion API
-+----------------+-----------------+
-                 |
-+----------------v-----------------+
-|  Cleaning Pipeline               |
-|  - Atomicity validation          |
-|  - Duplicate detection           |
-|  - Prefix normalization          |
-|  - AI rewriting (optional)       |
-+----------------+-----------------+
-                 |
-+----------------v-----------------+
-|  Canonical Tables                |  <- Trusted output
-|  (learning_atoms, concepts)      |
-+----------------+-----------------+
-                 |
-          +------+------+
-          |             |
-          v             v
-        Anki         NLS CLI
-   (flashcard,      (mcq, parsons,
-    cloze)          true_false)
-```
+- Z-Score prioritization balances time-decay, centrality, project relevance, and novelty
+- Prerequisite ordering ensures proper sequencing
+- Struggle-aware targeting focuses on weak areas
+- Question type quotas (35% MCQ, 25% T/F, 25% Parsons, 15% Matching)
 
----
+### Cognitive Diagnosis (NCDE)
 
-## Documentation Guide
+- Identifies failure modes: encoding, retrieval, discrimination, integration, executive, fatigue
+- Targeted remediation based on error type
+- Response time and pattern analysis
+- **Real-time struggle weight updates** via `update_struggle_from_ncde()` called after each interaction
 
-### Getting Started
+### Dynamic Struggle Tracking
 
-| Guide | Description |
-|-------|-------------|
-| [Quickstart](getting-started/quickstart.md) | Get up and running in 10 minutes |
-| [Configuration](getting-started/configuration.md) | All settings explained |
-| [Notion Setup](getting-started/notion-setup.md) | How to configure Notion databases |
+- **Static Configuration**: User-declared struggles from `struggles.yaml` (one-time import)
+- **Dynamic Updates**: NCDE-diagnosed patterns update weights in real-time during study sessions
+- **Session Integration**: `CortexSession._update_struggle_weight()` triggers PostgreSQL updates after each NCDE diagnosis
+- **Audit Trail**: Complete history in `struggle_weight_history` table
+- **Trend Analysis**: 7-day trend tracking (improving/declining/stable)
+- **Prerequisite Chains**: Layer 2, Layer 3, Upper Layers, Lab Skills
 
-### Architecture
+### JIT Content Generation
 
-| Guide | Description |
-|-------|-------------|
-| [Overview](architecture/overview.md) | System design and data flow |
-| [Database Schema](architecture/database-schema.md) | Tables, relationships, and views |
-| [Cleaning Pipeline](architecture/cleaning-pipeline.md) | Content quality processing |
-| [Services Reference](architecture/services-reference.md) | Service layer documentation |
+- On-demand atom generation when remediation content is exhausted
+- Fills coverage gaps automatically
+- Maps failure modes to appropriate content types
+- **Struggle-targeted generation**: Atom types selected based on failure modes
 
-### Features
+### Content Generation (241 New Atoms)
 
-| Guide | Description |
-|-------|-------------|
-| [Anki Integration](features/anki-integration.md) | Bidirectional sync details |
-| [Anki Card Structure](features/anki-card-structure.md) | Note vs card terminology, field specs |
-| [CLI Quiz Compatibility](features/cli-quiz-compatibility.md) | CLI vs UI requirements matrix |
-| [API Reference](features/api-reference.md) | REST endpoints |
+- **NUMERIC atoms**: 89 atoms for subnetting calculations (Module 8)
+- **MATCHING atoms**: Discrimination training for Ethernet concepts (Module 5)
+- **PARSONS atoms**: CLI command sequence problems for lab skills
+- **Fidelity tracking**: `is_hydrated`, `fidelity_type`, `source_fact_basis`
 
-### Courses
+### Quality Control
 
-| Guide | Description |
-|-------|-------------|
-| [Course Overview](courses/index.md) | Processing pipeline and status |
-| [CCNA ITN](courses/ccna-itn.md) | Gold standard course (4,924 atoms) |
-| [CDS.Networking](courses/cds-networking.md) | Queued - CCNA aligned |
-| [CDS.Security](courses/cds-security.md) | Queued - DevOps/Security |
-| [PROGII](courses/progii.md) | Queued - Advanced programming |
-| [SDE2](courses/sde2.md) | Queued - Full-stack development |
-| [SDE2Testing](courses/sde2-testing.md) | Queued - Software testing |
+- Evidence-based atomicity thresholds (Wozniak/Gwern research)
+- Quality grading (A-F) based on word counts and structure
+- AI-assisted content rewriting
 
-### Operations
+### Remediation Learning Loop
 
-| Guide | Description |
-|-------|-------------|
-| [Deployment Guide](operations/deployment-guide.md) | Production setup |
-| [Testing Guide](operations/testing-guide.md) | Test suite documentation |
-| [Status](operations/status.md) | Current system status |
+- **"I Don't Know"**: Honest learning path for unfamiliar content
+- **Pre-Session Notes**: Review relevant study notes before drilling
+- **Micro-Notes**: Quick review triggered by consecutive errors
+- **Post-Session Notes**: Generate LLM notes for struggled sections
+- **Quality Tracking**: Automatic effectiveness measurement
 
-### Reference
+### Socratic Tutoring
 
-| Guide | Description |
-|-------|-------------|
-| [Notion Database Structure](reference/notion-database-structure.md) | Notion schema reference |
-| [Phase 4.6 CCNA Generation](reference/phase-4.6-ccna-generation.md) | Historical generation results |
-| [Struggle Schema](reference/struggle-schema.md) | Struggle tracking schema |
+When learners indicate "I don't know", instead of revealing the answer immediately:
 
-### Epics
+- **Progressive scaffolding**: Five levels from pure Socratic questions to full reveal
+- **Dialogue tracking**: All sessions recorded in `socratic_dialogues` table
+- **Gap detection**: Identifies prerequisite knowledge gaps during dialogue
+- **Resolution outcomes**: Tracks whether learner self-solved, needed guidance, or gave up
 
-| Guide | Description |
-|-------|-------------|
-| [CCNA Study Path](epics/ccna-study-path.md) | Daily study sessions, learning path |
-| [Learning Atom Enhancement](epics/learning-atom-enhancement.md) | Prerequisite linking, metadata enrichment |
+| Scaffold Level | Behavior |
+|----------------|----------|
+| 0 | Pure Socratic (questions only) |
+| 1 | Conceptual nudge |
+| 2 | Partial reveal |
+| 3 | Worked example with gaps |
+| 4 | Full answer reveal |
+
+### 3D Visual Engine
+
+Terminal-based volumetric ASCII art system:
+
+- **Depth shading**: Gradient characters `░▒▓█` create 3D perception
+- **Animated brain**: Pulsing cyberbrain boot sequence with neural activation effects
+- **Adaptive sizing**: Three frame sets for large, medium, and small terminals
+- **3D panels**: Isometric panels with shadow effects for menus and status cards
+- **Holographic headers**: Circuit/neural pattern decorations
+
+**Implementation**: `src/delivery/cortex_visuals.py` (3D panel engine) and `src/delivery/animated_brain.py` (animation effects)
+
+### Session Persistence
+
+- Auto-saves every 5 questions
+- Resume sessions within 24 hours
+- Full telemetry logging
 
 ---
 
-## Current Status
-
-### Data Pipeline Status (December 2025)
-
-| Metric | Value | Notes |
-|--------|-------|-------|
-| **Total Atoms** | 4,924 | CCNA ITN complete curriculum |
-| **Atoms Linked to Sections** | 4,574 (93%) | Via keyword matching |
-| **Unmatched Atoms** | 350 | Pending keyword expansion |
-| **CCNA Sections** | 530 | Modules 1-16 |
-| **Unique Parent Sections with Atoms** | 63 | e.g., "14.6", "11.5" |
-
-### Anki Sync
-
-- **4,238 notes** synced to Anki (3,408 flashcards + 830 cloze)
-- **571 atoms** remain in NLS (533 MCQ + 38 Parsons)
-- Deck structure: `CCNA::ITN::M{XX} {Module Name}`
-
-### Test Suite
-
-| Test Type | Tests | Status |
-|-----------|-------|--------|
-| Unit Tests | 35 | All passing |
-| Integration Tests | 16 | All passing |
-| Smoke Tests | ~20 | Ready to run |
-| E2E Tests | ~25 | Require API server |
-
-### Course Queue
-
-| Course | Status | Atoms |
-|--------|--------|-------|
-| CCNA ITN | **Complete** | 4,924 |
-| CDS.Networking | Queued | ~1,500 |
-| CDS.Security | Queued | ~2,000 |
-| PROGII | Queued | ~1,800 |
-| SDE2 | Queued | ~2,500 |
-| SDE2Testing | Queued | ~1,200 |
-
----
-
-## Project Structure
+## Architecture Overview
 
 ```
-notion-learning-sync/
-├── src/
-│   ├── sync/           # Notion sync engine
-│   ├── cleaning/       # Content quality pipeline
-│   ├── anki/           # Anki integration
-│   ├── db/             # Database layer
-│   │   ├── models/     # SQLAlchemy models
-│   │   └── migrations/ # SQL migrations
-│   ├── api/            # FastAPI endpoints
-│   └── cli/            # Typer CLI
-├── scripts/            # Utility scripts
-├── docs/               # This documentation
-│   ├── getting-started/
-│   ├── architecture/
-│   ├── features/
-│   ├── courses/
-│   ├── operations/
-│   ├── reference/
-│   ├── epics/
-│   └── source-materials/
-│       ├── CCNA/       # CCNA module sources
-│       └── EASV/       # EASV course sources
-├── config.py           # Pydantic settings
-├── main.py             # Entry point
-└── requirements.txt    # Dependencies
+Notion Databases
+      |
+      v
+  [Sync Service] --> PostgreSQL (staging + canonical)
+      |                    |
+      v                    v
+  [Quality Pipeline]  [Learning Engine]
+      |                    |
+      v                    v
+  Anki (cards) <-----> [CLI Study Interface]
+                           |
+              +------------+------------+
+              |            |            |
+              v            v            v
+       [3D Visual    [NCDE       [Socratic
+        Engine]      Diagnosis]   Tutor]
+              |            |            |
+              +------------+------------+
+                           |
+                           v
+                    [JIT Generation]
 ```
 
 ---
 
-## Quick Links
+## Glossary
 
-- [Notion API Docs](https://developers.notion.com/)
-- [AnkiConnect Plugin](https://foosoft.net/projects/anki-connect/)
-- [FSRS Algorithm](https://github.com/open-spaced-repetition/fsrs4anki)
+| Term | Definition |
+|------|------------|
+| **Atom** | Short for "learning atom"; a single testable unit of knowledge |
+| **FSRS** | Free Spaced Repetition Scheduler; the scheduling algorithm |
+| **NCDE** | Neuro-Cognitive Diagnostic Engine; identifies error types |
+| **JIT** | Just-In-Time; on-demand content generation |
+| **Mastery** | Combined score from review performance and quiz results |
+| **Stability** | FSRS metric: days until memory decays to 90% retention |
+| **Retrievability** | FSRS metric: current recall probability |
+| **War Mode** | Intensive study mode focusing on struggling content |
+| **Struggle Weight** | Combined static (YAML) and dynamic (NCDE) priority score |
+| **ncde_weight** | Dynamic component of struggle weight; updated per-interaction |
+| **PSI** | Pattern Separation Index; measures concept discrimination ability |
+| **Failure Mode** | Cognitive error type (encoding, retrieval, discrimination, etc.) |
+| **Prerequisite Chain** | Ordered sequence of modules that must be studied in order |
+| **Fidelity Type** | Tracks atom content origin: verbatim, rephrased, or AI-enriched |
+| **Hydration** | Process of enriching abstract facts with concrete scenarios |
+| **Socratic Dialogue** | Interactive tutoring session using guiding questions |
+| **Scaffold Level** | Progressive hint intensity in Socratic tutoring (0-4) |
+| **Depth Shading** | ASCII gradient technique using `░▒▓█` for 3D visual effects |
 
-## Support
+---
 
-This is an internal project for Project Astartes. For issues or questions, contact the development team.
+## External Resources
 
-## License
+- [FSRS Algorithm](https://github.com/open-spaced-repetition/fsrs4anki) - Spaced repetition scheduler
+- [AnkiConnect](https://foosoft.net/projects/anki-connect/) - Anki API plugin
+- [Diataxis Framework](https://diataxis.fr/) - Documentation methodology
+- [Notion API](https://developers.notion.com/) - Notion integration
 
-Internal use only - Project Astartes
+---
+
+## See Also
+
+- [CHANGELOG](../CHANGELOG.md) - Version history and recent changes
+- [README](../README.md) - Project overview
