@@ -11,20 +11,20 @@ Endpoints for:
 
 Phase 3 implementation for right-learning integration.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
 from pydantic import BaseModel, Field
-
-from src.db.database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.db.database import get_async_session
 
 router = APIRouter()
 
@@ -37,43 +37,47 @@ router = APIRouter()
 class PrerequisiteCreateRequest(BaseModel):
     """Request model for creating a prerequisite."""
 
-    source_concept_id: Optional[str] = Field(None, description="Source concept ID")
-    source_atom_id: Optional[str] = Field(None, description="Source atom ID")
+    source_concept_id: str | None = Field(None, description="Source concept ID")
+    source_atom_id: str | None = Field(None, description="Source atom ID")
     target_concept_id: str = Field(..., description="Target concept ID (prerequisite)")
     gating_type: str = Field("soft", description="Gating type: 'soft' or 'hard'")
-    mastery_type: str = Field("integration", description="Mastery type: 'foundation', 'integration', 'mastery'")
-    mastery_threshold: Optional[float] = Field(None, ge=0, le=1, description="Custom mastery threshold (0-1)")
+    mastery_type: str = Field(
+        "integration", description="Mastery type: 'foundation', 'integration', 'mastery'"
+    )
+    mastery_threshold: float | None = Field(
+        None, ge=0, le=1, description="Custom mastery threshold (0-1)"
+    )
     origin: str = Field("explicit", description="Origin: 'explicit', 'tag', 'inferred', 'imported'")
-    anki_tag: Optional[str] = Field(None, description="Source Anki tag if origin='tag'")
-    notes: Optional[str] = Field(None, description="Additional notes")
+    anki_tag: str | None = Field(None, description="Source Anki tag if origin='tag'")
+    notes: str | None = Field(None, description="Additional notes")
 
 
 class PrerequisiteResponse(BaseModel):
     """Response model for a prerequisite."""
 
     id: str
-    source_concept_id: Optional[str]
-    source_atom_id: Optional[str]
+    source_concept_id: str | None
+    source_atom_id: str | None
     target_concept_id: str
-    target_concept_name: Optional[str]
+    target_concept_name: str | None
     gating_type: str
     mastery_type: str
     mastery_threshold: float
     origin: str
-    anki_tag: Optional[str]
+    anki_tag: str | None
     status: str
-    notes: Optional[str]
+    notes: str | None
     created_at: datetime
 
 
 class PrerequisiteUpdateRequest(BaseModel):
     """Request model for updating a prerequisite."""
 
-    gating_type: Optional[str] = Field(None, description="Gating type: 'soft' or 'hard'")
-    mastery_type: Optional[str] = Field(None, description="Mastery type")
-    mastery_threshold: Optional[float] = Field(None, ge=0, le=1)
-    status: Optional[str] = Field(None, description="Status: 'active', 'deprecated', 'removed'")
-    notes: Optional[str] = None
+    gating_type: str | None = Field(None, description="Gating type: 'soft' or 'hard'")
+    mastery_type: str | None = Field(None, description="Mastery type")
+    mastery_threshold: float | None = Field(None, ge=0, le=1)
+    status: str | None = Field(None, description="Status: 'active', 'deprecated', 'removed'")
+    notes: str | None = None
 
 
 class AccessCheckResponse(BaseModel):
@@ -82,8 +86,8 @@ class AccessCheckResponse(BaseModel):
     status: str  # allowed, warning, blocked, waived
     can_access: bool
     message: str
-    blocking_prerequisites: List[Dict[str, Any]] = Field(default_factory=list)
-    warnings: List[str] = Field(default_factory=list)
+    blocking_prerequisites: list[dict[str, Any]] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     waiver_applied: bool = False
 
 
@@ -96,7 +100,7 @@ class PrerequisiteChainNode(BaseModel):
     gating_type: str
     mastery_threshold: float
     is_met: bool = False
-    current_mastery: Optional[float] = None
+    current_mastery: float | None = None
 
 
 class PrerequisiteChainResponse(BaseModel):
@@ -104,19 +108,21 @@ class PrerequisiteChainResponse(BaseModel):
 
     target_concept_id: str
     target_concept_name: str
-    chain: List[PrerequisiteChainNode]
+    chain: list[PrerequisiteChainNode]
     total_depth: int
 
 
 class WaiverCreateRequest(BaseModel):
     """Request model for creating a waiver."""
 
-    waiver_type: str = Field(..., description="Type: 'instructor', 'challenge', 'external', 'accelerated'")
-    granted_by: Optional[str] = Field(None, description="User who granted the waiver")
-    evidence_type: Optional[str] = Field(None, description="Type of evidence")
-    evidence_details: Optional[Dict[str, Any]] = Field(None, description="Evidence JSON")
-    expires_at: Optional[datetime] = Field(None, description="Expiration date")
-    notes: Optional[str] = None
+    waiver_type: str = Field(
+        ..., description="Type: 'instructor', 'challenge', 'external', 'accelerated'"
+    )
+    granted_by: str | None = Field(None, description="User who granted the waiver")
+    evidence_type: str | None = Field(None, description="Type of evidence")
+    evidence_details: dict[str, Any] | None = Field(None, description="Evidence JSON")
+    expires_at: datetime | None = Field(None, description="Expiration date")
+    notes: str | None = None
 
 
 class WaiverResponse(BaseModel):
@@ -125,20 +131,20 @@ class WaiverResponse(BaseModel):
     id: str
     prerequisite_id: str
     waiver_type: str
-    granted_by: Optional[str]
-    evidence_type: Optional[str]
-    evidence_details: Optional[Dict[str, Any]]
-    expires_at: Optional[datetime]
+    granted_by: str | None
+    evidence_type: str | None
+    evidence_details: dict[str, Any] | None
+    expires_at: datetime | None
     is_active: bool
     granted_at: datetime
-    notes: Optional[str]
+    notes: str | None
 
 
 class AnkiTagSyncRequest(BaseModel):
     """Request model for Anki tag sync."""
 
     atom_id: str
-    tags: List[str] = Field(..., description="List of Anki tags")
+    tags: list[str] = Field(..., description="List of Anki tags")
 
 
 class AnkiTagSyncResponse(BaseModel):
@@ -146,20 +152,20 @@ class AnkiTagSyncResponse(BaseModel):
 
     atom_id: str
     prerequisites_created: int
-    prerequisites_tags: List[str]
+    prerequisites_tags: list[str]
 
 
 class CircularValidationResponse(BaseModel):
     """Response model for circular dependency validation."""
 
     is_valid: bool
-    errors: List[Dict[str, Any]] = Field(default_factory=list)
+    errors: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class BatchImportRequest(BaseModel):
     """Request model for batch prerequisite import."""
 
-    prerequisites: List[Dict[str, Any]]
+    prerequisites: list[dict[str, Any]]
     validate_only: bool = Field(False, description="Only validate, don't create")
 
 
@@ -169,7 +175,7 @@ class BatchImportResponse(BaseModel):
     success: bool
     created: int
     skipped: int
-    errors: List[Dict[str, Any]] = Field(default_factory=list)
+    errors: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ========================================
@@ -197,7 +203,9 @@ async def create_prerequisite(
     - integration: 65% threshold (solid understanding)
     - mastery: 85% threshold (expert level)
     """
-    logger.info(f"Creating prerequisite: {request.target_concept_id} -> {request.source_concept_id or request.source_atom_id}")
+    logger.info(
+        f"Creating prerequisite: {request.target_concept_id} -> {request.source_concept_id or request.source_atom_id}"
+    )
 
     try:
         from src.prerequisites import PrerequisiteService
@@ -210,7 +218,9 @@ async def create_prerequisite(
         target_concept_uuid = UUID(request.target_concept_id)
 
         # Calculate threshold
-        mastery_threshold = Decimal(str(request.mastery_threshold)) if request.mastery_threshold else None
+        mastery_threshold = (
+            Decimal(str(request.mastery_threshold)) if request.mastery_threshold else None
+        )
 
         prereq = await service.create_prerequisite(
             source_concept_id=source_concept_uuid,
@@ -251,18 +261,18 @@ async def create_prerequisite(
 
 @router.get(
     "",
-    response_model=List[PrerequisiteResponse],
+    response_model=list[PrerequisiteResponse],
     summary="List prerequisites",
 )
 async def list_prerequisites(
-    source_concept_id: Optional[str] = Query(None),
-    source_atom_id: Optional[str] = Query(None),
-    target_concept_id: Optional[str] = Query(None),
-    gating_type: Optional[str] = Query(None, description="Filter by gating type"),
+    source_concept_id: str | None = Query(None),
+    source_atom_id: str | None = Query(None),
+    target_concept_id: str | None = Query(None),
+    gating_type: str | None = Query(None, description="Filter by gating type"),
     status: str = Query("active", description="Filter by status"),
     limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_async_session),
-) -> List[PrerequisiteResponse]:
+) -> list[PrerequisiteResponse]:
     """
     List prerequisites with optional filters.
 
@@ -364,9 +374,7 @@ async def update_prerequisite(
 
         service = PrerequisiteService(db)
 
-        update_data = {
-            k: v for k, v in request.model_dump().items() if v is not None
-        }
+        update_data = {k: v for k, v in request.model_dump().items() if v is not None}
 
         if "mastery_threshold" in update_data:
             update_data["mastery_threshold"] = Decimal(str(update_data["mastery_threshold"]))
@@ -406,7 +414,7 @@ async def update_prerequisite(
 async def delete_prerequisite(
     prerequisite_id: str,
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Delete a prerequisite (soft delete by setting status='removed')."""
     try:
         from src.prerequisites import PrerequisiteService
@@ -438,7 +446,7 @@ async def delete_prerequisite(
 )
 async def check_access(
     concept_id: str,
-    user_mastery: Optional[str] = Query(None, description="JSON string of concept_id:mastery pairs"),
+    user_mastery: str | None = Query(None, description="JSON string of concept_id:mastery pairs"),
     db: AsyncSession = Depends(get_async_session),
 ) -> AccessCheckResponse:
     """
@@ -453,12 +461,13 @@ async def check_access(
 
     try:
         import json
+
         from src.prerequisites import GatingService
 
         service = GatingService(db)
 
         # Parse user mastery data
-        mastery_data: Dict[UUID, float] = {}
+        mastery_data: dict[UUID, float] = {}
         if user_mastery:
             try:
                 mastery_json = json.loads(user_mastery)
@@ -505,7 +514,7 @@ async def check_access(
 )
 async def check_access_post(
     concept_id: str = Query(...),
-    user_mastery: Dict[str, float] = None,
+    user_mastery: dict[str, float] = None,
     db: AsyncSession = Depends(get_async_session),
 ) -> AccessCheckResponse:
     """
@@ -518,7 +527,7 @@ async def check_access_post(
 
         service = GatingService(db)
 
-        mastery_data: Dict[UUID, float] = {}
+        mastery_data: dict[UUID, float] = {}
         if user_mastery:
             mastery_data = {UUID(k): float(v) for k, v in user_mastery.items()}
 
@@ -564,7 +573,7 @@ async def check_access_post(
 )
 async def get_prerequisite_chain(
     concept_id: str,
-    user_mastery: Optional[str] = Query(None, description="JSON string of mastery data"),
+    user_mastery: str | None = Query(None, description="JSON string of mastery data"),
     max_depth: int = Query(10, ge=1, le=20),
     db: AsyncSession = Depends(get_async_session),
 ) -> PrerequisiteChainResponse:
@@ -578,12 +587,13 @@ async def get_prerequisite_chain(
 
     try:
         import json
+
         from src.prerequisites import PrerequisiteService
 
         service = PrerequisiteService(db)
 
         # Parse mastery data
-        mastery_data: Dict[UUID, float] = {}
+        mastery_data: dict[UUID, float] = {}
         if user_mastery:
             try:
                 mastery_json = json.loads(user_mastery)
@@ -598,10 +608,10 @@ async def get_prerequisite_chain(
 
         # Get concept name
         from sqlalchemy import select
+
         from src.db.models import CleanConcept
-        result = await db.execute(
-            select(CleanConcept).where(CleanConcept.id == UUID(concept_id))
-        )
+
+        result = await db.execute(select(CleanConcept).where(CleanConcept.id == UUID(concept_id)))
         concept = result.scalar_one_or_none()
 
         return PrerequisiteChainResponse(
@@ -638,7 +648,7 @@ async def get_prerequisite_chain(
     summary="Validate prerequisites (circular check)",
 )
 async def validate_prerequisites(
-    source_concept_id: Optional[str] = Query(None),
+    source_concept_id: str | None = Query(None),
     target_concept_id: str = Query(...),
     db: AsyncSession = Depends(get_async_session),
 ) -> CircularValidationResponse:
@@ -760,7 +770,7 @@ async def sync_from_anki_tags(
 async def export_to_anki_tags(
     atom_id: str,
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Export prerequisite relationships as Anki tags.
 
@@ -843,14 +853,14 @@ async def create_waiver(
 
 @router.get(
     "/{prerequisite_id}/waivers",
-    response_model=List[WaiverResponse],
+    response_model=list[WaiverResponse],
     summary="List waivers",
 )
 async def list_waivers(
     prerequisite_id: str,
     include_expired: bool = Query(False),
     db: AsyncSession = Depends(get_async_session),
-) -> List[WaiverResponse]:
+) -> list[WaiverResponse]:
     """Get waivers for a prerequisite."""
     try:
         from src.prerequisites import GatingService
@@ -890,7 +900,7 @@ async def list_waivers(
 async def revoke_waiver(
     waiver_id: str,
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Revoke a waiver."""
     try:
         from src.prerequisites import GatingService
@@ -940,13 +950,13 @@ async def batch_import_prerequisites(
     try:
         from src.prerequisites import PrerequisiteService
 
-        service = PrerequisiteService(db)
+        PrerequisiteService(db)
 
         # First validate
         errors = []
         for i, prereq in enumerate(request.prerequisites):
             target = prereq.get("target_concept")
-            source = prereq.get("source_concept")
+            prereq.get("source_concept")
 
             if not target:
                 errors.append({"row": i, "error": "Missing target_concept"})
@@ -997,7 +1007,7 @@ async def batch_import_prerequisites(
 )
 async def get_mastery_thresholds(
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Get all mastery threshold values.
 
@@ -1018,7 +1028,7 @@ async def get_mastery_thresholds(
 async def get_mastery_threshold(
     mastery_type: str,
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get threshold for a specific mastery type."""
     from src.prerequisites import GatingService
 
@@ -1027,7 +1037,7 @@ async def get_mastery_threshold(
     if mastery_type not in ("foundation", "integration", "mastery"):
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid mastery type. Must be: foundation, integration, or mastery"
+            detail="Invalid mastery type. Must be: foundation, integration, or mastery",
         )
 
     threshold = service.get_mastery_threshold(mastery_type)

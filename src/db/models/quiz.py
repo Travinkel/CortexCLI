@@ -26,15 +26,17 @@ Mastery Weights:
 - Quiz: 37.5% (quiz_mastery_weight)
 - Review: 62.5% (review_mastery_weight)
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, Text, func, ARRAY
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
+from sqlalchemy import ARRAY, Boolean, ForeignKey, Integer, Numeric, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -125,13 +127,10 @@ class QuizQuestion(Base):
     __tablename__ = "quiz_questions"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.gen_random_uuid()
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
     )
     atom_id: Mapped[UUID] = mapped_column(
-        ForeignKey("learning_atoms.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("learning_atoms.id", ondelete="CASCADE"), nullable=False
     )
 
     # Question type
@@ -141,10 +140,7 @@ class QuizQuestion(Base):
     question_content: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     # Difficulty and cognitive load
-    difficulty: Mapped[Decimal | None] = mapped_column(
-        Numeric(3, 2),
-        default=Decimal("0.5")
-    )
+    difficulty: Mapped[Decimal | None] = mapped_column(Numeric(3, 2), default=Decimal("0.5"))
     intrinsic_load: Mapped[int | None] = mapped_column(Integer)  # 1-5
     knowledge_type: Mapped[str | None] = mapped_column(Text)
 
@@ -167,14 +163,9 @@ class QuizQuestion(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    atom: Mapped["CleanAtom"] = relationship(
-        "CleanAtom",
-        back_populates="quiz_question"
-    )
-    pool: Mapped["QuestionPool | None"] = relationship(
-        "QuestionPool",
-        back_populates="questions",
-        foreign_keys=[pool_id]
+    atom: Mapped[CleanAtom] = relationship("CleanAtom", back_populates="quiz_question")
+    pool: Mapped[QuestionPool | None] = relationship(
+        "QuestionPool", back_populates="questions", foreign_keys=[pool_id]
     )
 
     def __repr__(self) -> str:
@@ -218,7 +209,10 @@ class QuizQuestion(Base):
         elif self.question_type == "short_answer":
             if "correct_answers" not in content:
                 errors.append("Short answer requires 'correct_answers' array")
-            elif not isinstance(content["correct_answers"], list) or len(content["correct_answers"]) == 0:
+            elif (
+                not isinstance(content["correct_answers"], list)
+                or len(content["correct_answers"]) == 0
+            ):
                 errors.append("Short answer requires at least one correct answer")
 
         elif self.question_type == "matching":
@@ -256,7 +250,14 @@ class QuizQuestion(Base):
                 errors.append("Numeric requires 'steps' for solution walkthrough")
             # Optional validation for answer_type
             if "answer_type" in content:
-                valid_types = ["binary", "decimal", "hexadecimal", "ip_address", "subnet_mask", "integer"]
+                valid_types = [
+                    "binary",
+                    "decimal",
+                    "hexadecimal",
+                    "ip_address",
+                    "subnet_mask",
+                    "integer",
+                ]
                 if content["answer_type"] not in valid_types:
                     errors.append(f"Numeric 'answer_type' must be one of: {valid_types}")
 
@@ -309,18 +310,14 @@ class QuizDefinition(Base):
     __tablename__ = "quiz_definitions"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.gen_random_uuid()
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
     )
 
     # Scope
     concept_cluster_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("concept_clusters.id", ondelete="SET NULL")
     )
-    concept_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("concepts.id", ondelete="SET NULL")
-    )
+    concept_id: Mapped[UUID | None] = mapped_column(ForeignKey("concepts.id", ondelete="SET NULL"))
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
@@ -330,20 +327,11 @@ class QuizDefinition(Base):
     time_limit_minutes: Mapped[int | None] = mapped_column(Integer)
 
     # Passing threshold
-    passing_threshold: Mapped[Decimal] = mapped_column(
-        Numeric(3, 2),
-        default=Decimal("0.70")
-    )
+    passing_threshold: Mapped[Decimal] = mapped_column(Numeric(3, 2), default=Decimal("0.70"))
 
     # Mastery weights (from right-learning: 37.5% quiz + 62.5% review)
-    quiz_mastery_weight: Mapped[Decimal] = mapped_column(
-        Numeric(3, 2),
-        default=Decimal("0.375")
-    )
-    review_mastery_weight: Mapped[Decimal] = mapped_column(
-        Numeric(3, 2),
-        default=Decimal("0.625")
-    )
+    quiz_mastery_weight: Mapped[Decimal] = mapped_column(Numeric(3, 2), default=Decimal("0.375"))
+    review_mastery_weight: Mapped[Decimal] = mapped_column(Numeric(3, 2), default=Decimal("0.625"))
 
     # Attempt configuration
     max_attempts: Mapped[int | None] = mapped_column(Integer)
@@ -365,11 +353,10 @@ class QuizDefinition(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    concept_cluster: Mapped["CleanConceptCluster | None"] = relationship("CleanConceptCluster")
-    concept: Mapped["CleanConcept | None"] = relationship("CleanConcept")
-    passages: Mapped[list["QuizPassage"]] = relationship(
-        back_populates="quiz_definition",
-        cascade="all, delete-orphan"
+    concept_cluster: Mapped[CleanConceptCluster | None] = relationship("CleanConceptCluster")
+    concept: Mapped[CleanConcept | None] = relationship("CleanConcept")
+    passages: Mapped[list[QuizPassage]] = relationship(
+        back_populates="quiz_definition", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
@@ -429,9 +416,7 @@ class QuizPassage(Base):
     __tablename__ = "quiz_passages"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.gen_random_uuid()
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
     )
     quiz_definition_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("quiz_definitions.id", ondelete="CASCADE")
@@ -446,9 +431,7 @@ class QuizPassage(Base):
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
     # Relationships
-    quiz_definition: Mapped["QuizDefinition | None"] = relationship(
-        back_populates="passages"
-    )
+    quiz_definition: Mapped[QuizDefinition | None] = relationship(back_populates="passages")
 
     def __repr__(self) -> str:
         title = self.title or "Untitled"

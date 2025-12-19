@@ -8,27 +8,26 @@ Core responsibilities:
 - Handle errors gracefully with transaction rollback
 - Support dry-run mode and progress callbacks
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
-from collections import defaultdict
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from loguru import logger
-from sqlalchemy import func, select, text
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
 
 from config import get_settings
 from src.db.database import session_scope
 from src.db.models.staging import (
-    StgNotionFlashcard,
     StgNotionConcept,
     StgNotionConceptArea,
     StgNotionConceptCluster,
+    StgNotionFlashcard,
     StgNotionModule,
     StgNotionProgram,
     StgNotionTrack,
@@ -45,8 +44,8 @@ class SyncStats:
         self.skipped = 0
         self.errors = 0
         self.start_time = datetime.now()
-        self.end_time: Optional[datetime] = None
-        self.error_details: List[str] = []
+        self.end_time: datetime | None = None
+        self.error_details: list[str] = []
 
     def finish(self) -> None:
         """Mark sync as finished."""
@@ -57,7 +56,7 @@ class SyncStats:
         end = self.end_time or datetime.now()
         return (end - self.start_time).total_seconds()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for logging/API responses."""
         return {
             "added": self.added,
@@ -95,8 +94,8 @@ class SyncService:
 
     def __init__(
         self,
-        notion_client: Optional[NotionClient] = None,
-        progress_callback: Optional[Callable[[str, int, int], None]] = None,
+        notion_client: NotionClient | None = None,
+        progress_callback: Callable[[str, int, int], None] | None = None,
     ) -> None:
         """
         Initialize sync service.
@@ -118,7 +117,7 @@ class SyncService:
         incremental: bool = True,
         dry_run: bool = False,
         parallel: bool = False,
-    ) -> Dict[str, Dict[str, int]]:
+    ) -> dict[str, dict[str, int]]:
         """
         Sync all configured Notion databases to PostgreSQL.
 
@@ -144,7 +143,7 @@ class SyncService:
             f"of {len(configured)} databases (parallel={parallel}, dry_run={dry_run})"
         )
 
-        results: Dict[str, Dict[str, int]] = {}
+        results: dict[str, dict[str, int]] = {}
 
         if parallel:
             results = self._sync_all_parallel(configured, incremental, dry_run)
@@ -169,7 +168,7 @@ class SyncService:
         entity_type: str,
         incremental: bool = True,
         dry_run: bool = False,
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         """
         Sync a single Notion database to PostgreSQL.
 
@@ -238,7 +237,7 @@ class SyncService:
 
         return (stats.added, stats.updated)
 
-    def get_last_sync_time(self, entity_type: str) -> Optional[datetime]:
+    def get_last_sync_time(self, entity_type: str) -> datetime | None:
         """
         Get the timestamp of the last successful sync for an entity type.
 
@@ -263,7 +262,7 @@ class SyncService:
             logger.warning(f"Failed to get last sync time for {entity_type}: {e}")
             return None
 
-    def record_sync_run(self, entity_type: str, stats: Dict[str, Any]) -> None:
+    def record_sync_run(self, entity_type: str, stats: dict[str, Any]) -> None:
         """
         Record a sync run in the audit log (future: sync_runs table).
 
@@ -281,12 +280,12 @@ class SyncService:
 
     def _sync_all_sequential(
         self,
-        configured: Dict[str, str],
+        configured: dict[str, str],
         incremental: bool,
         dry_run: bool,
-    ) -> Dict[str, Dict[str, int]]:
+    ) -> dict[str, dict[str, int]]:
         """Sync all databases sequentially (one at a time)."""
-        results: Dict[str, Dict[str, int]] = {}
+        results: dict[str, dict[str, int]] = {}
 
         for entity_type, db_id in configured.items():
             try:
@@ -314,12 +313,12 @@ class SyncService:
 
     def _sync_all_parallel(
         self,
-        configured: Dict[str, str],
+        configured: dict[str, str],
         incremental: bool,
         dry_run: bool,
-    ) -> Dict[str, Dict[str, int]]:
+    ) -> dict[str, dict[str, int]]:
         """Sync all databases in parallel using ThreadPoolExecutor."""
-        results: Dict[str, Dict[str, int]] = {}
+        results: dict[str, dict[str, int]] = {}
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             # Submit all sync tasks
@@ -330,7 +329,7 @@ class SyncService:
                     incremental=incremental,
                     dry_run=dry_run,
                 ): entity_type
-                for entity_type in configured.keys()
+                for entity_type in configured
             }
 
             # Collect results as they complete
@@ -358,8 +357,8 @@ class SyncService:
     def _upsert_to_staging(
         self,
         entity_type: str,
-        pages: List[Dict[str, Any]],
-        last_sync_time: Optional[datetime],
+        pages: list[dict[str, Any]],
+        last_sync_time: datetime | None,
         dry_run: bool,
     ) -> SyncStats:
         """
@@ -440,8 +439,7 @@ class SyncService:
 
                     except Exception as e:
                         logger.error(
-                            f"Failed to upsert page {page.get('id', '?')} "
-                            f"for {entity_type}: {e}"
+                            f"Failed to upsert page {page.get('id', '?')} for {entity_type}: {e}"
                         )
                         stats.errors += 1
                         stats.error_details.append(str(e))
@@ -461,7 +459,7 @@ class SyncService:
         return stats
 
     @staticmethod
-    def _compute_hash(data: Dict[str, Any]) -> str:
+    def _compute_hash(data: dict[str, Any]) -> str:
         """Compute SHA256 hash of data for change detection."""
         serialized = json.dumps(data, sort_keys=True, default=str)
         return hashlib.sha256(serialized.encode()).hexdigest()

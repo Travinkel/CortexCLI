@@ -12,11 +12,11 @@ Default ratio when struggling areas exist:
 
 Ratio increases with more struggling sections (capped at 50% remediation).
 """
+
 from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
-from typing import Optional
 
 from loguru import logger
 
@@ -24,6 +24,7 @@ from loguru import logger
 @dataclass
 class StudyCard:
     """A card in the study queue."""
+
     atom_id: str
     card_id: str
     front: str
@@ -37,6 +38,7 @@ class StudyCard:
 @dataclass
 class StudyQueue:
     """Complete study queue for a session."""
+
     due_reviews: list[StudyCard] = field(default_factory=list)
     new_cards: list[StudyCard] = field(default_factory=list)
     remediation_cards: list[StudyCard] = field(default_factory=list)
@@ -54,6 +56,7 @@ class StudyQueue:
 @dataclass
 class InterleaveConfig:
     """Configuration for interleaving algorithm."""
+
     base_remediation_ratio: float = 0.30
     max_remediation_ratio: float = 0.50
     sections_for_max_ratio: int = 5
@@ -72,7 +75,7 @@ class AdaptiveInterleaver:
     4. Interleave (not blocked) for better retention
     """
 
-    def __init__(self, config: Optional[InterleaveConfig] = None):
+    def __init__(self, config: InterleaveConfig | None = None):
         """
         Initialize interleaver with configuration.
 
@@ -101,11 +104,9 @@ class AdaptiveInterleaver:
             return self.config.max_remediation_ratio
 
         # Linear interpolation
-        ratio = (
-            self.config.base_remediation_ratio +
-            (self.config.max_remediation_ratio - self.config.base_remediation_ratio) *
-            (struggling_sections / self.config.sections_for_max_ratio)
-        )
+        ratio = self.config.base_remediation_ratio + (
+            self.config.max_remediation_ratio - self.config.base_remediation_ratio
+        ) * (struggling_sections / self.config.sections_for_max_ratio)
 
         return min(ratio, self.config.max_remediation_ratio)
 
@@ -143,9 +144,7 @@ class AdaptiveInterleaver:
 
         # Cap remediation
         remediation_count = min(
-            remediation_count,
-            self.config.max_remediation_cards,
-            len(remediation_pool)
+            remediation_count, self.config.max_remediation_cards, len(remediation_pool)
         )
 
         # Adjust new count if we have fewer remediation cards
@@ -158,11 +157,7 @@ class AdaptiveInterleaver:
         queue.new_cards = available_new[:new_count]
 
         # Select remediation cards (prioritize by section priority)
-        sorted_remediation = sorted(
-            remediation_pool,
-            key=lambda c: c.priority,
-            reverse=True
-        )
+        sorted_remediation = sorted(remediation_pool, key=lambda c: c.priority, reverse=True)
         queue.remediation_cards = sorted_remediation[:remediation_count]
 
         logger.info(
@@ -215,8 +210,7 @@ class AdaptiveInterleaver:
             "remediation_cards": len(queue.remediation_cards),
             "estimated_minutes": queue.estimated_minutes,
             "remediation_ratio": (
-                len(queue.remediation_cards) /
-                (len(queue.new_cards) + len(queue.remediation_cards))
+                len(queue.remediation_cards) / (len(queue.new_cards) + len(queue.remediation_cards))
                 if (len(queue.new_cards) + len(queue.remediation_cards)) > 0
                 else 0
             ),

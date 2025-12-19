@@ -1,600 +1,828 @@
-Checkpoint Exam: Ethernet Concepts Exam Answers
-Modules 4 – 7 of the CCNA1 – Introduction to Networks v7.0 (ITN)
-1. What is the purpose of the OSI physical layer?
+Modules 8 – 10 of the CCNA1 – Introduction to Networks v7.0 (ITN)
+1. Which information is used by routers to forward a data packet toward its destination?
 
-controlling access to media
-transmitting bits across the local media
-performing error detection on received frames
-exchanging frames between nodes over physical network media
-2. Why are two strands of fiber used for a single fiber optic connection?
 
-The two strands allow the data to travel for longer distances without degrading.
-They prevent crosstalk from causing interference on the connection.
-They increase the speed at which the data can travel.
-They allow for full-duplex connectivity.
-3. Which characteristic describes crosstalk?
+source IP address
+destination IP address
+source data-link address
+destination data-link address
+2. A computer has to send a packet to a destination host in the same LAN. How will the packet be sent?
 
-the distortion of the network signal from fluorescent lighting
-the distortion of the transmitted messages from signals carried in adjacent wires
-the weakening of the network signal over long cable lengths
-the loss of wireless signal over excessive distance from the access point
-4. Which procedure is used to reduce the effect of crosstalk in copper cables?
+The packet will be sent to the default gateway first, and then, depending on the response from the gateway, it may be sent to the destination host.
+The packet will be sent directly to the destination host.
+The packet will first be sent to the default gateway, and then from the default gateway it will be sent directly to the destination host.
+The packet will be sent only to the default gateway.
+3. A router receives a packet from the Gigabit 0/0 interface and determines that the packet needs to be forwarded out the Gigabit 0/1 interface. What will the router do next?
 
-requiring proper grounding connections
-twisting opposing circuit wire pairs together
-wrapping the bundle of wires with metallic shielding
-designing a cable infrastructure to avoid crosstalk interference
-avoiding sharp bends during installation
+route the packet out the Gigabit 0/1 interface
+create a new Layer 2 Ethernet frame to be sent to the destination
+look into the ARP cache to determine the destination IP address
+look into the routing table to determine if the destination network is in the routing table
 
-5. Match the situation with the appropriate use of network media.
+4. Which IPv4 address can a host use to ping the loopback interface?
+
+126.0.0.1
+127.0.0.0
+126.0.0.0
+127.0.0.1
+5. A computer can access devices on the same network but cannot access devices on other networks. What is the probable cause of this problem?
+
+The cable is not connected properly to the NIC.
+The computer has an invalid IP address.
+The computer has an incorrect subnet mask.
+The computer has an invalid default gateway address.
+6. Which statement describes a feature of the IP protocol?
+
+IP encapsulation is modified based on network media.
+IP relies on Layer 2 protocols for transmission error control.
+MAC addresses are used during the IP packet encapsulation.
+IP relies on upper layer services to handle situations of missing or out-of-order packets.
+Explanation: IP protocol is a connection-less protocol, considered unreliable in terms of end-to-end delivery. It does not provide error control in the cases where receiving packets are out-of-order or in cases of missing packets. It relies on upper layer services, such as TCP, to resolve these issues.
+
+7. Why is NAT not needed in IPv6?​
+
+Because IPv6 has integrated security, there is no need to hide the IPv6 addresses of internal networks.​
+Any host or user can get a public IPv6 network address because the number of available IPv6 addresses is extremely large.​
+The problems that are induced by NAT applications are solved because the IPv6 header improves packet handling by intermediate routers.​
+The end-to-end connectivity problems that are caused by NAT are solved because the number of routes increases with the number of nodes that are connected to the Internet.
+Explanation: The large number of public IPv6 addresses eliminates the need for NAT. Sites from the largest enterprises to single households can get public IPv6 network addresses. This avoids some of the NAT-induced application problems that are experienced by applications that require end-to-end connectivity.
+
+8. Which parameter does the router use to choose the path to the destination when there are multiple routes available?
+
+the lower metric value that is associated with the destination network
+the lower gateway IP address to get to the destination network
+the higher metric value that is associated with the destination network
+the higher gateway IP address to get to the destination network
+9. What are two services provided by the OSI network layer? (Choose two.)
+
+performing error detection
+routing packets toward the destination
+encapsulating PDUs from the transport layer
+placement of frames on the media
+collision detection
+Explanation: The OSI network layer provides several services to allow communication between devices:
+
+addressing
+encapsulation
+routing
+de-encapsulation
+Error detection, placing frames on the media, and collision detection are all functions of the data ink layer.
+
+10. Within a production network, what is the purpose of configuring a switch with a default gateway address?
+
+Hosts that are connected to the switch can use the switch default gateway address to forward packets to a remote destination.
+A switch must have a default gateway to be accessible by Telnet and SSH.
+The default gateway address is used to forward packets originating from the switch to remote networks.
+It provides a next-hop address for all traffic that flows through the switch.
+Explanation: A default gateway address allows a switch to forward packets that originate on the switch to remote networks. A default gateway address on a switch does not provide Layer 3 routing for PCs that are connected on that switch. A switch can still be accessible from Telnet as long as the source of the Telnet connection is on the local network.
+
+11. What is a basic characteristic of the IP protocol?
+
+connectionless
+media dependent
+user data segmentation
+reliable end-to-end delivery
+Explanation: Internet Protocol (IP) is a network layer protocol that does not require initial exchange of control information to establish an end-to-end connection before packets are forwarded. Thus, IP is connectionless and does not provide reliable end-to-end delivery by itself. IP is media independent. User data segmentation is a service provided at the transport layer.
+
+12. Which field in the IPv4 header is used to prevent a packet from traversing a network endlessly?
+
+Time-to-Live
+Sequence Number
+Acknowledgment Number
+Differentiated Services
+Explanation: The value of the Time-to-Live (TTL) field in the IPv4 header is used to limit the lifetime of a packet. The sending host sets the initial TTL value; which is decreased by one each time the packet is processed by a router. If the TTL field decrements to zero, the router discards the packet and sends an Internet Control Message Protocol (ICMP) Time Exceeded message to the source IP address. The Differentiated Services (DS) field is used to determine the priority of each packet. Sequence Number and Acknowledgment Number are two fields in the TCP header.
+
+13. What is one advantage that the IPv6 simplified header offers over IPv4?
+
+smaller-sized header
+little requirement for processing checksums
+smaller-sized source and destination IP addresses
+efficient packet handling
+Explanation: The IPv6 simplified header offers several advantages over IPv4:
+
+Better routing efficiency and efficient packet handling for performance and forwarding-rate scalability
+No requirement for processing checksums
+Simplified and more efficient extension header mechanisms (as opposed to the IPv4 Options field)
+A Flow Label field for per-flow processing with no need to open the transport inner packet to identify the various traffic flows
+14. What IPv4 header field identifies the upper layer protocol carried in the packet?
+
+Protocol
+Identification
+Version
+Differentiated Services
+Explanation: It is the Protocol field in the IP header that identifies the upper-layer protocol the packet is carrying. The Version field identifies the IP version. The Differential Services field is used for setting packet priority. The Identification field is used to reorder fragmented packets.
+
+15. Refer to the exhibit. Match the packets with their destination IP address to the exiting interfaces on the router. (Not all targets are used.)
+
+
+
 
 Place the options in the following order:
 
-Copper Cables	Fiber optic	Wireless
-horizontal cabling structure	backbone cabling in an enterprise	guest access in a coffee shop
-desktop PCs in offices in an enterprise	long-haul networks	waiting rooms in a hospital
-6. A network administrator is measuring the transfer of bits across the company backbone for a mission critical financial application. The administrator notices that the network throughput appears lower than the bandwidth expected. Which three factors could influence the differences in throughput? (Choose three.)
+packets with destination of 172.17.6.15	FastEthernet0/0
+packets with destination of 172.17.14.8	FastEthernet0/1
+packets with destination of 172.17.12.10	FastEthernet1/0
+packets with destination of 172.17.10.5	FastEthernet1/1
+packets with destination of 172.17.8.20	Serial0/0/0
+Explanation: Packets with a destination of 172.17.6.15 are forwarded through Fa0/0. Packets with a destination of 172.17.10.5 are forwarded through Fa1/1. Packets with a destination of 172.17.12.10 are forwarded through Fa1/0. Packets with a destination of 172.17.14.8 are forwarded through Fa0/1. Because network 172.17.8.0 has no entry in the routing table, it will take the gateway of last resort, which means that packets with a destination of 172.17.8.20 are forwarded through Serial0/0/0. Because a gateway of last resort exists, no packets will be dropped.
 
-the amount of traffic that is currently crossing the network
-the sophistication of the encapsulation method applied to the data
-the type of traffic that is crossing the network
-the latency that is created by the number of network devices that the data is crossing
-the bandwidth of the WAN connection to the Internet
-the reliability of the gigabit Ethernet infrastructure of the backbone
-Explanation: Throughput usually does not match the specified bandwidth of physical links due to multiple factors. These factors include, the amount of traffic, type of traffic, and latency created by the network devices the data has to cross.
+16. What information does the loopback test provide?
+
+The TCP/IP stack on the device is working correctly.
+The device has end-to-end connectivity.
+DHCP is working correctly.
+The Ethernet cable is working correctly.
+The device has the correct IP address on the network.
+Explanation: Because the loopback test sends packets back to the host device, it does not provide information about network connectivity to other hosts. The loopback test verifies that the host NIC, drivers, and TCP/IP stack are functioning.
+
+17. What routing table entry has a next hop address associated with a destination network?
+
+directly-connected routes
+local routes
+remote routes
+C and L source routes
+Explanation: Routing table entries for remote routes will have a next hop IP address. The next hop IP address is the address of the router interface of the next device to be used to reach the destination network. Directly-connected and local routes have no next hop, because they do not require going through another router to be reached.
+
+18. How do hosts ensure that their packets are directed to the correct network destination?
+
+They have to keep their own local routing table that contains a route to the loopback interface, a local network route, and a remote default route.​
+They always direct their packets to the default gateway, which will be responsible for the packet delivery.
+They search in their own local routing table for a route to the network destination address and pass this information to the default gateway.
+They send a query packet to the default gateway asking for the best route.
+Explanation: Hosts must maintain their own local routing table to ensure that network layer packets are directed to the correct destination network. This local table typically contains a route to the loopback interface, a route to the network that the host is connected to, and a local default route, which represents the route that packets must take to reach all remote network addresses.
+
+19. When transporting data from real-time applications, such as streaming audio and video, which field in the IPv6 header can be used to inform the routers and switches to maintain the same path for the packets in the same conversation?
+
+Next Header
+Flow Label
+Traffic Class
+Differentiated Services
+Explanation: The Flow Label in IPv6 header is a 20-bit field that provides a special service for real-time applications. This field can be used to inform routers and switches to maintain the same path for the packet flow so that packets will not be reordered.
+
+20. What statement describes the function of the Address Resolution Protocol?
+
+ARP is used to discover the IP address of any host on a different network.
+ARP is used to discover the IP address of any host on the local network.
+ARP is used to discover the MAC address of any host on a different network.
+ARP is used to discover the MAC address of any host on the local network.
+Explanation: When a PC wants to send data on the network, it always knows the IP address of the destination. However, it also needs to discover the MAC address of the destination. ARP is the protocol that is used to discover the MAC address of a host that belongs to the same network.
+
+21. Under which two circumstances will a switch flood a frame out of every port except the port that the frame was received on? (Choose two.)
+
+The frame has the broadcast address as the destination address.
+The destination address is unknown to the switch.
+The source address in the frame header is the broadcast address.
+The source address in the frame is a multicast address.
+The destination address in the frame is a known unicast address.
+Explanation: A switch will flood a frame out of every port, except the one that the frame was received from, under two circumstances. Either the frame has the broadcast address as the destination address, or the destination address is unknown to the switch.
+
+22. Which statement describes the treatment of ARP requests on the local link?
+
+They must be forwarded by all routers on the local network.
+They are received and processed by every device on the local network.
+They are dropped by all switches on the local network.
+They are received and processed only by the target device.
+Explanation: One of the negative issues with ARP requests is that they are sent as a broadcast. This means all devices on the local link must receive and process the request.
+
+23. Which destination address is used in an ARP request frame?
+
+0.0.0.0
+255.255.255.255
+FFFF.FFFF.FFFF
+AAAA.AAAA.AAAA
+the physical address of the destination host
+Explanation: The purpose of an ARP request is to find the MAC address of the destination host on an Ethernet LAN. The ARP process sends a Layer 2 broadcast to all devices on the Ethernet LAN. The frame contains the IP address of the destination and the broadcast MAC address, FFFF.FFFF.FFFF. The host with the IP address that matches the IP address in the ARP request will reply with a unicast frame that includes the MAC address of the host. Thus the original sending host will obtain the destination IP and MAC address pair to continue the encapsulation process for data transmission.
+
+24. A network technician issues the arp -d * command on a PC after the router that is connected to the LAN is reconfigured. What is the result after this command is issued?
+
+The ARP cache is cleared.
+The current content of the ARP cache is displayed.
+The detailed information of the ARP cache is displayed.
+The ARP cache is synchronized with the router interface.
+Explanation: Issuing the arp –d * command on a PC will clear the ARP cache content. This is helpful when a network technician wants to ensure the cache is populated with updated information.
+
+25. Refer to the exhibit. The exhibit shows a small switched network and the contents of the MAC address table of the switch. PC1 has sent a frame addressed to PC3. What will the switch do with the frame?
 
 
-7. What are two characteristics of fiber-optic cable? (Choose two.)
-It is not affected by EMI or RFI.
-Each pair of cables is wrapped in metallic foil.
-It combines the technique of cancellation, shielding, and twisting to protect data.
-It typically contains 4 pairs of fiber-optic wires.
-It is more expensive than UTP cabling is.
-Explanation: Fiber-optic cabling supports higher bandwidth than UTP for longer distances. Fiber is immune to EMI and RFI, but costs more, requires more skill to install, and requires more safety precautions.
+
+The switch will discard the frame.
+The switch will forward the frame only to port 2.
+The switch will forward the frame to all ports except port 4.
+The switch will forward the frame to all ports.
+The switch will forward the frame only to ports 1 and 3.
+Explanation: The MAC address of PC3 is not present in the MAC table of the switch. Because the switch does not know where to send the frame that is addressed to PC3, it will forward the frame to all the switch ports, except for port 4, which is the incoming port.
+
+26. Which two types of IPv6 messages are used in place of ARP for address resolution?
+
+anycast
+broadcast
+echo reply
+echo request
+neighbor solicitation
+neighbor advertisement
+Explanation: IPv6 does not use ARP. Instead, ICMPv6 neighbor discovery is used by sending neighbor solicitation and neighbor advertisement messages.
+
+27. What is the aim of an ARP spoofing attack?
+
+to flood the network with ARP reply broadcasts
+to fill switch MAC address tables with bogus addresses
+to associate IP addresses to the wrong MAC address
+to overwhelm network hosts with ARP requests
+Explanation: In an ARP spoofing attack, a malicious host intercepts ARP requests and replies to them so that network hosts will map an IP address to the MAC address of the malicious host.
+
+28. Refer to the exhibit. PC1 attempts to connect to File_server1 and sends an ARP request to obtain a destination MAC address. Which MAC address will PC1 receive in the ARP reply?
 
 
-8. What is a primary role of the Physical layer in transmitting data on the network?
-create the signals that represent the bits in each frame on to the media
-provide physical addressing to the devices
-determine the path packets take through the network
-control data access to the media
-Explanation: The OSI physical layer provides the means to transport the bits that make up a frame across the network media. This layer accepts a complete frame from the data link layer and encodes it as a series of signals that are transmitted to the local media.
 
-9. With the use of unshielded twisted-pair copper wire in a network, what causes crosstalk within the cable pairs?
+the MAC address of S1
+the MAC address of the G0/0 interface on R1
+the MAC address of the G0/0 interface on R2
+the MAC address of S2
+the MAC address of File_server1
+Explanation: PC1 must have a MAC address to use as a destination Layer 2 address. PC1 will send an ARP request as a broadcast and R1 will send back an ARP reply with its G0/0 interface MAC address. PC1 can then forward the packet to the MAC address of the default gateway, R1.
 
-the magnetic field around the adjacent pairs of wire
-the use of braided wire to shield the adjacent wire pairs
-the reflection of the electrical wave back from the far end of the cable
-the collision caused by two nodes trying to use the media simultaneously
-Explanation: Crosstalk is a type of noise, or interference that occurs when signal transmission on one wire interferes with another wire. When current flows through a wire a magnetic field is produced. The produced magnetic field will interface the signal carried in the adjacent wire.
+29. Where are IPv4 address to Layer 2 Ethernet address mappings maintained on a host computer?
 
-10. Refer to the graphic. What type of cabling is shown?
+neighbor table
+ARP cache
+routing table
+MAC address table
+Explanation: The ARP cache is used to store IPv4 addresses and the Ethernet physical addresses or MAC addresses to which the IPv4 addresses are mapped. Incorrect mappings of IP addresses to MAC addresses can result in loss of end-to-end connectivity.
 
+30. What important information is examined in the Ethernet frame header by a Layer 2 device in order to forward the data onward?
 
-STP
-UTP
-coax
-fiber
-Explanation: Network cabling include different types of cables:
-
-UTP cable consists of four pairs of color-coded wires that have been twisted together and then encased in a flexible plastic sheath.
-STP cable uses four pairs of wires, each wrapped in a foil shield, which are then wrapped in an overall metallic braid or foil.
-Coaxial cable uses a copper conductor and a layer of flexible plastic insulation surrounds the copper conductor.
-Fiber cable is a flexible, extremely thin, transparent strand of glass surrounded by plastic insulation.
-11. In addition to the cable length, what two factors could interfere with the communication carried over UTP cables? (Choose two.)
-
-crosstalk
-bandwidth
-size of the network
-signal modulation technique
-electromagnetic interference
-Explanation: Copper media is widely used in network communications. However, copper media is limited by distance and signal interference. Data is transmitted on copper cables as electrical pulses. The electrical pulses are susceptible to interference from two sources:
-
-Electromagnetic interference (EMI) or radio frequency interference (RFI) – EMI and RFI signals can distort and corrupt the data signals being carried by copper media.
-Crosstalk – Crosstalk is a disturbance caused by the electric or magnetic fields of a signal on one wire interfering with the signal in an adjacent wire.
-12. Refer to the graphic. What type of cabling is shown?
-
-
-STP
-UTP
-coax
-fiber
-13. Which two devices commonly affect wireless networks? (Choose two.)
-
-Blu-ray players
-home theaters
-cordless phones
-microwaves
-incandescent light bulbs
-external hard drives
-Explanation: Radio Frequency Interference (RFI) is the interference that is caused by radio transmitters and other devices that are transmitting in the same frequency.
-
-14. Which two statements describe the services provided by the data link layer? (Choose two.)
-
-It defines the end-to-end delivery addressing scheme.
-It maintains the path between the source and destination devices during the data transmission.
-It manages the access of frames to the network media.
-It provides reliable delivery through link establishment and flow control.
-It ensures that application data will be transmitted according to the prioritization.
-It packages various Layer 3 PDUs into a frame format that is compatible with the network interface.
-Explanation: The data link layer is divided into two sub layers, namely Logical Link Control (LLC) and Media Access Control (MAC). LLC forms a frame from the network layer PDU into a format that conforms to the requirements of the network interface and media. A network layer PDU might be for IPv4 or IPv6. The MAC sub layer defines the media access processes performed by the hardware. It manages the frame access to the network media according to the physical signaling requirements (copper cable, fiber optic, wireless, etc.)
-
-15. What is the function of the CRC value that is found in the FCS field of a frame?
-
-to verify the integrity of the received frame
-to verify the physical address in the frame
-to verify the logical address in the frame
-to compute the checksum header for the data field in the frame
-Explanation: The CRC value in the FCS field of the received frame is compared to the computed CRC value of that frame, in order to verify the integrity of the frame. If the two values do not match, then the frame is discarded.
-
-16. What is contained in the trailer of a data-link frame?
-
-logical address
-physical address
-data
-error detection
-Explanation: The trailer in a data-link frame contains error detection information that is pertinent to the frame included in the FCS field. The header contains control information, such as the addressing, while the area that is indicated by the word “data” includes the data, transport layer PDU, and the IP header.
-
-17. Which statement describes a characteristic of the frame header fields of the data link layer?
-
-They all include the flow control and logical connection fields.
-Ethernet frame header fields contain Layer 3 source and destination addresses.
-They vary depending on protocols.
-They include information on user applications.
-Explanation: All data link layer protocols encapsulate the Layer 3 PDU within the data field of the frame. However, the structure of the frame and the fields that are contained in the header vary according to the protocol. Different data link layer protocols may use different fields, like priority/quality of service, logical connection control, physical link control, flow control, and congestion control.
-
-18. A network team is comparing physical WAN topologies for connecting remote sites to a headquarters building. Which topology provides high availability and connects some, but not all, remote sites?
-
-mesh
-partial mesh
-hub and spoke
-point-to-point
-Explanation: Partial mesh topologies provide high availability by interconnecting multiple remote sites, but do not require a connection between all remote sites. A mesh topology requires point-to-point links with every system being connected to every other system. A point-to-point topology is where each device is connected to one other device. A hub and spoke uses a central device in a star topology that connects to other point-to-point devices.
-
-19. Which two fields or features does Ethernet examine to determine if a received frame is passed to the data link layer or discarded by the NIC? (Choose two.)
-
-auto-MDIX
-CEF
-Frame Check Sequence
-minimum frame size
 source MAC address
-Explanation: An Ethernet frame is not processed and is discarded if it is smaller than the minimum (64 bytes) or if the calculated frame check sequence (FCS) value does not match the received FCS value. Auto-MDIX (automatic medium-dependent interface crossover) is Layer 1 technology that detects cable straight-through or crossover types. The source MAC address is not used to determine how the frame is received. CEF (Cisco Express Forwarding) is a technology used to expedite Layer 3 switching.
-
-20. Which media communication type does not require media arbitration in the data link layer?
-
-deterministic
-half-duplex
-full-duplex
-controlled access
-Explanation: Half-duplex communication occurs when both devices can both transmit and receive on the medium but cannot do so simultaneously. Full-duplex communication occurs when both devices can transmit and receive on the medium at the same time and therefore does not require media arbitration. Half-duplex communication is typically contention-based, whereas controlled (deterministic) access is applied in technologies where devices take turns to access the medium.
-
-21. Which statement describes an extended star topology?
-
-End devices connect to a central intermediate device, which in turn connects to other central intermediate devices.
-End devices are connected together by a bus and each bus connects to a central intermediate device.
-Each end system is connected to its respective neighbor via an intermediate device.
-All end and intermediate devices are connected in a chain to each other.
-Explanation: In an extended star topology, central intermediate devices interconnect other star topologies.
-
-22. What is a characteristic of the LLC sublayer?
-
-It provides the logical addressing required that identifies the device.
-It provides delimitation of data according to the physical signaling requirements of the medium.
-It places information in the frame allowing multiple Layer 3 protocols to use the same network interface and media.
-It defines software processes that provide services to the physical layer.
-Explanation: The Logical Link Control (LLC) defines the software processes that provide services to the network layer protocols. The information is placed by LLC in the frame and identifies which network layer protocol is being used for the frame. This information allows multiple Layer 3 protocols, such as IPv4 and IPv6, to utilize the same network interface and media.
-
-23. What are three ways that media access control is used in networking? (Choose three.)
-
-Ethernet utilizes CSMA/CD.
-Media access control provides placement of data frames onto the media.
-Contention-based access is also known as deterministic.
-802.11 utilizes CSMA/CD.
-Data link layer protocols define the rules for access to different media.
-Networks with controlled access have reduced performance due to data collisions.
-Explanation: Wired Ethernet networks use CSMA/CD for media access control. IEEE 802.11 wireless networks use CSMA/CA, a similar method. Media access control defines the way data frames get placed on the media. The controlled access method is deterministic, not a contention-based access to networks. Because each device has its own time to use the medium, controlled access networks such as legacy Token Ring do not have collisions.
-
-24. During the encapsulation process, what occurs at the data link layer for a PC connected to an Ethernet network?
-
-An IP address is added.
-The logical address is added.
-The physical address is added.
-The process port number is added.
-Explanation: The Ethernet frame includes the source and destination physical address. The trailer includes a CRC value in the Frame Check Sequence field to allow the receiving device to determine if the frame has been changed (has errors) during the transmission.
-
-25. What three items are contained in an Ethernet header and trailer? (Choose three.)
-
 source IP address
-source MAC address
-destination IP address
 destination MAC address
-error-checking information
-Explanation: Layer 2 headers contain the following:
+Ethernet type
+destination IP address
+Explanation: The Layer 2 device, such as a switch, uses the destination MAC address to determine which path (interface or port) should be used to send the data onward to the destination device.
 
-Frame start and stop indicator flags at the beginning and end of a frame
-Addressing – for Ethernet networks this part of the header contains source and destination MAC addresses
-Type field to indicate what Layer 3 protocol is being used
-Error detection to determine if the frame arrived without error
-26. What type of communication rule would best describe CSMA/CD?
+31. Match the commands to the correct actions. (Not all options are used.)
 
-access method
+
+
+Place the options in the following order:
+
+displays a message after accessing the router	Router(config)# banner motd #
+provides security on the console	Router(config-line)# password class
+configures a name on the router	Router(config)# hostname CL1
+32. A new network administrator has been asked to enter a banner message on a Cisco device. What is the fastest way a network administrator could test whether the banner is properly configured?
+
+Reboot the device.
+Enter CTRL-Z at the privileged mode prompt.
+Exit global configuration mode.
+Power cycle the device.
+Exit privileged EXEC mode and press Enter.
+Explanation: While at the privileged mode prompt such as Router#, type exit,press Enter, and the banner message appears. Power cycling a network device that has had the banner motd command issued will also display the banner message, but this is not a quick way to test the configuration.
+
+33. A network administrator requires access to manage routers and switches locally and remotely. Match the description to the access method. (Not all options are used.)
+
+
+
+Place the options in the following order:
+
+remote access method that uses encryption	SSH
+preferred out-of-band access method	console
+remote access via a dialup connection	AUX
+unsecure remote access	Telnet
+Explanation: Both the console and AUX ports can be used to directly connect to a Cisco network device for management purposes. However, it is more common to use the console port. The AUX port is more often used for remote access via a dial up connection. SSH and Telnet are both remote access methods that depend on an active network connection. SSH uses a stronger password authentication than Telnet uses and also uses encryption on transmitted data.
+
+34. Match the phases to the functions during the boot up process of a Cisco router. (Not all options are used.)
+
+
+
+Explanation: There are three major phases to the bootup process of a Cisco router:
+
+Perform the POST and load the bootstrap program.
+Locate and load the Cisco IOS software.
+Locate and load the startup configuration file
+If a startup configuration file cannot be located, the router will enter setup mode by displaying the setup mode prompt.
+
+35. Match the command with the device mode at which the command is entered. (Not all options are used.)
+
+
+
+Place the options in the following order:
+
+service password-encryption	R1(config)#
+enable	R1>
+copy running-config startup-config	R1#
+login	R1(config-line)#
+ip address 192.168.4.4 255.255.255.0	R1(config-if)#
+Explanation: The enable command is entered in R1> mode. The login command is entered in R1(config-line)# mode. The copy running-config startup-config command is entered in R1# mode. The ip address 192.168.4.4 255.255.255.0 command is entered in R1(config-if)# mode. The service password-encryption command is entered in global configuration mode.
+
+36. What are two functions of NVRAM? (Choose two.)
+
+to store the routing table
+to retain contents when power is removed
+to store the startup configuration file
+to contain the running configuration file
+to store the ARP table
+Explanation: NVRAM is permanent memory storage, so the startup configuration file is preserved even if the router loses power.
+
+37. A router boots and enters setup mode. What is the reason for this?
+
+The IOS image is corrupt.
+Cisco IOS is missing from flash memory.
+The configuration file is missing from NVRAM.
+The POST process has detected hardware failure.
+Explanation: If a router cannot locate the startup-config file in NVRAM, it will enter setup mode to allow the configuration to be entered from the console device.
+
+38. The global configuration command ip default-gateway 172.16.100.1 is applied to a switch. What is the effect of this command?
+
+The switch will have a management interface with the address 172.16.100.1.
+The switch can be remotely managed from a host on another network.
+The switch can communicate with other hosts on the 172.16.100.0 network.
+The switch is limited to sending and receiving frames to and from the gateway 172.16.100.1.
+Explanation: A default gateway address is typically configured on all devices to allow them to communicate beyond just their local network.In a switch this is achieved using the command ip default-gateway <ip address>.
+
+39. What happens when the transport input ssh command is entered on the switch vty lines?
+
+The SSH client on the switch is enabled.
+Communication between the switch and remote users is encrypted.
+The switch requires a username/password combination for remote access.
+The switch requires remote connections via a proprietary client software.
+Explanation: The transport input ssh command when entered on the switch vty (virtual terminal lines) will encrypt all inbound controlled telnet connections.
+
+40. Refer to the exhibit. A user PC has successfully transmitted packets to www.cisco.com. Which IP address does the user PC target in order to forward its data off the local network?
+
+
+
+172.24.255.17
+172.24.1.22
+172.20.0.254
+172.24.255.4
+172.20.1.18
+41. Match the configuration mode with the command that is available in that mode. (Not all options are used.)
+
+
+
+Place the options in the following order:
+
+R1>	enable
+R1#	copy running-config startup-config
+R1(config-line)#	login
+R1(config)#	interface fastethernet 0/0
+Explanation: The enable command is entered at the R1> prompt. The login command is entered at the R1(config-line)# prompt. The copy running-config startup-config command is entered at the R1# prompt. The interface fastethernet 0/0 command is entered at the R1(config)# prompt.
+
+42. Which three commands are used to set up secure access to a router through a connection to the console interface? (Choose three.)
+
+interface fastethernet 0/0
+line vty 0 4
+line console 0
+enable secret cisco
+login
+password cisco
+Explanation: The three commands needed to password protect the console port are as follows:
+
+line console 0
+password cisco
+login
+The interface fastethernet 0/0 command is commonly used to access the configuration mode used to apply specific parameters such as the IP address to the Fa0/0 port. The line vty 0 4 command is used to access the configuration mode for Telnet. The0and 4 parameters specify ports 0 through 4, or a maximum of five simultaneous Telnet connections. The enable secret command is used to apply a password used on the router to access the privileged mode.
+
+43. Refer to the exhibit. Consider the IP address configuration shown from PC1. What is a description of the default gateway address?
+
+
+
+It is the IP address of the Router1 interface that connects the company to the Internet.
+It is the IP address of the Router1 interface that connects the PC1 LAN to Router1.
+It is the IP address of Switch1 that connects PC1 to other devices on the same LAN.
+It is the IP address of the ISP network device located in the cloud.
+Explanation: The default gateway is used to route packets destined for remote networks. The default gateway IP address is the address of the first Layer 3 device (the router interface) that connects to the same network.
+
+44. Which two functions are primary functions of a router? (Choose two.)
+
+packet forwarding
+microsegmentation
+domain name resolution
+path selection
 flow control
-message encapsulation
-message encoding
-Explanation: Carrier sense multiple access collision detection (CSMA/CD) is the access method used with Ethernet. The access method rule of communication dictates how a network device is able to place a signal on the carrier. CSMA/CD dictates those rules on an Ethernet network and CSMA/CA dictates those rules on an 802.11 wireless LAN.
+Explanation: A router accepts a packet and accesses its routing table to determine the appropriate exit interface based on the destination address. The router then forwards the packet out of that interface.
 
-27. Which three basic parts are common to all frame types supported by the data link layer? (Choose three.)
+45. What is the effect of using the Router# copy running-config startup-config command on a router?
 
-header
-type field
-MTU size
-data
-trailer
-CRC value
-Explanation: The data link protocol is responsible for NIC-to-NIC communications within the same network. Although there are many different data link layer protocols that describe data link layer frames, each frame type has three basic parts:
+The contents of ROM will change.
+The contents of RAM will change.
+The contents of NVRAM will change.
+The contents of flash will change.
+Explanation: The command copy running-config startup-config copies the running-configuration file from RAM into NVRAM and saves it as the startup-configuration file. Since NVRAM is none-volatile memory it will be able to retain the configuration details when the router is powered off.
 
-Header
-Data
-Trailer
-28. Which statement is true about the CSMA/CD access method that is used in Ethernet?
+46. What will happen if the default gateway address is incorrectly configured on a host?
 
-When a device hears a carrier signal and transmits, a collision cannot occur.
-A jamming signal causes only devices that caused the collision to execute a backoff algorithm.
-All network devices must listen before transmitting.
-Devices involved in a collision get priority to transmit after the backoff period.
-Explanation: Legacy bus-topology Ethernet LAN uses CSMA/CD as network media access control protocol. It works by detecting a collision in the medium and backing off (after transmitting a jam signal) as necessary. When one host wants to transmit a frame, it listens on the medium to check if the medium is busy. After it senses that no one else is transmitting, the host starts transmitting the frame, it also monitors the current level to detect a collision. If it detects a collision, it transmits a special jam signal so that all other hosts can know there was a collision. The other host will receive this jam signal and stop transmitting. After this, both hosts enter an exponential backoff phase and retry transmission.
+The host cannot communicate with other hosts in the local network.
+The switch will not forward packets initiated by the host.
+The host will have to use ARP to determine the correct address of the default gateway.
+The host cannot communicate with hosts in other networks.
+A ping from the host to 127.0.0.1 would not be successful.
+Explanation: When a host needs to send a message to another host located on the same network, it can forward the message directly. However, when a host needs to send a message to a remote network, it must use the router, also known as the default gateway. This is because the data link frame address of the remote destination host cannot be used directly. Instead, the IP packet has to be sent to the router (default gateway) and the router will forward the packet toward its destination. Therefore, if the default gateway is incorrectly configured, the host can communicate with other hosts on the same network, but not with hosts on remote networks.
 
-29. What is the auto-MDIX feature on a switch?
+47. What are two potential network problems that can result from ARP operation? (Choose two.)
 
-the automatic configuration of an interface for 10/100/1000 Mb/s operation
-the automatic configuration of an interface for a straight-through or a crossover Ethernet cable connection
-the automatic configuration of full-duplex operation over a single Ethernet copper or optical cable
-the ability to turn a switch interface on or off accordingly if an active connection is detected
-Explanation: The auto-MDIX enables a switch to use a crossover or a straight-through Ethernet cable to connect to a device regardless of the device on the other end of the connection.
+Manually configuring static ARP associations could facilitate ARP poisoning or MAC address spoofing.
+On large networks with low bandwidth, multiple ARP broadcasts could cause data communication delays.
+Network attackers could manipulate MAC address and IP address mappings in ARP messages with the intent of intercepting network traffic.
+Large numbers of ARP request broadcasts could cause the host MAC address table to overflow and prevent the host from communicating on the network.
+Multiple ARP replies result in the switch MAC address table containing entries that match the MAC addresses of hosts that are connected to the relevant switch port.
+Explanation: Large numbers of ARP broadcast messages could cause momentary data communications delays. Network attackers could manipulate MAC address and IP address mappings in ARP messages with the intent to intercept network traffic. ARP requests and replies cause entries to be made into the ARP table, not the MAC address table. ARP table overflows are very unlikely. Manually configuring static ARP associations is a way to prevent, not facilitate, ARP poisoning and MAC address spoofing. Multiple ARP replies resulting in the switch MAC address table containing entries that match the MAC addresses of connected nodes and are associated with the relevant switch port are required for normal switch frame forwarding operations. It is not an ARP caused network problem.
 
-30. Refer to the exhibit. What is the destination MAC address of the Ethernet frame as it leaves the web server if the final destination is PC1?
+48. Open the PT activity. Perform the tasks in the activity instructions and then answer the question.
 
-
-
-00-60-2F-3A-07-AA
-00-60-2F-3A-07-BB
-00-60-2F-3A-07-CC
-00-60-2F-3A-07-DD
-Explanation: The destination MAC address is used for local delivery of Ethernet frames. The MAC (Layer 2) address changes at each network segment along the path. As the frame leaves the web server, it will be delivered by using the MAC address of the default gateway.
-
-31. A Layer 2 switch is used to switch incoming frames from a 1000BASE-T port to a port connected to a 100Base-T network. Which method of memory buffering would work best for this task?
-
-port-based buffering
-level 1 cache buffering
-shared memory buffering
-fixed configuration buffering
-Explanation: With shared memory buffering, the number of frames stored in the buffer is restricted only by the of the entire memory buffer and not limited to a single port buffer. This permits larger frames to be transmitted with fewer dropped frames. This is important to asymmetric switching, which applies to this scenario, where frames are being exchanged between ports of different rates. With port-based memory buffering, frames are stored in queues that are linked to specific incoming and outgoing ports making it possible for a single frame to delay the transmission of all the frames in memory because of a busy destination port. Level 1 cache is memory used in a CPU. Fixed configuration refers to the port arrangement in switch hardware.
-
-
-32. What are two examples of the cut-through switching method? (Choose two.)
-store-and-forward switching
-fast-forward switching
-CRC switching
-fragment-free switching
-QOS switching
-Explanation: Store-and forward switching accepts the entire frame and performs error checking using CRC before forwarding the frame. Store-and-forward is often required for QOS analysis. Fast-forward and fragment-free are both variations of the cut-through switching method where only part of the frame is received before the switch begins to forward it.
-
-
-33. Which frame forwarding method receives the entire frame and performs a CRC check to detect errors before forwarding the frame?
-
-cut-through switching
-store-and-forward switching
-fragment-free switching
-fast-forward switching
-Explanation: Fast-forward and fragment-free switching are variations of cut-through switching, which begins to forward the frame before the entire frame is received.
-
-34. What is the purpose of the FCS field in a frame?
-
-to obtain the MAC address of the sending node
-to verify the logical address of the sending node
-to compute the CRC header for the data field
-to determine if errors occurred in the transmission and reception
-Explanation: The FCS field in a frame is used to detect any errors in the transmission and receipt of a frame. This is done by comparing the CRC value within the frame against a computed CRC value of the frame. If the two values do not match, then the frame is discarded.
-
-35. Which switching method has the lowest level of latency?
-
-cut-through
-store-and-forward
-fragment-free
-fast-forward
-Explanation: Fast-forward switching begins to forward a frame after reading the destination MAC address, resulting in the lowest latency. Fragment-free reads the first 64 bytes before forwarding. Store-and-forward has the highest latency because it reads the entire frame before beginning to forward it. Both fragment-free and fast-forward are types of cut-through switching.
-
-36. A network administrator is connecting two modern switches using a straight-through cable. The switches are new and have never been configured. Which three statements are correct about the final result of the connection? (Choose three.)
-
-The link between the switches will work at the fastest speed that is supported by both switches.
-The link between switches will work as full-duplex.
-If both switches support different speeds, they will each work at their own fastest speed.
-The auto-MDIX feature will configure the interfaces eliminating the need for a crossover cable.
-The connection will not be possible unless the administrator changes the cable to a crossover cable.
-The duplex capability has to be manually configured because it cannot be negotiated.
-Explanation: Modern switches can negotiate to work in full-duplex mode if both switches are capable. They will negotiate to work using the fastest possible speed and the auto-MDIX feature is enabled by default, so a cable change is not needed.
-
-37. Which advantage does the store-and-forward switching method have compared with the cut-through switching method?
-
-collision detecting
-frame error checking
-faster frame forwarding
-frame forwarding using IPv4 Layer 3 and 4 information
-Explanation: A switch using the store-and-forward switching method performs an error check on an incoming frame by comparing the FCS value against its own FCS calculations after the entire frame is received. In comparison, a switch using the cut-through switching method makes quick forwarding decisions and starts the forwarding process without waiting for the entire frame to be received. Thus a switch using cut-through switching may send invalid frames to the network. The performance of store-and-forward switching is slower compared to cut-through switching performance. Collision detection is monitored by the sending device. Store-and-forward switching does not use IPv4 Layer 3 and 4 information for its forwarding decisions.
-
-38. When the store-and-forward method of switching is in use, what part of the Ethernet frame is used to perform an error check?
-
-CRC in the trailer
-source MAC address in the header
-destination MAC address in the header
-protocol type in the header
-Explanation: The cyclic redundancy check (CRC) part of the trailer is used to determine if the frame has been modified during transit.​ If the integrity of the frame is verified, the frame is forwarded. If the integrity of the frame cannot be verified, then the frame is dropped.
-
-
-39. Which switching method uses the CRC value in a frame?
-cut-through
-fast-forward
-fragment-free
-store-and-forward
-Explanation: When the store-and-forward switching method is used, the switch receives the complete frame before forwarding it on to the destination. The cyclic redundancy check (CRC) part of the trailer is used to determine if the frame has been modified during transit.​​ In contrast, a cut-through switch forwards the frame once the destination Layer 2 address is read. Two types of cut-through switching methods are fast-forward and fragment-free.
-
-40. What are two actions performed by a Cisco switch? (Choose two.)
-
-building a routing table that is based on the first IP address in the frame header
-using the source MAC addresses of frames to build and maintain a MAC address table
-forwarding frames with unknown destination IP addresses to the default gateway
-utilizing the MAC address table to forward frames via the destination MAC address
-examining the destination MAC address to add new entries to the MAC address table
-Explanation: Important actions that a switch performs are as follows:
-
-When a frame comes in, the switch examines the Layer 2 source address to build and maintain the Layer 2 MAC address table.
-It examines the Layer 2 destination address to determine how to forward the frame. When the destination address is in the MAC address table, then the frame is sent out a particular port. When the address is unknown, the frame is sent to all ports that have devices connected to that network.
-41. Which two statements describe features or functions of the logical link control sublayer in Ethernet standards? (Choose two.)
-
-Logical link control is implemented in software.
-Logical link control is specified in the IEEE 802.3 standard.
-The LLC sublayer adds a header and a trailer to the data.
-The data link layer uses LLC to communicate with the upper layers of the protocol suite.
-The LLC sublayer is responsible for the placement and retrieval of frames on and off the media.
-Explanation: Logical link control is implemented in software and enables the data link layer to communicate with the upper layers of the protocol suite. Logical link control is specified in the IEEE 802.2 standard. IEEE 802.3 is a suite of standards that define the different Ethernet types. The MAC (Media Access Control) sublayer is responsible for the placement and retrieval of frames on and off the media. The MAC sublayer is also responsible for adding a header and a trailer to the network layer protocol data unit (PDU).
-
-42. What is the auto-MDIX feature?
-
-It enables a device to automatically configure an interface to use a straight-through or a crossover cable.
-It enables a device to automatically configure the duplex settings of a segment.
-It enables a device to automatically configure the speed of its interface.
-It enables a switch to dynamically select the forwarding method.
-Explanation: The auto-MDIX feature allows the device to configure its network port according to the cable type that is used (straight-through or crossover) and the type of device that is connected to that port. When a port of a switch is configured with auto-MDIX, this switch can be connected to another switch by the use of either a straight-through cable or a crossover cable.
-
-
-43. What is one advantage of using the cut-through switching method instead of the store-and-forward switching method?
-has a positive impact on bandwidth by dropping most of the invalid frames
-makes a fast forwarding decision based on the source MAC address of the frame
-has a lower latency appropriate for high-performance computing applications​
-provides the flexibility to support any mix of Ethernet speeds
-Explanation: Cut-through switching provides lower latency switching for high-performance computing (HPC) applications. Cut-through switching allows more invalid frames to cross the network than store-and-forward switching. The cut-through switching method can make a forwarding decision as soon as it looks up the destination MAC address of the frame.
-
-44. Which is a multicast MAC address?
-
-FF-FF-FF-FF-FF-FF
-5C-26-0A-4B-19-3E
-01-00-5E-00-00-03
-00-26-0F-4B-00-3E
-Explanation: Multicast MAC addresses begin with the special value of 01-00-5E.
-
-45. Refer to the exhibit. What is wrong with the displayed termination?
-
-
-
-The woven copper braid should not have been removed.
-The wrong type of connector is being used.
-The untwisted length of each wire is too long.
-The wires are too thick for the connector that is used.
-Explanation: When a cable to an RJ-45 connector is terminated, it is important to ensure that the untwisted wires are not too long and that the flexible plastic sheath surrounding the wires is crimped down and not the bare wires. None of the colored wires should be visible from the bottom of the jack.
-
-46. Refer to the exhibit. The PC is connected to the console port of the switch. All the other connections are made through FastEthernet links. Which types of UTP cables can be used to connect the devices?​
-
-
-
-1 - rollover, 2 - crossover, 3 - straight-through
-1 - rollover, 2 - straight-through, 3 - crossover
-1 - crossover, 2 - rollover, 3 - straight-through
-1 - crossover, 2 - straight-through, 3 - rollover
-Explanation: A straight-through cable is commonly used to interconnect a host to a switch and a switch to a router. A crossover cable is used to interconnect similar devices together like switch to a switch, a host to a host, or a router to a router. If a switch has the MDIX capability, a crossover could be used to connect the switch to the router; however, that option is not available. A rollover cable is used to connect to a router or switch console port.
-
-47. Open the PT Activity. Perform the tasks in the activity instructions and then answer the question.
-
+CCNA 1 v7 Modules 8 - 10 Communicating Between Networks Exam
+CCNA 1 v7 Modules 8 – 10 Communicating Between Networks Exam
 
 Icon
-Modules 4 - 7: Ethernet Concepts Exam - Packet Tracer  0.00 KB  18148 downloads
+Modules 8 - 10 Communicating Between Networks Packet Tracer file  235.82 KB  10471 downloads
 ...
 
-Which port does Switch0 use to send frames to the host with the IPv4 address 10.1.1.5?
-Fa0/1
-Fa0/5
-Fa0/9
-Fa0/11
-Explanation: Issuing the command ipconfig /all from the PC0 command prompt displays the IPv4 address and MAC address. When the IPv4 address 10.1.1.5 is pinged from PC0, the switch stores the source MAC address (from PC0) along with the port to which PC0 is connected. When the destination reply is received, the switch takes the destination MAC address and compares to MAC addresses stored in the MAC address table. Issuing the show mac-address-table on the PC0 Terminal application displays two dynamic MAC address entries. The MAC address and port entry that does not belong to PC0 must be the MAC address and port of the destination with the IPv4 address 10.1.1.5.
+Which interfaces in each router are active and operational?
+R1: G0/0 and S0/0/0
+R2: G0/0 and S0/0/0
 
-48. What does the term “attenuation” mean in data communication?
+R1: G0/1 and S0/0/1
+R2: G0/0 and S0/0/1
 
-loss of signal strength as distance increases
-time for a signal to reach its destination
-leakage of signals from one cable pair to another
-strengthening of a signal by a networking device
-Explanation: Data is transmitted on copper cables as electrical pulses. A detector in the network interface of a destination device must receive a signal that can be successfully decoded to match the signal sent. However, the farther the signal travels, the more it deteriorates. This is referred to as signal attenuation.
+R1: G0/0 and S0/0/0
+R2: G0/1 and S0/0/0
 
-49. What makes fiber preferable to copper cabling for interconnecting buildings? (Choose three.)
+R1: G0/0 and S0/0/1
+R2: G0/1 and S0/0/1
 
-greater distances per cable run
-lower installation cost
-limited susceptibility to EMI/RFI
-durable connections
-greater bandwidth potential
-easily terminated
-Explanation: Optical fiber cable transmits data over longer distances and at higher bandwidths than any other networking media. Unlike copper wires, fiber-optic cable can transmit signals with less attenuation and is completely immune to EMI and RFI.
+Explanation: The command to use for this activity is show ip interface brief in each router. The active and operational interfaces are represented by the value “up” in the “Status” and “Protocol” columns. The interfaces in R1 with these characteristics are G0/0 and S0/0/0. In R2 they are G0/1 and S0/0/0.
 
-50. What OSI physical layer term describes the process by which one wave modifies another wave?
+49. Which term describes a field in the IPv4 packet header used to identify the next level protocol?
 
-modulation
-IEEE
-EIA/TIA
-air
-51. What OSI physical layer term describes the capacity at which a medium can carry data?
+protocol
+destination IPv4 address
+source IPv4 address
+TTL
+50. Which term describes a field in the IPv4 packet header that contains an 8-bit binary value used to determine the priority of each packet?
 
-bandwidth
-IEEE
-EIA/TIA
-air
-53. What OSI physical layer term describes the measure of the transfer of bits across a medium over a given period of time?
+differentiated services
+destination IPv4 address
+source IPv4 address
+protocol
+51. Which term describes a field in the IPv4 packet header that contains a 32-bit binary value associated with an interface on the sending device?
 
-throughput
-bandwidth
-latency
-goodput
-54. What OSI physical layer term describes the amount of time, including delays, for data to travel from one point to another?
+source IPv4 address
+destination IPv4 address
+protocol
+TTL
+52. Which term describes a field in the IPv4 packet header used to detect corruption in the IPv4 header?
 
-latency
-bandwidth
-throughput
-goodput
-55. What OSI physical layer term describes the amount of time, including delays, for data to travel from one point to another?
+header checksum
+source IPv4 address
+protocol
+TTL
+Explanation: The header checksum is used to determine if any errors have been introduced during transmission.
 
-latency
-fiber-optic cable
-air
-copper cable
-56. What OSI physical layer term describes the measure of usable data transferred over a given period of time?
+53. 
 
-goodput
-fiber-optic cable
-air
-copper cable
-57. What OSI physical layer term describes the physical medium which uses electrical pulses?
+RTR1(config)# interface gi0/1
+RTR1(config-if)# description Connects to the Marketing LAN
+RTR1(config-if)# ip address 10.27.15.17 255.255.255.0
+RTR1(config-if)# no shutdown
+RTR1(config-if)# interface gi0/0
+RTR1(config-if)# description Connects to the Payroll LAN
+RTR1(config-if)# ip address 10.27.14.148 255.255.255.0
+RTR1(config-if)# no shutdown
+RTR1(config-if)# interface s0/0/0
+RTR1(config-if)# description Connects to the ISP
+RTR1(config-if)# ip address 10.14.15.254 255.255.255.0
+RTR1(config-if)# no shutdown
+RTR1(config-if)# interface s0/0/1
+RTR1(config-if)# description Connects to the Head Office WAN
+RTR1(config-if)# ip address 203.0.113.39 255.255.255.0
+RTR1(config-if)# no shutdown
+RTR1(config-if)# end
+Refer to the exhibit. A network administrator is connecting a new host to the Payroll LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
 
-copper cable
-fiber-optic cable
-air
-goodput
-58. What OSI physical layer term describes the physical medium that uses the propagation of light?
+10.27.14.148
+10.27.14.1
+10.14.15.254
+203.0.113.39
+10.27.15.17
+54. Which term describes a field in the IPv4 packet header that contains a unicast, multicast, or broadcast address?
 
-fiber-optic cable
-goodput
-latency
-throughput
-59. What OSI physical layer term describes the physical medium for microwave transmissions?
+destination IPv4 address
+protocol
+TTL
+header checksum
+55. Which term describes a field in the IPv4 packet header used to limit the lifetime of a packet?
 
-air
-goodput
-latency
-throughput
-60. Which two functions are performed at the MAC sublayer of the OSI data link layer? (Choose two.)
+TTL
+source IPv4 address
+protocol
+header checksum
 
-Adds Layer 2 control information to network protocol data.
-Places information in the frame that identifies which network layer protocol is being used for the frame.
-Controls the NIC responsible for sending and receiving data on the physical medium.
-Implements a trailer to detect transmission errors.
-Enables IPv4 and IPv6 to utilize the same network interface and media.
-Case 2:
+56. Which term describes a field in the IPv4 packet header that contains a 4-bit binary value set to 0100?
 
-Provides synchronization between source and target nodes.
-Integrates various physical technologies.
-Communicates between the networking software at the upper layers and the device hardware at the lower layers.
-Adds Layer 2 control information to network protocol data.
-Enables IPv4 and IPv6 to utilize the same network interface and media.
-Case 3:
+version
+source IPv4 address
+protocol
+TTL
+57. Which term describes a field in the IPv4 packet header used to identify the next level protocol?
 
-Enables IPv4 and IPv6 to utilize the same network interface and media.
-Provides synchronization between source and target nodes.
-Implements a trailer to detect transmission errors.
-Adds Layer 2 control information to network protocol data.
-Places information in the frame that identifies which network layer protocol is being used for the frame.
-Case 4:
+protocol
+version
+differentiated services
+header checksum
+58. Which term describes a field in the IPv4 packet header that contains a 4-bit binary value set to 0100?
 
-Enables IPv4 and IPv6 to utilize the same network interface and media.
-Adds Layer 2 control information to network protocol data.
-Integrates various physical technologies.
-Communicates between the networking software at the upper layers and the device hardware at the lower layers.
-Provides synchronization between source and target nodes.
-Case 5:
+version
+differentiated services
+header checksum
+TTL
 
-Places information in the frame that identifies which network layer protocol is being used for the frame.
-Integrates various physical technologies.
-Adds Layer 2 control information to network protocol data.
-Controls the NIC responsible for sending and receiving data on the physical medium.
-Communicates between the networking software at the upper layers and the device hardware at the lower layers.
-Case 6:
+59. What property of ARP causes cached IP-to-MAC mappings to remain in memory longer?
 
-Controls the NIC responsible for sending and receiving data on the physical medium
-Provides a mechanism to allow multiple devices to communicate over a shared medium.
-61. Which two functions are performed at the LLC sublayer of the OSI data link layer? (Choose two.)
+Entries in an ARP table are time-stamped and are purged after the timeout expires.
+A static IP-to-MAC address entry can be entered manually into an ARP table.
+The type field 0x806 appears in the header of the Ethernet frame.
+The port-to-MAC address table on a switch has the same entries as the ARP table on the switch.
+60. What property of ARP allows MAC addresses of frequently used servers to be fixed in the ARP table?
 
-Enables IPv4 and IPv6 to utilize the same network interface and media.
-Places information in the frame that identifies which network layer protocol is being used for the frame.
-Integrates various physical technologies.
-Implements a process to delimit fields within a Layer 2 frame.
-Controls the NIC responsible for sending and receiving data on the physical medium.
-64. Which two functions are performed at the LLC sublayer of the OSI data link layer? (Choose two.)
+A static IP-to-MAC address entry can be entered manually into an ARP table.
+Entries in an ARP table are time-stamped and are purged after the timeout expires.
+The type field 0x806 appears in the header of the Ethernet frame.
+The port-to-MAC address table on a switch has the same entries as the ARP table on the switch.
+61. What property of ARP allows MAC addresses of frequently used servers to be fixed in the ARP table?
 
-Adds Layer 2 control information to network protocol data.
-Places information in the frame that identifies which network layer protocol is being used for the frame.
-Performs data encapsulation.
-Controls the NIC responsible for sending and receiving data on the physical medium.
-Integrates various physical technologies.
-66. Which two functions are performed at the LLC sublayer of the OSI data link layer? (Choose two.)
+A static IP-to-MAC address entry can be entered manually into an ARP table.
+The destination MAC address FF-FF-FF-FF-FF-FF appears in the header of the Ethernet frame.
+The source MAC address appears in the header of the Ethernet frame.
+The port-to-MAC address table on a switch has the same entries as the ARP table on the switch.
 
-Adds Layer 2 control information to network protocol data.
-Enables IPv4 and IPv6 to utilize the same network interface and media.
-Provides data link layer addressing.
-Implements a trailer to detect transmission errors.
-Provides synchronization between source and target nodes.
-68. Which two functions are performed at the LLC sublayer of the OSI data link layer? (Choose two.)
+62. What property of ARP allows hosts on a LAN to send traffic to remote networks?
 
-Enables IPv4 and IPv6 to utilize the same network interface and media.
-Adds Layer 2 control information to network protocol data.
-Integrates various physical technologies.
-Implements a trailer to detect transmission errors.
-Provides synchronization between source and target nodes.
-71. What action will occur if a switch receives a frame with the destination MAC address FF:FF:FF:FF:FF:FF?
+Local hosts learn the MAC address of the default gateway.
+The destination MAC address FF-FF-FF-FF-FF-FF appears in the header of the Ethernet frame.
+The source MAC address appears in the header of the Ethernet frame.
+The port-to-MAC address table on a switch has the same entries as the ARP table on the switch.
+63. 
 
-The switch forwards it out all ports except the ingress port.
-The switch refreshes the timer on that entry.
-The switch does not forward the frame.
-The switch sends the frame to a connected router because the destination MAC address is not local.
-73. What action will occur if a switch receives a frame with the destination MAC address 01:00:5E:00:00:D9?
+Floor(config)# interface gi0/1
+Floor(config-if)# description Connects to the Registrar LAN
+Floor(config-if)# ip address 192.168.235.234 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface gi0/0
+Floor(config-if)# description Connects to the Manager LAN
+Floor(config-if)# ip address 192.168.234.114 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface s0/0/0
+Floor(config-if)# description Connects to the ISP
+Floor(config-if)# ip address 10.234.235.254 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface s0/0/1
+Floor(config-if)# description Connects to the Head Office WAN
+Floor(config-if)# ip address 203.0.113.3 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# end
+Refer to the exhibit. A network administrator is connecting a new host to the Registrar LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
 
-The switch forwards it out all ports except the ingress port.
-The switch does not forward the frame.
-The switch sends the frame to a connected router because the destination MAC address is not local.
-The switch shares the MAC address table entry with any connected switches.
-74. What action will occur if a host receives a frame with a destination MAC address of FF:FF:FF:FF:FF:FF?
+192.168.235.234
+192.168.235.1
+10.234.235.254
+203.0.113.3
+192.168.234.114
+64. What property of ARP forces all Ethernet NICs to process an ARP request?
 
-The host will process the frame.
-The host forwards the frame to the router.
-The host sends the frame to the switch to update the MAC address table.
-The host forwards the frame to all other hosts.
-75. What action will occur if a switch receives a frame and does have the source MAC address in the MAC table?
+The destination MAC address FF-FF-FF-FF-FF-FF appears in the header of the Ethernet frame.
+The source MAC address appears in the header of the Ethernet frame.
+The type field 0x806 appears in the header of the Ethernet frame.
+ARP replies are broadcast on the network when a host receives an ARP request.
+65. What property of ARP causes a reply only to the source sending an ARP request?
 
-The switch refreshes the timer on that entry.
-The switch adds it to its MAC address table associated with the port number.
-The switch forwards the frame to the associated port.
-The switch sends the frame to a connected router because the destination MAC address is not local.
-76. What action will occur if a host receives a frame with a destination MAC address of FF:FF:FF:FF:FF:FF?
+The source MAC address appears in the header of the Ethernet frame.
+The destination MAC address FF-FF-FF-FF-FF-FF appears in the header of the Ethernet frame.
+The type field 0x806 appears in the header of the Ethernet frame.
+ARP replies are broadcast on the network when a host receives an ARP request.
+66. What property of ARP causes the request to be flooded out all ports of a switch except for the port receiving the ARP request?
 
-The host will process the frame.
-The host returns the frame to the switch.
-The host replies to the switch with its own IP address.
-The host forwards the frame to all other hosts.
-78. What action will occur if a host receives a frame with a destination MAC address it does not recognize?
+The destination MAC address FF-FF-FF-FF-FF-FF appears in the header of the Ethernet frame.
+The type field 0x806 appears in the header of the Ethernet frame.
+Entries in an ARP table are time-stamped and are purged after the timeout expires.
+ARP replies are broadcast on the network when a host receives an ARP request.
+67. What property of ARP causes the NICs receiving an ARP request to pass the data portion of the Ethernet frame to the ARP process?
 
-The host will discard the frame.
-The host replies to the switch with its own IP address.
-The host forwards the frame to all other hosts.
-The host returns the frame to the switch.
-79. Which type of UTP cable is used to connect a PC to a switch port?
+The type field 0x806 appears in the header of the Ethernet frame.
+The destination MAC address FF-FF-FF-FF-FF-FF appears in the header of the Ethernet frame.
+Entries in an ARP table are time-stamped and are purged after the timeout expires.
+ARP replies are broadcast on the network when a host receives an ARP request.
+68. What property of ARP causes the NICs receiving an ARP request to pass the data portion of the Ethernet frame to the ARP process?
 
-console
-rollover
-crossover
-straight-through
-Explanation: A rollover cable is a Cisco proprietary cable used to connect to a router or switch console port. A straight-through (also called patch) cable is usually used to interconnect a host to a switch and a switch to a router. A crossover cable is used to interconnect similar devices together, for example, between two switches, two routers, and two hosts.
+The type field 0x806 appears in the header of the Ethernet frame.
+The destination MAC address FF-FF-FF-FF-FF-FF appears in the header of the Ethernet frame.
+Entries in an ARP table are time-stamped and are purged after the timeout expires.
+The port-to-MAC address table on a switch has the same entries as the ARP table on the switch.
+69. 
+
+Main(config)# interface gi0/1
+Main(config-if)# description Connects to the Service LAN
+Main(config-if)# ip address 172.29.157.156 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# interface gi0/0
+Main(config-if)# description Connects to the Engineering LAN
+Main(config-if)# ip address 172.29.156.36 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# interface s0/0/0
+Main(config-if)# description Connects to the ISP
+Main(config-if)# ip address 10.156.157.254 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# interface s0/0/1
+Main(config-if)# description Connects to the Head Office WAN
+Main(config-if)# ip address 198.51.100.177 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# end
+Refer to the exhibit. A network administrator is connecting a new host to the Service LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+172.29.157.156
+172.29.157.1
+10.156.157.254
+198.51.100.177
+172.29.156.36
+70. 
+
+BldgA(config)# interface gi0/1
+BldgA(config-if)# description Connects to the Medical LAN
+BldgA(config-if)# ip address 192.168.191.189 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# interface gi0/0
+BldgA(config-if)# description Connects to the Client LAN
+BldgA(config-if)# ip address 192.168.190.70 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# interface s0/0/0
+BldgA(config-if)# description Connects to the ISP
+BldgA(config-if)# ip address 10.190.191.254 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# interface s0/0/1
+BldgA(config-if)# description Connects to the Head Office WAN
+BldgA(config-if)# ip address 198.51.100.213 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# end
+Refer to the exhibit. A network administrator is connecting a new host to the Medical LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+192.168.191.189
+192.168.191.1
+10.190.191.254
+198.51.100.213
+192.168.190.70
+71. 
+
+Floor(config)# interface gi0/1
+Floor(config-if)# description Connects to the Registrar LAN
+Floor(config-if)# ip address 192.168.225.223 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface gi0/0
+Floor(config-if)# description Connects to the Manager LAN
+Floor(config-if)# ip address 192.168.224.103 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface s0/0/0
+Floor(config-if)# description Connects to the ISP
+Floor(config-if)# ip address 10.224.225.254 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface s0/0/1
+Floor(config-if)# description Connects to the Head Office WAN
+Floor(config-if)# ip address 203.0.113.246 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# end
+Refer to the exhibit. A network administrator is connecting a new host to the Registrar LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+192.168.225.223
+192.168.225.1
+10.224.225.254
+203.0.113.246
+192.168.224.103
+72. 
+
+Floor(config)# interface gi0/1
+Floor(config-if)# description Connects to the Registrar LAN
+Floor(config-if)# ip address 10.118.63.65 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface gi0/0
+Floor(config-if)# description Connects to the Manager LAN
+Floor(config-if)# ip address 10.118.62.196 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface s0/0/0
+Floor(config-if)# description Connects to the ISP
+Floor(config-if)# ip address 10.62.63.254 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# interface s0/0/1
+Floor(config-if)# description Connects to the Head Office WAN
+Floor(config-if)# ip address 209.165.200.87 255.255.255.0
+Floor(config-if)# no shutdown
+Floor(config-if)# end
+Refer to the exhibit. A network administrator is connecting a new host to the Manager LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+10.118.62.196
+10.118.62.1
+10.62.63.254
+209.165.200.87
+10.118.63.65
+73. 
+
+HQ(config)# interface gi0/1
+HQ(config-if)# description Connects to the Branch LAN
+HQ(config-if)# ip address 172.19.99.99 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# interface gi0/0
+HQ(config-if)# description Connects to the Store LAN
+HQ(config-if)# ip address 172.19.98.230 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# interface s0/0/0
+HQ(config-if)# description Connects to the ISP
+HQ(config-if)# ip address 10.98.99.254 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# interface s0/0/1
+HQ(config-if)# description Connects to the Head Office WAN
+HQ(config-if)# ip address 209.165.200.120 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# end
+Refer to the exhibit. A network administrator is connecting a new host to the Store LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+172.19.98.230
+172.19.98.1
+10.98.99.254
+209.165.200.120
+172.19.99.99
+74. 
+
+HQ(config)# interface gi0/1
+HQ(config-if)# description Connects to the Branch LAN
+HQ(config-if)# ip address 172.20.133.132 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# interface gi0/0
+HQ(config-if)# description Connects to the Store LAN
+HQ(config-if)# ip address 172.20.132.13 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# interface s0/0/0
+HQ(config-if)# description Connects to the ISP
+HQ(config-if)# ip address 10.132.133.254 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# interface s0/0/1
+HQ(config-if)# description Connects to the Head Office WAN
+HQ(config-if)# ip address 198.51.100.156 255.255.255.0
+HQ(config-if)# no shutdown
+HQ(config-if)# end
+
+Refer to the exhibit. A network administrator is connecting a new host to the Store LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+172.20.132.13
+172.20.132.1
+10.132.133.254
+198.51.100.156
+172.20.133.132
+75. 
+
+Main(config)# interface gi0/1
+Main(config-if)# description Connects to the Service LAN
+Main(config-if)# ip address 192.168.167.166 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# interface gi0/0
+Main(config-if)# description Connects to the Engineering LAN
+Main(config-if)# ip address 192.168.166.46 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# interface s0/0/0
+Main(config-if)# description Connects to the ISP
+Main(config-if)# ip address 10.166.167.254 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# interface s0/0/1
+Main(config-if)# description Connects to the Head Office WAN
+Main(config-if)# ip address 198.51.100.189 255.255.255.0
+Main(config-if)# no shutdown
+Main(config-if)# end
+
+Refer to the exhibit. A network administrator is connecting a new host to the Service LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+192.168.167.166
+192.168.167.1
+10.166.167.254
+198.51.100.189
+192.168.166.46
+76. 
+
+BldgA(config)# interface gi0/1
+BldgA(config-if)# description Connects to the Medical LAN
+BldgA(config-if)# ip address 192.168.201.200 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# interface gi0/0
+BldgA(config-if)# description Connects to the Client LAN
+BldgA(config-if)# ip address 192.168.200.80 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# interface s0/0/0
+BldgA(config-if)# description Connects to the ISP
+BldgA(config-if)# ip address 10.200.201.254 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# interface s0/0/1
+BldgA(config-if)# description Connects to the Head Office WAN
+BldgA(config-if)# ip address 203.0.113.222 255.255.255.0
+BldgA(config-if)# no shutdown
+BldgA(config-if)# end
+
+Refer to the exhibit. A network administrator is connecting a new host to the Medical LAN. The host needs to communicate with remote networks. What IP address would be configured as the default gateway on the new host?
+
+192.168.201.200
+192.168.201.1
+10.200.201.254
+203.0.113.222
+192.168.200.80

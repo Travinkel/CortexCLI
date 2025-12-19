@@ -4,24 +4,25 @@ Adaptive Learning Data Models.
 Dataclasses for the adaptive learning engine, used for passing data
 between components without database coupling.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
 from uuid import UUID
 
 
 class MasteryLevel(str, Enum):
     """Mastery level categories based on combined mastery score."""
-    NOVICE = "novice"           # < 0.40
-    DEVELOPING = "developing"   # 0.40 - 0.64
-    PROFICIENT = "proficient"   # 0.65 - 0.84
-    MASTERY = "mastery"         # >= 0.85
+
+    NOVICE = "novice"  # < 0.40
+    DEVELOPING = "developing"  # 0.40 - 0.64
+    PROFICIENT = "proficient"  # 0.65 - 0.84
+    MASTERY = "mastery"  # >= 0.85
 
     @classmethod
-    def from_score(cls, score: float) -> "MasteryLevel":
+    def from_score(cls, score: float) -> MasteryLevel:
         """Convert mastery score to level."""
         if score >= 0.85:
             return cls.MASTERY
@@ -34,12 +35,14 @@ class MasteryLevel(str, Enum):
 
 class GatingType(str, Enum):
     """Types of prerequisite gating."""
-    SOFT = "soft"   # Warning shown, access allowed
-    HARD = "hard"   # Access blocked until threshold met
+
+    SOFT = "soft"  # Warning shown, access allowed
+    HARD = "hard"  # Access blocked until threshold met
 
 
 class TriggerType(str, Enum):
     """What triggered a remediation event."""
+
     INCORRECT_ANSWER = "incorrect_answer"
     LOW_CONFIDENCE = "low_confidence"
     PREREQUISITE_GAP = "prerequisite_gap"
@@ -48,14 +51,16 @@ class TriggerType(str, Enum):
 
 class SessionMode(str, Enum):
     """Learning session modes."""
-    ADAPTIVE = "adaptive"       # Full adaptive with remediation
-    REVIEW = "review"           # Review due items only
-    QUIZ = "quiz"               # Quiz mode (no hints)
-    REMEDIATION = "remediation" # Focused remediation
+
+    ADAPTIVE = "adaptive"  # Full adaptive with remediation
+    REVIEW = "review"  # Review due items only
+    QUIZ = "quiz"  # Quiz mode (no hints)
+    REMEDIATION = "remediation"  # Focused remediation
 
 
 class SessionStatus(str, Enum):
     """Learning session status."""
+
     ACTIVE = "active"
     PAUSED = "paused"
     COMPLETED = "completed"
@@ -65,9 +70,10 @@ class SessionStatus(str, Enum):
 @dataclass
 class KnowledgeBreakdown:
     """Breakdown of mastery by knowledge type."""
-    dec_score: float = 0.0   # Declarative (0-10)
+
+    dec_score: float = 0.0  # Declarative (0-10)
     proc_score: float = 0.0  # Procedural (0-10)
-    app_score: float = 0.0   # Application (0-10)
+    app_score: float = 0.0  # Application (0-10)
 
     def to_dict(self) -> dict:
         return {
@@ -80,6 +86,7 @@ class KnowledgeBreakdown:
 @dataclass
 class ConceptMastery:
     """Complete mastery state for a concept."""
+
     concept_id: UUID
     concept_name: str
     review_mastery: float = 0.0
@@ -87,11 +94,11 @@ class ConceptMastery:
     combined_mastery: float = 0.0
     knowledge_breakdown: KnowledgeBreakdown = field(default_factory=KnowledgeBreakdown)
     is_unlocked: bool = False
-    unlock_reason: Optional[str] = None
+    unlock_reason: str | None = None
     review_count: int = 0
     quiz_attempt_count: int = 0
-    last_review_at: Optional[datetime] = None
-    last_quiz_at: Optional[datetime] = None
+    last_review_at: datetime | None = None
+    last_quiz_at: datetime | None = None
 
     @property
     def mastery_level(self) -> MasteryLevel:
@@ -116,6 +123,7 @@ class ConceptMastery:
 @dataclass
 class BlockingPrerequisite:
     """A prerequisite that is blocking access to a concept."""
+
     concept_id: UUID
     concept_name: str
     required_mastery: float
@@ -136,9 +144,10 @@ class BlockingPrerequisite:
 @dataclass
 class UnlockStatus:
     """Status of concept unlock for a learner."""
+
     is_unlocked: bool
     blocking_prerequisites: list[BlockingPrerequisite] = field(default_factory=list)
-    unlock_reason: Optional[str] = None
+    unlock_reason: str | None = None
     estimated_atoms_to_unlock: int = 0
 
     @property
@@ -151,6 +160,7 @@ class UnlockStatus:
 @dataclass
 class KnowledgeGap:
     """A detected knowledge gap requiring remediation."""
+
     concept_id: UUID
     concept_name: str
     current_mastery: float
@@ -167,6 +177,7 @@ class KnowledgeGap:
 @dataclass
 class RemediationPlan:
     """Plan for addressing a knowledge gap."""
+
     gap_concept_id: UUID
     gap_concept_name: str
     atoms: list[UUID]
@@ -175,12 +186,13 @@ class RemediationPlan:
     mastery_target: float = 0.65
     estimated_duration_minutes: int = 0
     trigger_type: TriggerType = TriggerType.PREREQUISITE_GAP
-    trigger_atom_id: Optional[UUID] = None
+    trigger_atom_id: UUID | None = None
 
 
 @dataclass
 class LearningPath:
     """Optimal learning path to master a concept."""
+
     target_concept_id: UUID
     target_concept_name: str
     prerequisites_to_complete: list[ConceptMastery]
@@ -198,6 +210,7 @@ class LearningPath:
 @dataclass
 class ContentFeatures:
     """Extracted features from content for suitability scoring."""
+
     word_count: int = 0
     sentence_count: int = 0
     char_count: int = 0
@@ -219,9 +232,9 @@ class ContentFeatures:
     # Semantic features
     concept_count: int = 0
     has_alternatives: bool = False  # Multiple valid approaches
-    is_factual: bool = False        # Pure fact recall
-    is_procedural: bool = False     # Step-by-step process
-    is_conceptual: bool = False     # Relationships/understanding
+    is_factual: bool = False  # Pure fact recall
+    is_procedural: bool = False  # Step-by-step process
+    is_conceptual: bool = False  # Relationships/understanding
 
     def to_dict(self) -> dict:
         return {
@@ -241,11 +254,12 @@ class ContentFeatures:
 @dataclass
 class SuitabilityScore:
     """Suitability score for a single atom type."""
+
     atom_type: str
-    score: float              # 0-1 combined score
-    knowledge_signal: float   # Primary: knowledge type contribution
-    structure_signal: float   # Secondary: content structure contribution
-    length_signal: float      # Tertiary: length appropriateness
+    score: float  # 0-1 combined score
+    knowledge_signal: float  # Primary: knowledge type contribution
+    structure_signal: float  # Secondary: content structure contribution
+    length_signal: float  # Tertiary: length appropriateness
     confidence: float = 0.0
     reasoning: str = ""
 
@@ -253,6 +267,7 @@ class SuitabilityScore:
 @dataclass
 class AtomSuitability:
     """Complete suitability analysis for an atom."""
+
     atom_id: UUID
     current_type: str
     recommended_type: str
@@ -271,15 +286,18 @@ class AtomSuitability:
 @dataclass
 class AtomPresentation:
     """Atom prepared for presentation to learner."""
+
     atom_id: UUID
     atom_type: str
     front: str
-    back: Optional[str] = None
-    content_json: Optional[dict] = None
-    concept_id: Optional[UUID] = None
-    concept_name: Optional[str] = None
+    back: str | None = None
+    content_json: dict | None = None
+    concept_id: UUID | None = None
+    concept_name: str | None = None
+    card_id: str | None = None
+    ccna_section_id: str | None = None
     is_remediation: bool = False
-    remediation_for: Optional[str] = None  # Concept name if remediation
+    remediation_for: str | None = None  # Concept name if remediation
 
     def to_dict(self) -> dict:
         return {
@@ -289,6 +307,8 @@ class AtomPresentation:
             "back": self.back,
             "content_json": self.content_json,
             "concept_name": self.concept_name,
+            "card_id": self.card_id,
+            "ccna_section_id": self.ccna_section_id,
             "is_remediation": self.is_remediation,
             "remediation_for": self.remediation_for,
         }
@@ -297,17 +317,19 @@ class AtomPresentation:
 @dataclass
 class AnswerResult:
     """Result of answering an atom."""
+
     is_correct: bool
     score: float = 0.0  # For partial credit
-    explanation: Optional[str] = None
-    correct_answer: Optional[str] = None
+    explanation: str | None = None
+    correct_answer: str | None = None
     remediation_triggered: bool = False
-    remediation_plan: Optional[RemediationPlan] = None
+    remediation_plan: RemediationPlan | None = None
 
 
 @dataclass
 class SessionProgress:
     """Progress within a learning session."""
+
     atoms_completed: int = 0
     atoms_remaining: int = 0
     atoms_correct: int = 0
@@ -328,21 +350,40 @@ class SessionProgress:
 @dataclass
 class SessionState:
     """Complete state of a learning session."""
+
     session_id: UUID
     learner_id: str
     mode: SessionMode
     status: SessionStatus
-    target_concept_name: Optional[str] = None
-    target_cluster_name: Optional[str] = None
+    target_concept_name: str | None = None
+    target_cluster_name: str | None = None
     progress: SessionProgress = field(default_factory=SessionProgress)
-    current_atom: Optional[AtomPresentation] = None
-    next_atom: Optional[AtomPresentation] = None
-    active_remediation: Optional[RemediationPlan] = None
-    started_at: Optional[datetime] = None
+    current_atom: AtomPresentation | None = None
+    next_atom: AtomPresentation | None = None
+    active_remediation: RemediationPlan | None = None
+    started_at: datetime | None = None
 
     @property
     def is_active(self) -> bool:
         return self.status == SessionStatus.ACTIVE
+
+
+# Question type quotas for balanced adaptive sessions
+# Ensures diversity and prevents over-representation of any single type
+TYPE_QUOTAS: dict[str, float] = {
+    "mcq": 0.35,           # 35% conceptual thinking
+    "true_false": 0.25,    # 25% factual recall
+    "parsons": 0.25,       # 25% procedural (Cisco commands)
+    "matching": 0.15,      # 15% discrimination
+}
+
+# Minimum atoms of each type before falling back to any available
+TYPE_MINIMUM: dict[str, int] = {
+    "mcq": 2,
+    "true_false": 2,
+    "parsons": 2,
+    "matching": 1,
+}
 
 
 # Knowledge type affinity matrix for suitability scoring
@@ -406,7 +447,7 @@ MASTERY_THRESHOLDS: dict[str, float] = {
 # Mastery weights
 MASTERY_WEIGHTS = {
     "review": 0.625,  # 62.5%
-    "quiz": 0.375,    # 37.5%
+    "quiz": 0.375,  # 37.5%
 }
 
 # Knowledge type passing scores
@@ -422,14 +463,16 @@ PASSING_SCORES: dict[str, float] = {
 # Reading Progress Models
 # ============================================================================
 
+
 @dataclass
 class ChapterReadingProgress:
     """Track reading progress for a module/chapter."""
+
     module_id: UUID
     module_name: str
     chapter_number: int
     is_read: bool = False
-    read_at: Optional[datetime] = None
+    read_at: datetime | None = None
     comprehension_level: str = "not_started"  # not_started, skimmed, read, studied
 
     def to_dict(self) -> dict:
@@ -446,6 +489,7 @@ class ChapterReadingProgress:
 @dataclass
 class ReReadRecommendation:
     """Recommendation to re-read a chapter based on low mastery."""
+
     module_id: UUID
     module_name: str
     chapter_number: int

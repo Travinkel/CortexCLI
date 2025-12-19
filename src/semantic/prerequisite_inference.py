@@ -9,11 +9,10 @@ Thresholds:
 - Medium confidence: similarity > 0.75
 - Low confidence: similarity > 0.70
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
-from typing import List, Optional
 from uuid import UUID
 
 from loguru import logger
@@ -31,7 +30,7 @@ class PrerequisiteSuggestion:
     source_atom_id: UUID
     target_concept_id: UUID
     concept_name: str
-    concept_definition: Optional[str]
+    concept_definition: str | None
     similarity_score: float
     confidence: str  # low, medium, high
 
@@ -60,7 +59,7 @@ class PrerequisiteInferenceService:
     def __init__(
         self,
         db_session: Session,
-        embedding_service: Optional[EmbeddingService] = None,
+        embedding_service: EmbeddingService | None = None,
     ):
         """
         Initialize the prerequisite inference service.
@@ -98,10 +97,10 @@ class PrerequisiteInferenceService:
     def infer_prerequisites_for_atom(
         self,
         atom_id: UUID,
-        threshold: Optional[float] = None,
+        threshold: float | None = None,
         limit: int = 5,
         exclude_current_concept: bool = True,
-    ) -> List[PrerequisiteSuggestion]:
+    ) -> list[PrerequisiteSuggestion]:
         """
         Infer prerequisite concepts for a specific atom.
 
@@ -161,7 +160,7 @@ class PrerequisiteInferenceService:
     def infer_all_missing_prerequisites(
         self,
         batch_size: int = 100,
-        threshold: Optional[float] = None,
+        threshold: float | None = None,
         max_suggestions_per_atom: int = 3,
     ) -> int:
         """
@@ -210,7 +209,7 @@ class PrerequisiteInferenceService:
         logger.info(f"Generated {total_suggestions} prerequisite suggestions")
         return total_suggestions
 
-    def _store_suggestions(self, suggestions: List[PrerequisiteSuggestion]) -> None:
+    def _store_suggestions(self, suggestions: list[PrerequisiteSuggestion]) -> None:
         """
         Store prerequisite suggestions in database.
 
@@ -246,7 +245,7 @@ class PrerequisiteInferenceService:
         self,
         min_confidence: str = "medium",
         limit: int = 50,
-    ) -> List[PrerequisiteSuggestion]:
+    ) -> list[PrerequisiteSuggestion]:
         """
         Get pending prerequisite suggestions for manual review.
 
@@ -259,7 +258,7 @@ class PrerequisiteInferenceService:
         """
         # Map confidence to numeric for filtering
         confidence_order = {"low": 1, "medium": 2, "high": 3}
-        min_confidence_num = confidence_order.get(min_confidence, 2)
+        confidence_order.get(min_confidence, 2)
 
         confidence_filter = ""
         if min_confidence == "medium":
@@ -342,7 +341,7 @@ class PrerequisiteInferenceService:
         self,
         atom_id: UUID,
         concept_id: UUID,
-        notes: Optional[str] = None,
+        notes: str | None = None,
     ) -> bool:
         """
         Reject a prerequisite suggestion.

@@ -35,17 +35,18 @@ Grade Distribution:
 - D (40-59): Any metric in reject zone, needs rewrite
 - F (<40): Multiple metrics in reject zone, block
 """
+
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
-from decimal import Decimal
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class QuestionType(Enum):
     """Supported quiz question types."""
+
     MCQ = "mcq"
     TRUE_FALSE = "true_false"
     SHORT_ANSWER = "short_answer"
@@ -63,24 +64,27 @@ class QuestionType(Enum):
 
 class KnowledgeType(Enum):
     """Knowledge types from cognitive science."""
-    FACTUAL = "factual"        # Passing 70%
+
+    FACTUAL = "factual"  # Passing 70%
     CONCEPTUAL = "conceptual"  # Passing 80%
     PROCEDURAL = "procedural"  # Passing 85%
-    STRATEGIC = "strategic"    # Passing 85%
+    STRATEGIC = "strategic"  # Passing 85%
 
 
 class LearningMechanism(Enum):
     """Learning mechanisms from educational research."""
-    RETRIEVAL = "retrieval"          # d=0.7 for free recall
-    GENERATION = "generation"        # d=0.5
-    ELABORATION = "elaboration"      # d=0.6
+
+    RETRIEVAL = "retrieval"  # d=0.7 for free recall
+    GENERATION = "generation"  # d=0.5
+    ELABORATION = "elaboration"  # d=0.6
     DISCRIMINATION = "discrimination"  # d=0.6
-    APPLICATION = "application"      # d=0.5
+    APPLICATION = "application"  # d=0.5
 
 
 @dataclass
 class QuestionQualityIssue:
     """Detected quality issue."""
+
     code: str
     severity: str  # 'error', 'warning', 'info'
     message: str
@@ -90,10 +94,11 @@ class QuestionQualityIssue:
 @dataclass
 class QuestionQualityReport:
     """Quality analysis report for a quiz question."""
+
     score: float
     grade: str  # A-F
-    issues: List[QuestionQualityIssue]
-    recommendations: List[str]
+    issues: list[QuestionQualityIssue]
+    recommendations: list[str]
 
     # Content metrics
     question_word_count: int = 0
@@ -124,6 +129,7 @@ class QuestionQualityReport:
 @dataclass
 class TypeSpecificThresholds:
     """Thresholds adjusted by question type."""
+
     question_chars_adjustment: int = 0
     answer_chars_adjustment: int = 0
     answer_words_adjustment: int = 0
@@ -160,7 +166,7 @@ class QuizQuestionAnalyzer:
     GRADE_D_MIN = 40
 
     # Type-specific threshold adjustments
-    TYPE_ADJUSTMENTS: Dict[QuestionType, TypeSpecificThresholds] = {
+    TYPE_ADJUSTMENTS: dict[QuestionType, TypeSpecificThresholds] = {
         QuestionType.CLOZE: TypeSpecificThresholds(question_chars_adjustment=50),
         QuestionType.MATCHING: TypeSpecificThresholds(max_items=6),
         QuestionType.RANKING: TypeSpecificThresholds(max_items=8),
@@ -177,7 +183,7 @@ class QuizQuestionAnalyzer:
     }
 
     # Learning mechanism to question type mapping
-    MECHANISM_MAPPING: Dict[QuestionType, LearningMechanism] = {
+    MECHANISM_MAPPING: dict[QuestionType, LearningMechanism] = {
         QuestionType.MCQ: LearningMechanism.DISCRIMINATION,
         QuestionType.TRUE_FALSE: LearningMechanism.DISCRIMINATION,
         QuestionType.SHORT_ANSWER: LearningMechanism.RETRIEVAL,
@@ -201,7 +207,7 @@ class QuizQuestionAnalyzer:
         front: str,
         back: str | None,
         question_type: str | QuestionType,
-        question_content: Dict[str, Any] | None = None,
+        question_content: dict[str, Any] | None = None,
         knowledge_type: str | None = None,
     ) -> QuestionQualityReport:
         """
@@ -223,15 +229,12 @@ class QuizQuestionAnalyzer:
             except ValueError:
                 question_type = QuestionType.MCQ  # Default
 
-        issues: List[QuestionQualityIssue] = []
-        recommendations: List[str] = []
+        issues: list[QuestionQualityIssue] = []
+        recommendations: list[str] = []
         score = 100.0
 
         # Get type-specific adjustments
-        adjustments = self.TYPE_ADJUSTMENTS.get(
-            question_type,
-            TypeSpecificThresholds()
-        )
+        adjustments = self.TYPE_ADJUSTMENTS.get(question_type, TypeSpecificThresholds())
 
         # Calculate effective thresholds
         question_chars_max = self.QUESTION_CHARS_MAX + adjustments.question_chars_adjustment
@@ -245,35 +248,39 @@ class QuizQuestionAnalyzer:
         # Check question length
         if question_word_count > self.QUESTION_WORDS_MAX:
             penalty = 30
-            issues.append(QuestionQualityIssue(
-                code="QUESTION_TOO_LONG",
-                severity="error",
-                message=f"Question has {question_word_count} words (max: {self.QUESTION_WORDS_MAX})",
-                penalty=penalty,
-            ))
-            recommendations.append(
-                f"Simplify the question to ≤{self.QUESTION_WORDS_MAX} words"
+            issues.append(
+                QuestionQualityIssue(
+                    code="QUESTION_TOO_LONG",
+                    severity="error",
+                    message=f"Question has {question_word_count} words (max: {self.QUESTION_WORDS_MAX})",
+                    penalty=penalty,
+                )
             )
+            recommendations.append(f"Simplify the question to ≤{self.QUESTION_WORDS_MAX} words")
             score -= penalty
         elif question_word_count > self.QUESTION_WORDS_OPTIMAL:
             penalty = 10
-            issues.append(QuestionQualityIssue(
-                code="QUESTION_VERBOSE",
-                severity="warning",
-                message=f"Question has {question_word_count} words (optimal: ≤{self.QUESTION_WORDS_OPTIMAL})",
-                penalty=penalty,
-            ))
+            issues.append(
+                QuestionQualityIssue(
+                    code="QUESTION_VERBOSE",
+                    severity="warning",
+                    message=f"Question has {question_word_count} words (optimal: ≤{self.QUESTION_WORDS_OPTIMAL})",
+                    penalty=penalty,
+                )
+            )
             score -= penalty
 
         # Check question characters
         if question_char_count > question_chars_max:
             penalty = 20
-            issues.append(QuestionQualityIssue(
-                code="QUESTION_CHARS_EXCEEDED",
-                severity="error",
-                message=f"Question has {question_char_count} chars (max: {question_chars_max})",
-                penalty=penalty,
-            ))
+            issues.append(
+                QuestionQualityIssue(
+                    code="QUESTION_CHARS_EXCEEDED",
+                    severity="error",
+                    message=f"Question has {question_char_count} chars (max: {question_chars_max})",
+                    penalty=penalty,
+                )
+            )
             recommendations.append("Reduce visual complexity by shortening question")
             score -= penalty
 
@@ -289,54 +296,64 @@ class QuizQuestionAnalyzer:
             # Check answer length
             if answer_word_count > self.ANSWER_WORDS_MAX:
                 penalty = 30
-                issues.append(QuestionQualityIssue(
-                    code="ANSWER_TOO_LONG",
-                    severity="error",
-                    message=f"Answer has {answer_word_count} words (max: {self.ANSWER_WORDS_MAX})",
-                    penalty=penalty,
-                ))
+                issues.append(
+                    QuestionQualityIssue(
+                        code="ANSWER_TOO_LONG",
+                        severity="error",
+                        message=f"Answer has {answer_word_count} words (max: {self.ANSWER_WORDS_MAX})",
+                        penalty=penalty,
+                    )
+                )
                 recommendations.append("Consider splitting into multiple atomic cards")
                 score -= penalty
             elif answer_word_count > self.ANSWER_WORDS_WARNING:
                 penalty = 10
-                issues.append(QuestionQualityIssue(
-                    code="ANSWER_VERBOSE",
-                    severity="warning",
-                    message=f"Answer has {answer_word_count} words (optimal: ≤{self.ANSWER_WORDS_OPTIMAL})",
-                    penalty=penalty,
-                ))
+                issues.append(
+                    QuestionQualityIssue(
+                        code="ANSWER_VERBOSE",
+                        severity="warning",
+                        message=f"Answer has {answer_word_count} words (optimal: ≤{self.ANSWER_WORDS_OPTIMAL})",
+                        penalty=penalty,
+                    )
+                )
                 score -= penalty
 
             # Check answer characters
             if answer_char_count > answer_chars_max:
                 penalty = 20
-                issues.append(QuestionQualityIssue(
-                    code="ANSWER_CHARS_EXCEEDED",
-                    severity="error",
-                    message=f"Answer has {answer_char_count} chars (max: {answer_chars_max})",
-                    penalty=penalty,
-                ))
+                issues.append(
+                    QuestionQualityIssue(
+                        code="ANSWER_CHARS_EXCEEDED",
+                        severity="error",
+                        message=f"Answer has {answer_char_count} chars (max: {answer_chars_max})",
+                        penalty=penalty,
+                    )
+                )
                 score -= penalty
 
             # Check code lines
             if code_line_count > code_lines_max:
                 penalty = 25
-                issues.append(QuestionQualityIssue(
-                    code="CODE_TOO_LONG",
-                    severity="error",
-                    message=f"Code has {code_line_count} lines (max: {code_lines_max})",
-                    penalty=penalty,
-                ))
+                issues.append(
+                    QuestionQualityIssue(
+                        code="CODE_TOO_LONG",
+                        severity="error",
+                        message=f"Code has {code_line_count} lines (max: {code_lines_max})",
+                        penalty=penalty,
+                    )
+                )
                 recommendations.append("Focus on the key snippet only")
                 score -= penalty
             elif code_line_count > self.CODE_LINES_OPTIMAL:
                 penalty = 10
-                issues.append(QuestionQualityIssue(
-                    code="CODE_VERBOSE",
-                    severity="warning",
-                    message=f"Code has {code_line_count} lines (optimal: ≤{self.CODE_LINES_OPTIMAL})",
-                    penalty=penalty,
-                ))
+                issues.append(
+                    QuestionQualityIssue(
+                        code="CODE_VERBOSE",
+                        severity="warning",
+                        message=f"Code has {code_line_count} lines (optimal: ≤{self.CODE_LINES_OPTIMAL})",
+                        penalty=penalty,
+                    )
+                )
                 score -= penalty
 
         # Check atomicity
@@ -344,24 +361,28 @@ class QuizQuestionAnalyzer:
         if back:
             if self._has_enumeration(back):
                 penalty = 30
-                issues.append(QuestionQualityIssue(
-                    code="ENUMERATION_DETECTED",
-                    severity="error",
-                    message="Enumeration detected in answer",
-                    penalty=penalty,
-                ))
+                issues.append(
+                    QuestionQualityIssue(
+                        code="ENUMERATION_DETECTED",
+                        severity="error",
+                        message="Enumeration detected in answer",
+                        penalty=penalty,
+                    )
+                )
                 recommendations.append("Split into separate cards for each item")
                 score -= penalty
                 is_atomic = False
 
             if self._has_multiple_facts(back):
                 penalty = 30
-                issues.append(QuestionQualityIssue(
-                    code="MULTIPLE_FACTS",
-                    severity="error",
-                    message="Multiple facts detected in answer",
-                    penalty=penalty,
-                ))
+                issues.append(
+                    QuestionQualityIssue(
+                        code="MULTIPLE_FACTS",
+                        severity="error",
+                        message="Multiple facts detected in answer",
+                        penalty=penalty,
+                    )
+                )
                 recommendations.append("One atomic fact per card is optimal")
                 score -= penalty
                 is_atomic = False
@@ -369,12 +390,14 @@ class QuizQuestionAnalyzer:
         # Check multi-subquestion
         if self._has_multi_subquestion(front):
             penalty = 30
-            issues.append(QuestionQualityIssue(
-                code="MULTI_SUBQUESTION",
-                severity="error",
-                message="Multiple sub-questions detected",
-                penalty=penalty,
-            ))
+            issues.append(
+                QuestionQualityIssue(
+                    code="MULTI_SUBQUESTION",
+                    severity="error",
+                    message="Multiple sub-questions detected",
+                    penalty=penalty,
+                )
+            )
             recommendations.append("Split into separate questions")
             score -= penalty
             is_atomic = False
@@ -450,14 +473,13 @@ class QuizQuestionAnalyzer:
     def _has_enumeration(self, text: str) -> bool:
         """Detect bullet/numbered lists."""
         patterns = [
-            r"^\s*[-•*]\s+",          # Bullet points
-            r"^\s*\d+[.)]\s+",        # Numbered lists
-            r"^\s*[a-z][.)]\s+",      # Letter lists
+            r"^\s*[-•*]\s+",  # Bullet points
+            r"^\s*\d+[.)]\s+",  # Numbered lists
+            r"^\s*[a-z][.)]\s+",  # Letter lists
         ]
         lines = text.split("\n")
         list_lines = sum(
-            1 for line in lines
-            if any(re.match(p, line, re.IGNORECASE) for p in patterns)
+            1 for line in lines if any(re.match(p, line, re.IGNORECASE) for p in patterns)
         )
         return list_lines >= 2
 
@@ -497,9 +519,9 @@ class QuizQuestionAnalyzer:
     def _validate_type_specific(
         self,
         question_type: QuestionType,
-        content: Dict[str, Any],
+        content: dict[str, Any],
         adjustments: TypeSpecificThresholds,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Validate type-specific content structure and quality."""
         result = {
             "is_valid": True,
@@ -523,8 +545,8 @@ class QuizQuestionAnalyzer:
         return result
 
     def _validate_mcq(
-        self, content: Dict[str, Any], adjustments: TypeSpecificThresholds
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], adjustments: TypeSpecificThresholds
+    ) -> dict[str, Any]:
         """Validate MCQ structure and distractor quality."""
         result = {
             "is_valid": True,
@@ -537,52 +559,60 @@ class QuizQuestionAnalyzer:
 
         if not options:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="MCQ_NO_OPTIONS",
-                severity="error",
-                message="MCQ requires options array",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="MCQ_NO_OPTIONS",
+                    severity="error",
+                    message="MCQ requires options array",
+                    penalty=50,
+                )
+            )
             return result
 
         result["option_count"] = len(options)
 
         # Validate option count (3-6 for working memory)
         if len(options) < 3:
-            result["issues"].append(QuestionQualityIssue(
-                code="MCQ_TOO_FEW_OPTIONS",
-                severity="warning",
-                message=f"MCQ has {len(options)} options (recommend 3-4)",
-                penalty=10,
-            ))
-        elif len(options) > 6:
-            result["issues"].append(QuestionQualityIssue(
-                code="MCQ_TOO_MANY_OPTIONS",
-                severity="error",
-                message=f"MCQ has {len(options)} options (max 6 for working memory)",
-                penalty=20,
-            ))
-            result["recommendations"].append(
-                "Reduce to 4-6 options (working memory limit)"
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="MCQ_TOO_FEW_OPTIONS",
+                    severity="warning",
+                    message=f"MCQ has {len(options)} options (recommend 3-4)",
+                    penalty=10,
+                )
             )
+        elif len(options) > 6:
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="MCQ_TOO_MANY_OPTIONS",
+                    severity="error",
+                    message=f"MCQ has {len(options)} options (max 6 for working memory)",
+                    penalty=20,
+                )
+            )
+            result["recommendations"].append("Reduce to 4-6 options (working memory limit)")
 
         # Validate correct_index
         if correct_index is None:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="MCQ_NO_CORRECT_INDEX",
-                severity="error",
-                message="MCQ requires correct_index",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="MCQ_NO_CORRECT_INDEX",
+                    severity="error",
+                    message="MCQ requires correct_index",
+                    penalty=50,
+                )
+            )
         elif not 0 <= correct_index < len(options):
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="MCQ_INVALID_CORRECT_INDEX",
-                severity="error",
-                message=f"correct_index {correct_index} out of range",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="MCQ_INVALID_CORRECT_INDEX",
+                    severity="error",
+                    message=f"correct_index {correct_index} out of range",
+                    penalty=50,
+                )
+            )
 
         # Analyze distractor quality
         if len(options) >= 3 and result["is_valid"]:
@@ -590,19 +620,19 @@ class QuizQuestionAnalyzer:
             result["distractor_quality"] = distractor_score
 
             if distractor_score < 0.6:
-                result["issues"].append(QuestionQualityIssue(
-                    code="MCQ_POOR_DISTRACTORS",
-                    severity="warning",
-                    message=f"Distractor quality score {distractor_score:.2f} (recommend ≥0.6)",
-                    penalty=15,
-                ))
-                result["recommendations"].append(
-                    "Improve distractors to be more plausible"
+                result["issues"].append(
+                    QuestionQualityIssue(
+                        code="MCQ_POOR_DISTRACTORS",
+                        severity="warning",
+                        message=f"Distractor quality score {distractor_score:.2f} (recommend ≥0.6)",
+                        penalty=15,
+                    )
                 )
+                result["recommendations"].append("Improve distractors to be more plausible")
 
         return result
 
-    def _validate_true_false(self, content: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_true_false(self, content: dict[str, Any]) -> dict[str, Any]:
         """Validate True/False structure."""
         result = {
             "is_valid": True,
@@ -612,16 +642,18 @@ class QuizQuestionAnalyzer:
 
         if "correct" not in content:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="TF_NO_CORRECT",
-                severity="error",
-                message="True/False requires 'correct' boolean",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="TF_NO_CORRECT",
+                    severity="error",
+                    message="True/False requires 'correct' boolean",
+                    penalty=50,
+                )
+            )
 
         return result
 
-    def _validate_short_answer(self, content: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_short_answer(self, content: dict[str, Any]) -> dict[str, Any]:
         """Validate short answer structure."""
         result = {
             "is_valid": True,
@@ -632,22 +664,22 @@ class QuizQuestionAnalyzer:
         correct_answers = content.get("correct_answers", [])
         if not correct_answers:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="SA_NO_CORRECT_ANSWERS",
-                severity="error",
-                message="Short answer requires 'correct_answers' array",
-                penalty=50,
-            ))
-        elif len(correct_answers) == 1:
-            result["recommendations"].append(
-                "Consider adding alternative acceptable answers"
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="SA_NO_CORRECT_ANSWERS",
+                    severity="error",
+                    message="Short answer requires 'correct_answers' array",
+                    penalty=50,
+                )
             )
+        elif len(correct_answers) == 1:
+            result["recommendations"].append("Consider adding alternative acceptable answers")
 
         return result
 
     def _validate_matching(
-        self, content: Dict[str, Any], adjustments: TypeSpecificThresholds
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], adjustments: TypeSpecificThresholds
+    ) -> dict[str, Any]:
         """Validate matching question structure."""
         result = {
             "is_valid": True,
@@ -660,43 +692,47 @@ class QuizQuestionAnalyzer:
 
         if not pairs:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="MATCH_NO_PAIRS",
-                severity="error",
-                message="Matching requires 'pairs' array",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="MATCH_NO_PAIRS",
+                    severity="error",
+                    message="Matching requires 'pairs' array",
+                    penalty=50,
+                )
+            )
             return result
 
         result["option_count"] = len(pairs)
 
         if len(pairs) > max_items:
-            result["issues"].append(QuestionQualityIssue(
-                code="MATCH_TOO_MANY_PAIRS",
-                severity="error",
-                message=f"Matching has {len(pairs)} pairs (max {max_items} for working memory)",
-                penalty=25,
-            ))
-            result["recommendations"].append(
-                f"Reduce to ≤{max_items} pairs (working memory limit)"
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="MATCH_TOO_MANY_PAIRS",
+                    severity="error",
+                    message=f"Matching has {len(pairs)} pairs (max {max_items} for working memory)",
+                    penalty=25,
+                )
             )
+            result["recommendations"].append(f"Reduce to ≤{max_items} pairs (working memory limit)")
 
         # Validate pair structure
         for i, pair in enumerate(pairs):
             if "left" not in pair or "right" not in pair:
                 result["is_valid"] = False
-                result["issues"].append(QuestionQualityIssue(
-                    code="MATCH_INVALID_PAIR",
-                    severity="error",
-                    message=f"Pair {i} missing 'left' or 'right'",
-                    penalty=20,
-                ))
+                result["issues"].append(
+                    QuestionQualityIssue(
+                        code="MATCH_INVALID_PAIR",
+                        severity="error",
+                        message=f"Pair {i} missing 'left' or 'right'",
+                        penalty=20,
+                    )
+                )
 
         return result
 
     def _validate_ranking(
-        self, content: Dict[str, Any], adjustments: TypeSpecificThresholds
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], adjustments: TypeSpecificThresholds
+    ) -> dict[str, Any]:
         """Validate ranking question structure."""
         result = {
             "is_valid": True,
@@ -710,48 +746,56 @@ class QuizQuestionAnalyzer:
 
         if not items:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="RANK_NO_ITEMS",
-                severity="error",
-                message="Ranking requires 'items' array",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="RANK_NO_ITEMS",
+                    severity="error",
+                    message="Ranking requires 'items' array",
+                    penalty=50,
+                )
+            )
             return result
 
         if not correct_order:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="RANK_NO_ORDER",
-                severity="error",
-                message="Ranking requires 'correct_order' array",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="RANK_NO_ORDER",
+                    severity="error",
+                    message="Ranking requires 'correct_order' array",
+                    penalty=50,
+                )
+            )
             return result
 
         result["option_count"] = len(items)
 
         if len(items) > max_items:
-            result["issues"].append(QuestionQualityIssue(
-                code="RANK_TOO_MANY_ITEMS",
-                severity="error",
-                message=f"Ranking has {len(items)} items (max {max_items} for cognitive load)",
-                penalty=25,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="RANK_TOO_MANY_ITEMS",
+                    severity="error",
+                    message=f"Ranking has {len(items)} items (max {max_items} for cognitive load)",
+                    penalty=25,
+                )
+            )
 
         if len(items) != len(correct_order):
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="RANK_MISMATCHED_LENGTH",
-                severity="error",
-                message="Items and correct_order must have same length",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="RANK_MISMATCHED_LENGTH",
+                    severity="error",
+                    message="Items and correct_order must have same length",
+                    penalty=50,
+                )
+            )
 
         return result
 
     def _validate_parsons(
-        self, content: Dict[str, Any], adjustments: TypeSpecificThresholds
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], adjustments: TypeSpecificThresholds
+    ) -> dict[str, Any]:
         """Validate Parsons problem structure."""
         result = {
             "is_valid": True,
@@ -764,40 +808,44 @@ class QuizQuestionAnalyzer:
 
         if not blocks:
             result["is_valid"] = False
-            result["issues"].append(QuestionQualityIssue(
-                code="PARSONS_NO_BLOCKS",
-                severity="error",
-                message="Parsons requires 'blocks' array",
-                penalty=50,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="PARSONS_NO_BLOCKS",
+                    severity="error",
+                    message="Parsons requires 'blocks' array",
+                    penalty=50,
+                )
+            )
             return result
 
         result["option_count"] = len(blocks)
 
         if len(blocks) < 3:
-            result["issues"].append(QuestionQualityIssue(
-                code="PARSONS_TOO_FEW_BLOCKS",
-                severity="warning",
-                message=f"Parsons has only {len(blocks)} blocks (recommend 6-10)",
-                penalty=10,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="PARSONS_TOO_FEW_BLOCKS",
+                    severity="warning",
+                    message=f"Parsons has only {len(blocks)} blocks (recommend 6-10)",
+                    penalty=10,
+                )
+            )
 
         if len(blocks) > max_lines:
-            result["issues"].append(QuestionQualityIssue(
-                code="PARSONS_TOO_MANY_BLOCKS",
-                severity="error",
-                message=f"Parsons has {len(blocks)} blocks (max {max_lines})",
-                penalty=20,
-            ))
+            result["issues"].append(
+                QuestionQualityIssue(
+                    code="PARSONS_TOO_MANY_BLOCKS",
+                    severity="error",
+                    message=f"Parsons has {len(blocks)} blocks (max {max_lines})",
+                    penalty=20,
+                )
+            )
             result["recommendations"].append(
                 f"Reduce to ≤{max_lines} blocks to limit cognitive load"
             )
 
         return result
 
-    def _analyze_distractor_quality(
-        self, options: List[str], correct_index: int
-    ) -> float:
+    def _analyze_distractor_quality(self, options: list[str], correct_index: int) -> float:
         """
         Analyze the quality of MCQ distractors.
 
@@ -876,9 +924,7 @@ class QuizQuestionAnalyzer:
         }
         return thresholds.get(knowledge_type, 0.70)
 
-    def get_primary_mechanism(
-        self, question_type: str | QuestionType
-    ) -> LearningMechanism | None:
+    def get_primary_mechanism(self, question_type: str | QuestionType) -> LearningMechanism | None:
         """Get primary learning mechanism for question type."""
         if isinstance(question_type, str):
             try:

@@ -9,18 +9,18 @@ Endpoints for:
 
 Phase 2.5 implementation using pgvector and sentence-transformers.
 """
+
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
 from pydantic import BaseModel, Field
-
-from src.db.database import get_session
 from sqlalchemy.orm import Session
 
+from src.db.database import get_session
 
 router = APIRouter()
 
@@ -47,7 +47,7 @@ class EmbeddingGenerateRequest(BaseModel):
         False,
         description="Regenerate embeddings for records that already have them",
     )
-    limit: Optional[int] = Field(
+    limit: int | None = Field(
         None,
         ge=1,
         description="Maximum records to process",
@@ -62,15 +62,15 @@ class EmbeddingGenerateResponse(BaseModel):
     records_processed: int
     records_skipped: int = 0
     records_failed: int = 0
-    errors: List[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
 
 
 class EmbeddingCoverageResponse(BaseModel):
     """Response model for embedding coverage statistics."""
 
-    learning_atoms: Dict[str, Any]
-    concepts: Dict[str, Any]
-    stg_anki_cards: Dict[str, Any]
+    learning_atoms: dict[str, Any]
+    concepts: dict[str, Any]
+    stg_anki_cards: dict[str, Any]
 
 
 class DuplicateMatch(BaseModel):
@@ -88,14 +88,14 @@ class DuplicatesResponse(BaseModel):
 
     total_found: int
     threshold: float
-    duplicates: List[DuplicateMatch]
+    duplicates: list[DuplicateMatch]
 
 
 class DuplicateStatsResponse(BaseModel):
     """Response model for duplicate statistics."""
 
     total: int
-    by_status: Dict[str, Dict[str, Any]]
+    by_status: dict[str, dict[str, Any]]
 
 
 class PrerequisiteSuggestionModel(BaseModel):
@@ -104,7 +104,7 @@ class PrerequisiteSuggestionModel(BaseModel):
     source_atom_id: str
     target_concept_id: str
     concept_name: str
-    concept_definition: Optional[str]
+    concept_definition: str | None
     similarity_score: float
     confidence: str
 
@@ -113,15 +113,15 @@ class PrerequisitesResponse(BaseModel):
     """Response model for prerequisite inference."""
 
     total_suggestions: int
-    suggestions: List[PrerequisiteSuggestionModel]
+    suggestions: list[PrerequisiteSuggestionModel]
 
 
 class PrerequisiteStatsResponse(BaseModel):
     """Response model for prerequisite statistics."""
 
     total: int
-    by_status: Dict[str, int]
-    by_confidence: Dict[str, int]
+    by_status: dict[str, int]
+    by_confidence: dict[str, int]
 
 
 class ClusterInfo(BaseModel):
@@ -130,15 +130,15 @@ class ClusterInfo(BaseModel):
     cluster_id: str
     name: str
     size: int
-    silhouette_score: Optional[float]
-    sample_fronts: List[str]
+    silhouette_score: float | None
+    sample_fronts: list[str]
 
 
 class ClusteringRequest(BaseModel):
     """Request model for clustering operation."""
 
     n_clusters: int = Field(10, ge=2, le=100, description="Number of clusters to create")
-    concept_area_id: Optional[str] = Field(None, description="Filter to specific concept area")
+    concept_area_id: str | None = Field(None, description="Filter to specific concept area")
 
 
 class ClusteringResponse(BaseModel):
@@ -146,7 +146,7 @@ class ClusteringResponse(BaseModel):
 
     success: bool
     n_clusters: int
-    clusters: List[ClusterInfo]
+    clusters: list[ClusterInfo]
 
 
 # ========================================
@@ -174,7 +174,9 @@ def generate_embeddings(
     - concepts: Concept definition embeddings
     - stg_anki_cards: Staging table embeddings
     """
-    logger.info(f"Embedding generation requested: source={request.source}, batch={request.batch_size}")
+    logger.info(
+        f"Embedding generation requested: source={request.source}, batch={request.batch_size}"
+    )
 
     try:
         from src.semantic import BatchEmbeddingProcessor
@@ -235,7 +237,7 @@ def get_embedding_coverage(
 def find_semantic_duplicates(
     threshold: float = Query(0.85, ge=0.5, le=1.0, description="Similarity threshold"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum results"),
-    concept_id: Optional[str] = Query(None, description="Filter to specific concept"),
+    concept_id: str | None = Query(None, description="Filter to specific concept"),
     db: Session = Depends(get_session),
 ) -> DuplicatesResponse:
     """
@@ -335,7 +337,7 @@ def store_detected_duplicates(
     threshold: float = Query(0.85, ge=0.5, le=1.0),
     limit: int = Query(500, ge=1, le=5000),
     db: Session = Depends(get_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Detect and store semantic duplicate pairs in the database.
 
@@ -395,7 +397,7 @@ def get_duplicate_stats(
     summary="Infer prerequisites",
 )
 def infer_prerequisites(
-    atom_id: Optional[str] = Query(None, description="Specific atom ID, or None for batch"),
+    atom_id: str | None = Query(None, description="Specific atom ID, or None for batch"),
     batch_size: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_session),
 ) -> PrerequisitesResponse:
@@ -493,7 +495,7 @@ def accept_prerequisite(
     atom_id: str,
     concept_id: str,
     db: Session = Depends(get_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Accept a prerequisite suggestion."""
     try:
         from src.semantic import PrerequisiteInferenceService
@@ -515,9 +517,9 @@ def accept_prerequisite(
 def reject_prerequisite(
     atom_id: str,
     concept_id: str,
-    notes: Optional[str] = Query(None),
+    notes: str | None = Query(None),
     db: Session = Depends(get_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Reject a prerequisite suggestion."""
     try:
         from src.semantic import PrerequisiteInferenceService
@@ -588,7 +590,7 @@ def create_clusters(
         )
 
         # Store clusters
-        cluster_ids = service.store_clusters(clusters)
+        service.store_clusters(clusters)
 
         # Get cluster info with samples
         cluster_infos = service.list_clusters(limit=request.n_clusters)
@@ -615,14 +617,14 @@ def create_clusters(
 
 @router.get(
     "/clusters",
-    response_model=List[ClusterInfo],
+    response_model=list[ClusterInfo],
     summary="List clusters",
 )
 def list_clusters(
     active_only: bool = Query(True),
     limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_session),
-) -> List[ClusterInfo]:
+) -> list[ClusterInfo]:
     """List existing knowledge clusters."""
     try:
         from src.semantic import ClusteringService
@@ -654,7 +656,7 @@ def get_cluster_members(
     cluster_id: str,
     limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get atoms belonging to a specific cluster."""
     try:
         from src.semantic import ClusteringService

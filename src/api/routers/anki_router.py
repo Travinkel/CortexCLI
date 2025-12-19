@@ -9,7 +9,7 @@ Endpoints for:
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from loguru import logger
@@ -26,7 +26,7 @@ router = APIRouter()
 class AnkiImportRequest(BaseModel):
     """Request model for Anki deck import."""
 
-    deck_name: Optional[str] = Field(
+    deck_name: str | None = Field(
         None,
         description="Anki deck name to import (default: from config)",
     )
@@ -49,11 +49,11 @@ class AnkiImportResponse(BaseModel):
     cards_with_fsrs: int = 0
     cards_with_prerequisites: int = 0
     cards_needing_split: int = 0
-    grade_distribution: Dict[str, int] = Field(
+    grade_distribution: dict[str, int] = Field(
         default_factory=dict,
         description="Quality grade distribution (A/B/C/D/F)",
     )
-    import_batch_id: Optional[str] = None
+    import_batch_id: str | None = None
     errors: list[str] = Field(default_factory=list)
 
 
@@ -63,7 +63,7 @@ class ImportStatsResponse(BaseModel):
     import_batch_id: str
     deck_name: str
     started_at: str
-    completed_at: Optional[str]
+    completed_at: str | None
     status: str
     cards_imported: int = 0
     cards_with_fsrs: int = 0
@@ -74,7 +74,7 @@ class ImportStatsResponse(BaseModel):
     grade_c_count: int = 0
     grade_d_count: int = 0
     grade_f_count: int = 0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 # ========================================
@@ -323,8 +323,8 @@ def get_latest_import() -> ImportStatsResponse:
 
 @router.get("/cards/quality", summary="Get quality distribution")
 def get_quality_distribution(
-    deck: Optional[str] = Query(None, description="Filter by deck name"),
-) -> Dict[str, Any]:
+    deck: str | None = Query(None, description="Filter by deck name"),
+) -> dict[str, Any]:
     """
     Get quality grade distribution for imported cards.
 
@@ -413,8 +413,8 @@ def get_quality_distribution(
 
 @router.get("/cards/prerequisites", summary="Get prerequisite statistics")
 def get_prerequisite_stats(
-    deck: Optional[str] = Query(None, description="Filter by deck name"),
-) -> Dict[str, Any]:
+    deck: str | None = Query(None, description="Filter by deck name"),
+) -> dict[str, Any]:
     """
     Get statistics about prerequisite tags in imported cards.
 
@@ -501,12 +501,14 @@ def get_prerequisite_stats(
             if row.topic:
                 unique_topics.add(row.topic)
 
-            hierarchy_list.append({
-                "domain": row.domain,
-                "topic": row.topic,
-                "subtopic": row.subtopic,
-                "card_count": row.card_count,
-            })
+            hierarchy_list.append(
+                {
+                    "domain": row.domain,
+                    "topic": row.topic,
+                    "subtopic": row.subtopic,
+                    "card_count": row.card_count,
+                }
+            )
 
         return {
             "cards_with_prerequisites": counts.with_prereqs if counts else 0,

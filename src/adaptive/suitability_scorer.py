@@ -9,10 +9,10 @@ Scores how suitable content is for each atom type using:
 Formula:
     suitability = (knowledge_weight × 0.6) + (structure_weight × 0.3) + (length_weight × 0.1)
 """
+
 from __future__ import annotations
 
 import re
-from typing import Optional
 from uuid import UUID
 
 from loguru import logger
@@ -20,13 +20,12 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from src.adaptive.models import (
+    KNOWLEDGE_TYPE_AFFINITY,
     AtomSuitability,
     ContentFeatures,
     SuitabilityScore,
-    KNOWLEDGE_TYPE_AFFINITY,
 )
 from src.db.database import session_scope
-
 
 # Optimal word count ranges by atom type
 OPTIMAL_LENGTH = {
@@ -52,16 +51,16 @@ class SuitabilityScorer:
     - Length appropriateness (10%): Whether content length is optimal for the type
     """
 
-    def __init__(self, session: Optional[Session] = None):
+    def __init__(self, session: Session | None = None):
         self._session = session
 
     def score_atom(
         self,
         atom_id: UUID,
-        front: Optional[str] = None,
-        back: Optional[str] = None,
-        knowledge_type: Optional[str] = None,
-        current_type: Optional[str] = None,
+        front: str | None = None,
+        back: str | None = None,
+        knowledge_type: str | None = None,
+        current_type: str | None = None,
     ) -> AtomSuitability:
         """
         Compute suitability scores for an atom.
@@ -118,9 +117,9 @@ class SuitabilityScorer:
 
         # Check for mismatch
         type_mismatch = (
-            current_type != recommended_type and
-            recommendation_confidence > 0.7 and
-            scores.get(current_type, SuitabilityScore(current_type, 0, 0, 0, 0)).score < 0.5
+            current_type != recommended_type
+            and recommendation_confidence > 0.7
+            and scores.get(current_type, SuitabilityScore(current_type, 0, 0, 0, 0)).score < 0.5
         )
 
         return AtomSuitability(
@@ -139,13 +138,11 @@ class SuitabilityScorer:
         knowledge_type: str,
         features: ContentFeatures,
         front: str,
-        back: Optional[str],
+        back: str | None,
     ) -> SuitabilityScore:
         """Compute suitability score for a specific atom type."""
         # Primary signal: Knowledge type affinity (60%)
-        knowledge_signal = KNOWLEDGE_TYPE_AFFINITY.get(
-            knowledge_type, {}
-        ).get(atom_type, 0.5)
+        knowledge_signal = KNOWLEDGE_TYPE_AFFINITY.get(knowledge_type, {}).get(atom_type, 0.5)
 
         # Secondary signal: Content structure alignment (30%)
         structure_signal = self._compute_structure_alignment(features, atom_type)
@@ -154,11 +151,7 @@ class SuitabilityScorer:
         length_signal = self._compute_length_score(features, atom_type)
 
         # Combined score
-        combined = (
-            knowledge_signal * 0.6 +
-            structure_signal * 0.3 +
-            length_signal * 0.1
-        )
+        combined = knowledge_signal * 0.6 + structure_signal * 0.3 + length_signal * 0.1
 
         # Generate reasoning
         reasoning = self._generate_reasoning(
@@ -273,7 +266,7 @@ class SuitabilityScorer:
     def extract_features(
         self,
         front: str,
-        back: Optional[str] = None,
+        back: str | None = None,
     ) -> ContentFeatures:
         """
         Extract structural features from content.
@@ -289,18 +282,18 @@ class SuitabilityScorer:
 
         # Basic counts
         words = content.split()
-        sentences = re.split(r'[.!?]+', content)
+        sentences = re.split(r"[.!?]+", content)
 
         # CLI commands (Cisco IOS style)
         cli_patterns = [
-            r'^\s*\w+#\s*\w+',  # Router# command
-            r'^\s*\w+>\s*\w+',  # Router> command
-            r'^\s*\(config\)',  # Config mode
-            r'^\s*interface\s+',
-            r'^\s*ip\s+address\s+',
-            r'^\s*show\s+\w+',
-            r'^\s*enable\s*$',
-            r'^\s*configure\s+terminal',
+            r"^\s*\w+#\s*\w+",  # Router# command
+            r"^\s*\w+>\s*\w+",  # Router> command
+            r"^\s*\(config\)",  # Config mode
+            r"^\s*interface\s+",
+            r"^\s*ip\s+address\s+",
+            r"^\s*show\s+\w+",
+            r"^\s*enable\s*$",
+            r"^\s*configure\s+terminal",
         ]
         cli_count = sum(
             len(re.findall(pattern, content, re.MULTILINE | re.IGNORECASE))
@@ -308,61 +301,61 @@ class SuitabilityScorer:
         )
 
         # Numbered steps
-        step_pattern = r'^\s*\d+[\.\)]\s+'
+        step_pattern = r"^\s*\d+[\.\)]\s+"
         numbered_steps = len(re.findall(step_pattern, content, re.MULTILINE))
 
         # List items (bullets)
-        list_pattern = r'^\s*[-*•]\s+'
+        list_pattern = r"^\s*[-*•]\s+"
         list_items = len(re.findall(list_pattern, content, re.MULTILINE))
         list_items += numbered_steps
 
         # Bold terms (markdown)
-        bold_pattern = r'\*\*([^*]+)\*\*'
+        bold_pattern = r"\*\*([^*]+)\*\*"
         bold_terms = re.findall(bold_pattern, content)
 
         # Technical terms (acronyms, capitalized terms)
-        tech_pattern = r'\b[A-Z]{2,}\b'
+        tech_pattern = r"\b[A-Z]{2,}\b"
         tech_terms = re.findall(tech_pattern, content)
 
         # Comparison keywords
-        comparison_keywords = ['vs', 'versus', 'compared to', 'unlike', 'whereas',
-                              'in contrast', 'similar to', 'different from']
-        comp_count = sum(
-            1 for kw in comparison_keywords
-            if kw.lower() in content.lower()
-        )
+        comparison_keywords = [
+            "vs",
+            "versus",
+            "compared to",
+            "unlike",
+            "whereas",
+            "in contrast",
+            "similar to",
+            "different from",
+        ]
+        comp_count = sum(1 for kw in comparison_keywords if kw.lower() in content.lower())
 
         # Definition pattern (term: definition or term - definition)
-        def_pattern = r'^\s*\w+[\w\s]*[:\-]\s+\w+'
+        def_pattern = r"^\s*\w+[\w\s]*[:\-]\s+\w+"
         has_definitions = bool(re.search(def_pattern, content, re.MULTILINE))
 
         # Code blocks
-        code_pattern = r'```[\s\S]*?```'
+        code_pattern = r"```[\s\S]*?```"
         code_blocks = re.findall(code_pattern, content)
-        code_lines = sum(
-            block.count('\n')
-            for block in code_blocks
-        )
+        code_lines = sum(block.count("\n") for block in code_blocks)
 
         # Table detection
-        table_pattern = r'\|[^|]+\|'
+        table_pattern = r"\|[^|]+\|"
         has_table = bool(re.search(table_pattern, content))
 
         # Determine content type hints
         is_factual = (
-            len(tech_terms) > 0 or
-            bool(re.search(r'\bis\b|\bare\b|\bhas\b|\bhave\b', content))
+            len(tech_terms) > 0 or bool(re.search(r"\bis\b|\bare\b|\bhas\b|\bhave\b", content))
         ) and cli_count == 0
 
         is_procedural = (
-            cli_count > 0 or
-            numbered_steps >= 2 or
-            bool(re.search(r'\bstep\b|\bfirst\b|\bthen\b|\bnext\b', content.lower()))
+            cli_count > 0
+            or numbered_steps >= 2
+            or bool(re.search(r"\bstep\b|\bfirst\b|\bthen\b|\bnext\b", content.lower()))
         )
 
-        is_conceptual = (
-            comp_count > 0 or
-            bool(re.search(r'\bwhy\b|\bhow\b|\brelationship\b|\bdifference\b', content.lower()))
+        is_conceptual = comp_count > 0 or bool(
+            re.search(r"\bwhy\b|\bhow\b|\brelationship\b|\bdifference\b", content.lower())
         )
 
         return ContentFeatures(
@@ -427,7 +420,7 @@ class SuitabilityScorer:
 
         return "; ".join(reasons) if reasons else "Standard scoring"
 
-    def _normalize_knowledge_type(self, knowledge_type: Optional[str]) -> str:
+    def _normalize_knowledge_type(self, knowledge_type: str | None) -> str:
         """Normalize knowledge type to factual/conceptual/procedural."""
         if not knowledge_type:
             return "factual"
@@ -443,7 +436,7 @@ class SuitabilityScorer:
 
         return "factual"
 
-    def _fetch_atom_data(self, atom_id: UUID) -> Optional[dict]:
+    def _fetch_atom_data(self, atom_id: UUID) -> dict | None:
         """Fetch atom data from database."""
         with self._get_session() as session:
             query = text("""
@@ -535,26 +528,49 @@ class SuitabilityScorer:
             features = suitability.content_features
 
             try:
-                session.execute(query, {
-                    "atom_id": str(suitability.atom_id),
-                    "flashcard": scores.get("flashcard", SuitabilityScore("flashcard", 0, 0, 0, 0)).score,
-                    "cloze": scores.get("cloze", SuitabilityScore("cloze", 0, 0, 0, 0)).score,
-                    "mcq": scores.get("mcq", SuitabilityScore("mcq", 0, 0, 0, 0)).score,
-                    "true_false": scores.get("true_false", SuitabilityScore("true_false", 0, 0, 0, 0)).score,
-                    "matching": scores.get("matching", SuitabilityScore("matching", 0, 0, 0, 0)).score,
-                    "parsons": scores.get("parsons", SuitabilityScore("parsons", 0, 0, 0, 0)).score,
-                    "compare": scores.get("compare", SuitabilityScore("compare", 0, 0, 0, 0)).score,
-                    "ranking": scores.get("ranking", SuitabilityScore("ranking", 0, 0, 0, 0)).score,
-                    "sequence": scores.get("sequence", SuitabilityScore("sequence", 0, 0, 0, 0)).score,
-                    "recommended": suitability.recommended_type,
-                    "current": suitability.current_type,
-                    "confidence": suitability.recommendation_confidence,
-                    "mismatch": suitability.type_mismatch,
-                    "knowledge": scores.get(suitability.recommended_type, SuitabilityScore("", 0, 0, 0, 0)).knowledge_signal,
-                    "structure": scores.get(suitability.recommended_type, SuitabilityScore("", 0, 0, 0, 0)).structure_signal,
-                    "length": scores.get(suitability.recommended_type, SuitabilityScore("", 0, 0, 0, 0)).length_signal,
-                    "features": features.to_dict() if features else {},
-                })
+                session.execute(
+                    query,
+                    {
+                        "atom_id": str(suitability.atom_id),
+                        "flashcard": scores.get(
+                            "flashcard", SuitabilityScore("flashcard", 0, 0, 0, 0)
+                        ).score,
+                        "cloze": scores.get("cloze", SuitabilityScore("cloze", 0, 0, 0, 0)).score,
+                        "mcq": scores.get("mcq", SuitabilityScore("mcq", 0, 0, 0, 0)).score,
+                        "true_false": scores.get(
+                            "true_false", SuitabilityScore("true_false", 0, 0, 0, 0)
+                        ).score,
+                        "matching": scores.get(
+                            "matching", SuitabilityScore("matching", 0, 0, 0, 0)
+                        ).score,
+                        "parsons": scores.get(
+                            "parsons", SuitabilityScore("parsons", 0, 0, 0, 0)
+                        ).score,
+                        "compare": scores.get(
+                            "compare", SuitabilityScore("compare", 0, 0, 0, 0)
+                        ).score,
+                        "ranking": scores.get(
+                            "ranking", SuitabilityScore("ranking", 0, 0, 0, 0)
+                        ).score,
+                        "sequence": scores.get(
+                            "sequence", SuitabilityScore("sequence", 0, 0, 0, 0)
+                        ).score,
+                        "recommended": suitability.recommended_type,
+                        "current": suitability.current_type,
+                        "confidence": suitability.recommendation_confidence,
+                        "mismatch": suitability.type_mismatch,
+                        "knowledge": scores.get(
+                            suitability.recommended_type, SuitabilityScore("", 0, 0, 0, 0)
+                        ).knowledge_signal,
+                        "structure": scores.get(
+                            suitability.recommended_type, SuitabilityScore("", 0, 0, 0, 0)
+                        ).structure_signal,
+                        "length": scores.get(
+                            suitability.recommended_type, SuitabilityScore("", 0, 0, 0, 0)
+                        ).length_signal,
+                        "features": features.to_dict() if features else {},
+                    },
+                )
                 session.commit()
             except Exception as e:
                 logger.error(f"Failed to save suitability: {e}")
@@ -563,12 +579,16 @@ class SuitabilityScorer:
     def _get_session(self):
         """Get session context manager."""
         if self._session:
+
             class SessionWrapper:
                 def __init__(self, s):
                     self.session = s
+
                 def __enter__(self):
                     return self.session
+
                 def __exit__(self, *args):
                     pass
+
             return SessionWrapper(self._session)
         return session_scope()

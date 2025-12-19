@@ -14,28 +14,31 @@ Key Features:
 Based on research showing LLMs perform best with focused, 500-2000 token chunks
 rather than entire documents. Each chunk should yield 3-5 high-quality atoms.
 """
+
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Iterator, Optional
 
 
 class ChunkType(str, Enum):
     """Type of content in a chunk."""
+
     INTRODUCTION = "introduction"  # Module intro (X.0.X)
-    CONCEPTUAL = "conceptual"      # Theory/explanation sections
-    PROCEDURAL = "procedural"      # Step-by-step configuration
-    REFERENCE = "reference"        # Tables, command references
-    PRACTICE = "practice"          # Labs, Packet Tracer activities
-    SUMMARY = "summary"            # Module summary sections
+    CONCEPTUAL = "conceptual"  # Theory/explanation sections
+    PROCEDURAL = "procedural"  # Step-by-step configuration
+    REFERENCE = "reference"  # Tables, command references
+    PRACTICE = "practice"  # Labs, Packet Tracer activities
+    SUMMARY = "summary"  # Module summary sections
 
 
 @dataclass
 class SourceTag:
     """Represents a [source] tag from the content."""
+
     tag_id: int
     position: int  # Character position in chunk content
 
@@ -58,6 +61,7 @@ class TextChunk:
         source_tags: List of [source] tags found in content
         word_count: Approximate word count for context size estimation
     """
+
     chunk_id: str
     title: str
     parent_context: str
@@ -80,7 +84,9 @@ class TextChunk:
             self.has_cli_commands = True
 
         # Detect visuals
-        if re.search(r"\[VISUAL:|!\[.*\]\(|figure|diagram|image|animation shows", self.content, re.IGNORECASE):
+        if re.search(
+            r"\[VISUAL:|!\[.*\]\(|figure|diagram|image|animation shows", self.content, re.IGNORECASE
+        ):
             self.has_visuals = True
 
         # Detect tables
@@ -99,10 +105,14 @@ class TextChunk:
         if ".0." in self.chunk_id:
             self.chunk_type = ChunkType.INTRODUCTION
         # Practice/lab activities
-        elif any(kw in title_lower for kw in ["packet tracer", "lab", "syntax checker", "practice"]):
+        elif any(
+            kw in title_lower for kw in ["packet tracer", "lab", "syntax checker", "practice"]
+        ):
             self.chunk_type = ChunkType.PRACTICE
         # Procedural content (configuration steps)
-        elif self.has_cli_commands or any(kw in title_lower for kw in ["configure", "configuration", "steps"]):
+        elif self.has_cli_commands or any(
+            kw in title_lower for kw in ["configure", "configuration", "steps"]
+        ):
             self.chunk_type = ChunkType.PROCEDURAL
         # Summary sections
         elif any(kw in title_lower for kw in ["summary", "review", "what did i learn"]):
@@ -130,9 +140,7 @@ class TextChunk:
         if self.word_count < 50:
             return False
         # Skip practice activities (no content to extract)
-        if self.chunk_type == ChunkType.PRACTICE and self.word_count < 100:
-            return False
-        return True
+        return not (self.chunk_type == ChunkType.PRACTICE and self.word_count < 100)
 
 
 class CCNAChunker:
@@ -154,24 +162,21 @@ class CCNAChunker:
         "md_section": re.compile(r"^##\s+([\d\.]+)\s+(.+)$", re.MULTILINE),
         # Module 1 style: ### 1.2.3 Sub-Section Title
         "md_subsection": re.compile(r"^###\s+([\d\.]+)\s+(.+)$", re.MULTILINE),
-
         # Module 4/10 style: # X.X Section Title (no bold)
         "hash_section": re.compile(r"^#\s+([\d]+\.[\d]+)\s+([^*\n].+)$", re.MULTILINE),
         # Module 4/10 style: # **X.X.X Sub-Section Title**
         "hash_bold_subsection": re.compile(r"^#\s+\*\*([\d\.]+)\s+(.+?)\*\*$", re.MULTILINE),
-
         # Module 14 style: Plain text headers like "14.0.1 Title" at line start
         "plain_section": re.compile(r"^([\d]+\.[\d]+)\s+([A-Z][^\n]+)$", re.MULTILINE),
         "plain_subsection": re.compile(r"^([\d]+\.[\d]+\.[\d]+)\s+([A-Z][^\n]+)$", re.MULTILINE),
-
         # Source tags: [source:1234]
         "source_tag": re.compile(r"\[source:(\d+)\]"),
-
         # Module number from content
         "module_number": re.compile(r"Module\s+(\d+)|^#?\s*(\d+)\.0", re.MULTILINE | re.IGNORECASE),
-
         # Figure/visual descriptions (often in bold or after images)
-        "visual_marker": re.compile(r"!\[.*?\]\(.*?\)|The figure shows|The animation shows|The image shows", re.IGNORECASE),
+        "visual_marker": re.compile(
+            r"!\[.*?\]\(.*?\)|The figure shows|The animation shows|The image shows", re.IGNORECASE
+        ),
     }
 
     def __init__(self, min_chunk_words: int = 50, max_chunk_words: int = 2000):
@@ -185,7 +190,7 @@ class CCNAChunker:
         self.min_chunk_words = min_chunk_words
         self.max_chunk_words = max_chunk_words
 
-    def parse_module(self, content: str, module_number: Optional[int] = None) -> list[TextChunk]:
+    def parse_module(self, content: str, module_number: int | None = None) -> list[TextChunk]:
         """
         Parse a CCNA module into semantic chunks.
 
@@ -263,7 +268,7 @@ class CCNAChunker:
 
             # Get content until next header or end
             if i + 1 < len(all_headers):
-                chunk_content = content[end_pos:all_headers[i + 1][3]]
+                chunk_content = content[end_pos : all_headers[i + 1][3]]
             else:
                 chunk_content = content[end_pos:]
 
@@ -282,14 +287,16 @@ class CCNAChunker:
             # Extract source tags
             source_tags = self._extract_source_tags(chunk_content)
 
-            chunks.append(TextChunk(
-                chunk_id=section_id,
-                title=title,
-                parent_context=parent_context,
-                content=chunk_content,
-                module_number=module_number,
-                source_tags=source_tags,
-            ))
+            chunks.append(
+                TextChunk(
+                    chunk_id=section_id,
+                    title=title,
+                    parent_context=parent_context,
+                    content=chunk_content,
+                    module_number=module_number,
+                    source_tags=source_tags,
+                )
+            )
 
         return chunks
 
@@ -321,7 +328,7 @@ class CCNAChunker:
 
             # Get content until next header
             if i + 1 < len(all_headers):
-                chunk_content = content[end_pos:all_headers[i + 1][3]]
+                chunk_content = content[end_pos : all_headers[i + 1][3]]
             else:
                 chunk_content = content[end_pos:]
 
@@ -337,14 +344,16 @@ class CCNAChunker:
 
             source_tags = self._extract_source_tags(chunk_content)
 
-            chunks.append(TextChunk(
-                chunk_id=section_id,
-                title=title,
-                parent_context=parent_context,
-                content=chunk_content,
-                module_number=module_number,
-                source_tags=source_tags,
-            ))
+            chunks.append(
+                TextChunk(
+                    chunk_id=section_id,
+                    title=title,
+                    parent_context=parent_context,
+                    content=chunk_content,
+                    module_number=module_number,
+                    source_tags=source_tags,
+                )
+            )
 
         return chunks
 
@@ -376,7 +385,7 @@ class CCNAChunker:
 
             # Get content until next header
             if i + 1 < len(all_headers):
-                chunk_content = content[end_pos:all_headers[i + 1][3]]
+                chunk_content = content[end_pos : all_headers[i + 1][3]]
             else:
                 chunk_content = content[end_pos:]
 
@@ -392,14 +401,16 @@ class CCNAChunker:
 
             source_tags = self._extract_source_tags(chunk_content)
 
-            chunks.append(TextChunk(
-                chunk_id=section_id,
-                title=title,
-                parent_context=parent_context,
-                content=chunk_content,
-                module_number=module_number,
-                source_tags=source_tags,
-            ))
+            chunks.append(
+                TextChunk(
+                    chunk_id=section_id,
+                    title=title,
+                    parent_context=parent_context,
+                    content=chunk_content,
+                    module_number=module_number,
+                    source_tags=source_tags,
+                )
+            )
 
         return chunks
 
@@ -445,7 +456,7 @@ class CCNAChunker:
         content = re.sub(
             r"\|\s*\|\s*\|\s*\n\|\s*-+\s*\|\s*-+\s*\|\s*\n(\|\s*\|\s*\|\s*\n?)+",
             "[EMPTY TABLE - No content to extract]\n",
-            content
+            content,
         )
 
         # Remove excessive whitespace
@@ -471,10 +482,12 @@ class CCNAChunker:
         """Extract [source:XXX] tags from content."""
         tags = []
         for match in self.PATTERNS["source_tag"].finditer(content):
-            tags.append(SourceTag(
-                tag_id=int(match.group(1)),
-                position=match.start(),
-            ))
+            tags.append(
+                SourceTag(
+                    tag_id=int(match.group(1)),
+                    position=match.start(),
+                )
+            )
         return tags
 
     def parse_file(self, file_path: str | Path) -> list[TextChunk]:
@@ -515,9 +528,11 @@ class CCNAChunker:
 # Chunk Statistics and Analysis
 # =============================================================================
 
+
 @dataclass
 class ChunkingStats:
     """Statistics about chunking results."""
+
     total_chunks: int = 0
     suitable_for_atoms: int = 0
     chunks_by_type: dict = field(default_factory=dict)
@@ -561,7 +576,6 @@ def analyze_chunks(chunks: list[TextChunk]) -> ChunkingStats:
 # =============================================================================
 
 if __name__ == "__main__":
-    import sys
     from pathlib import Path
 
     print("\n=== CCNA Chunker Test ===\n")

@@ -9,12 +9,12 @@ Performs:
 - FSRS stat extraction
 - Progress tracking and error handling
 """
+
 from __future__ import annotations
 
-import json
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from loguru import logger
 from psycopg2.extras import Json
@@ -40,8 +40,8 @@ class AnkiImportService:
 
     def __init__(
         self,
-        anki_client: Optional[AnkiClient] = None,
-        db_session: Optional[Session] = None,
+        anki_client: AnkiClient | None = None,
+        db_session: Session | None = None,
     ) -> None:
         """
         Initialize import service.
@@ -66,15 +66,17 @@ class AnkiImportService:
 
     def import_deck(
         self,
-        deck_name: Optional[str] = None,
+        deck_name: str | None = None,
+        query: str | None = None,
         dry_run: bool = False,
         quality_analysis: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Import all cards from an Anki deck.
 
         Args:
             deck_name: Deck to import (default from config)
+            query: Anki search query to filter cards (default from config)
             dry_run: If True, fetch but don't insert
             quality_analysis: If True, calculate word counts and quality metrics
 
@@ -88,8 +90,9 @@ class AnkiImportService:
                 - errors: List of error messages
         """
         deck = deck_name or self.settings.anki_deck_name
+        search_query = query or self.settings.anki_query
 
-        logger.info("Starting Anki import: deck={}, dry_run={}", deck, dry_run)
+        logger.info("Starting Anki import: deck={}, query={}, dry_run={}", deck, search_query, dry_run)
 
         # Create import log entry
         if not dry_run:
@@ -111,17 +114,18 @@ class AnkiImportService:
         try:
             cards = self.anki_client.fetch_all_cards(
                 deck_name=deck,
+                query=search_query,
                 include_stats=True,
             )
 
             if not cards:
-                logger.warning("No cards found in deck '{}'", deck)
+                logger.warning("No cards found for query '{}'", search_query)
                 if not dry_run:
                     self._update_import_log("completed", cards_imported=0)
                 return {
                     "success": True,
                     "cards_imported": 0,
-                    "message": f"No cards found in deck '{deck}'",
+                    "message": f"No cards found for query '{search_query}'",
                 }
 
             logger.info("Fetched {} cards from Anki", len(cards))
@@ -225,7 +229,7 @@ class AnkiImportService:
     # Quality Analysis Methods
     # ========================================
 
-    def _add_quality_metrics(self, card: Dict[str, Any]) -> Dict[str, Any]:
+    def _add_quality_metrics(self, card: dict[str, Any]) -> dict[str, Any]:
         """
         Add basic quality metrics to card data.
 
@@ -336,7 +340,7 @@ class AnkiImportService:
     # Database Methods
     # ========================================
 
-    def _insert_staging_card(self, card: Dict[str, Any]) -> None:
+    def _insert_staging_card(self, card: dict[str, Any]) -> None:
         """
         Insert card into stg_anki_cards table.
 
@@ -440,7 +444,9 @@ class AnkiImportService:
             insert_sql,
             {
                 "anki_note_id": int(card.get("anki_note_id", 0)),
-                "anki_card_id": int(card.get("anki_card_id", 0)) if card.get("anki_card_id") else None,
+                "anki_card_id": int(card.get("anki_card_id", 0))
+                if card.get("anki_card_id")
+                else None,
                 "card_id": card.get("card_id"),
                 "front": card.get("front"),
                 "back": card.get("back"),
@@ -506,7 +512,7 @@ class AnkiImportService:
     def _update_import_log(
         self,
         status: str,
-        error_message: Optional[str] = None,
+        error_message: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Update import log with completion status and statistics."""
@@ -546,7 +552,7 @@ class AnkiImportService:
 
         update_sql = text(f"""
             UPDATE anki_import_log
-            SET {', '.join(set_fields)}
+            SET {", ".join(set_fields)}
             WHERE import_batch_id = :import_batch_id
         """)
 
@@ -557,7 +563,7 @@ class AnkiImportService:
     # Query Methods
     # ========================================
 
-    def get_import_stats(self, batch_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_import_stats(self, batch_id: str | None = None) -> dict[str, Any] | None:
         """
         Get import statistics for a batch.
 

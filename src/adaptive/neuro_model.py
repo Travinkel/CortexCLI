@@ -27,21 +27,23 @@ Based on research from:
 Author: Cortex System
 Version: 2.0.0 (Neuromorphic Architecture)
 """
+
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
-from uuid import UUID
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
+if TYPE_CHECKING:
+    import numpy as np
 
 # =============================================================================
 # COGNITIVE STATE MACHINE
 # =============================================================================
+
 
 class CognitiveState(str, Enum):
     """
@@ -54,16 +56,18 @@ class CognitiveState(str, Enum):
     - FATIGUE: Resource depletion (time/effort exhausted)
     - DISTRACTED: Attention fragmented (external/internal interrupts)
     """
-    FLOW = "flow"              # Challenge matches skill - optimal learning
-    ANXIETY = "anxiety"        # Challenge exceeds skill - overwhelmed
-    BOREDOM = "boredom"        # Skill exceeds challenge - disengaged
-    FATIGUE = "fatigue"        # Cognitive resources depleted
+
+    FLOW = "flow"  # Challenge matches skill - optimal learning
+    ANXIETY = "anxiety"  # Challenge exceeds skill - overwhelmed
+    BOREDOM = "boredom"  # Skill exceeds challenge - disengaged
+    FATIGUE = "fatigue"  # Cognitive resources depleted
     DISTRACTED = "distracted"  # Attention elsewhere
 
 
 # =============================================================================
 # FAILURE MODE TAXONOMY
 # =============================================================================
+
 
 class FailMode(str, Enum):
     """
@@ -86,19 +90,20 @@ class FailMode(str, Enum):
     GLOBAL:
     - FATIGUE_ERROR: Cognitive exhaustion (Resource depletion)
     """
+
     # Hippocampal failures
-    ENCODING_ERROR = "encoding"           # Never learned - Hippocampus
-    RETRIEVAL_ERROR = "retrieval"         # Forgot - CA3/CA1
+    ENCODING_ERROR = "encoding"  # Never learned - Hippocampus
+    RETRIEVAL_ERROR = "retrieval"  # Forgot - CA3/CA1
     DISCRIMINATION_ERROR = "discrimination"  # Confused similar - Dentate Gyrus
 
     # P-FIT failures
-    INTEGRATION_ERROR = "integration"     # Can't connect facts - P-FIT
+    INTEGRATION_ERROR = "integration"  # Can't connect facts - P-FIT
 
     # Prefrontal failures
-    EXECUTIVE_ERROR = "executive"         # Impulsive/careless - PFC
+    EXECUTIVE_ERROR = "executive"  # Impulsive/careless - PFC
 
     # Global failures
-    FATIGUE_ERROR = "fatigue"             # Exhausted - Global
+    FATIGUE_ERROR = "fatigue"  # Exhausted - Global
 
 
 class SuccessMode(str, Enum):
@@ -113,15 +118,17 @@ class SuccessMode(str, Enum):
     INFERENCE: Derived from related knowledge (tests P-FIT integration)
     FLUENCY: Automatic, effortless (<2s, tests proceduralization)
     """
-    RECALL = "recall"              # Retrieved from memory
-    RECOGNITION = "recognition"    # Recognized among options
-    INFERENCE = "inference"        # Derived from related knowledge
-    FLUENCY = "fluency"            # Automatic, effortless (<2s)
+
+    RECALL = "recall"  # Retrieved from memory
+    RECOGNITION = "recognition"  # Recognized among options
+    INFERENCE = "inference"  # Derived from related knowledge
+    FLUENCY = "fluency"  # Automatic, effortless (<2s)
 
 
 # =============================================================================
 # REMEDIATION STRATEGIES
 # =============================================================================
+
 
 class RemediationType(str, Enum):
     """
@@ -129,38 +136,40 @@ class RemediationType(str, Enum):
 
     Each strategy targets the specific cognitive deficit:
     """
+
     # For ENCODING_ERROR
-    ELABORATE = "elaborate"           # Explain differently, analogies
-    READ_SOURCE = "read_source"       # Go back to source material
+    ELABORATE = "elaborate"  # Explain differently, analogies
+    READ_SOURCE = "read_source"  # Go back to source material
 
     # For RETRIEVAL_ERROR
-    SPACED_REPEAT = "spaced_repeat"   # Standard FSRS (default)
+    SPACED_REPEAT = "spaced_repeat"  # Standard FSRS (default)
     RETRIEVAL_PRACTICE = "retrieval"  # Generate answer, not recognize
 
     # For DISCRIMINATION_ERROR
-    CONTRASTIVE = "contrastive"       # Compare/contrast similar items
-    ADVERSARIAL = "adversarial"       # Practice with confusable lures
+    CONTRASTIVE = "contrastive"  # Compare/contrast similar items
+    ADVERSARIAL = "adversarial"  # Practice with confusable lures
 
     # For INTEGRATION_ERROR
-    WORKED_EXAMPLE = "worked_example" # Step-by-step walkthrough
-    SCAFFOLDED = "scaffolded"         # Hints that fade over time
+    WORKED_EXAMPLE = "worked_example"  # Step-by-step walkthrough
+    SCAFFOLDED = "scaffolded"  # Hints that fade over time
 
     # For EXECUTIVE_ERROR
-    SLOW_DOWN = "slow_down"           # Forced delay before answering
-    INHIBITION = "inhibition"         # Explicit "read carefully" prompt
+    SLOW_DOWN = "slow_down"  # Forced delay before answering
+    INHIBITION = "inhibition"  # Explicit "read carefully" prompt
 
     # For FATIGUE_ERROR
-    REST = "rest"                     # Take a break
-    MODE_SWITCH = "mode_switch"       # Switch to easier modality
+    REST = "rest"  # Take a break
+    MODE_SWITCH = "mode_switch"  # Switch to easier modality
 
     # Success continuation
-    CONTINUE = "continue"             # Keep going
-    ACCELERATE = "accelerate"         # Increase difficulty
+    CONTINUE = "continue"  # Keep going
+    ACCELERATE = "accelerate"  # Increase difficulty
 
 
 # =============================================================================
 # COGNITIVE DIAGNOSIS
 # =============================================================================
+
 
 @dataclass
 class CognitiveDiagnosis:
@@ -178,9 +187,10 @@ class CognitiveDiagnosis:
     - Calendar scheduling
     - Learner persona updates
     """
+
     # Core classification
-    fail_mode: Optional[FailMode] = None
-    success_mode: Optional[SuccessMode] = None
+    fail_mode: FailMode | None = None
+    success_mode: SuccessMode | None = None
     cognitive_state: CognitiveState = CognitiveState.FLOW
 
     # Confidence and evidence
@@ -190,7 +200,7 @@ class CognitiveDiagnosis:
     # Remediation
     remediation_type: RemediationType = RemediationType.SPACED_REPEAT
     remediation_params: dict[str, Any] = field(default_factory=dict)
-    remediation_target: Optional[str] = None  # Source section or concept ID
+    remediation_target: str | None = None  # Source section or concept ID
 
     # Additional context
     ps_index: float = 0.0  # Pattern separation index for discrimination
@@ -224,43 +234,38 @@ class CognitiveDiagnosis:
 
 THRESHOLDS = {
     # Response time thresholds (milliseconds)
-    "fluency_max_ms": 2000,         # < 2s = automatic/fluent
-    "impulsivity_max_ms": 1500,     # < 1.5s + wrong = impulsive
-    "normal_min_ms": 2000,          # 2-10s = normal thinking
-    "normal_max_ms": 10000,         # > 10s = struggling or fatigued
+    "fluency_max_ms": 2000,  # < 2s = automatic/fluent
+    "impulsivity_max_ms": 1500,  # < 1.5s + wrong = impulsive
+    "normal_min_ms": 2000,  # 2-10s = normal thinking
+    "normal_max_ms": 10000,  # > 10s = struggling or fatigued
     "fatigue_threshold_ms": 12000,  # > 12s = likely fatigued
-
     # PLM (Perceptual Learning) thresholds
-    "plm_target_ms": 1000,          # Target for perceptual fluency
-    "plm_window_size": 10,          # Items to check for fluency pattern
-
+    "plm_target_ms": 1000,  # Target for perceptual fluency
+    "plm_window_size": 10,  # Items to check for fluency pattern
     # Session thresholds
     "fatigue_session_minutes": 45,  # After 45 min, fatigue likely
-    "fatigue_error_streak": 5,      # 5 errors in a row = fatigue
+    "fatigue_error_streak": 5,  # 5 errors in a row = fatigue
     "optimal_session_minutes": 25,  # Pomodoro-style optimal
-
     # Encoding failure thresholds
-    "encoding_min_reviews": 3,      # Need 3+ reviews before it's retrieval
-    "encoding_max_stability": 7,    # Stability < 7 days = still encoding
-
+    "encoding_min_reviews": 3,  # Need 3+ reviews before it's retrieval
+    "encoding_max_stability": 7,  # Stability < 7 days = still encoding
     # Pattern separation thresholds
-    "ps_high_threshold": 0.8,       # High similarity = discrimination risk
+    "ps_high_threshold": 0.8,  # High similarity = discrimination risk
     "ps_adversarial_threshold": 0.9,  # Very high = adversarial lure
-
     # Struggle pattern thresholds
-    "struggle_window_size": 5,      # Look at last 5 interactions
-    "struggle_failure_rate": 0.4,   # 40% failure = struggling
-    "critical_failure_rate": 0.6,   # 60% = critical, stop quizzing
-
+    "struggle_window_size": 5,  # Look at last 5 interactions
+    "struggle_failure_rate": 0.4,  # 40% failure = struggling
+    "critical_failure_rate": 0.6,  # 60% = critical, stop quizzing
     # Lapses thresholds
-    "chronic_lapse_threshold": 3,   # 3+ lapses = encoding problem
-    "acute_lapse_threshold": 5,     # 5+ lapses = fundamental gap
+    "chronic_lapse_threshold": 3,  # 3+ lapses = encoding problem
+    "acute_lapse_threshold": 5,  # 5+ lapses = fundamental gap
 }
 
 
 # =============================================================================
 # CORE DIAGNOSIS FUNCTION
 # =============================================================================
+
 
 def diagnose_interaction(
     atom: dict[str, Any],
@@ -269,7 +274,7 @@ def diagnose_interaction(
     recent_history: list[dict[str, Any]],
     session_duration_seconds: int = 0,
     session_error_streak: int = 0,
-    confusable_atoms: Optional[list[dict]] = None,
+    confusable_atoms: list[dict] | None = None,
 ) -> CognitiveDiagnosis:
     """
     Analyze an interaction to produce a cognitive diagnosis.
@@ -298,7 +303,6 @@ def diagnose_interaction(
     Returns:
         CognitiveDiagnosis with fail_mode, success_mode, remediation, etc.
     """
-    evidence = []
     candidates: list[tuple[FailMode, float, list[str]]] = []  # (mode, confidence, evidence)
 
     # Extract atom metadata
@@ -324,12 +328,16 @@ def diagnose_interaction(
     # Check 1: EXECUTIVE ERROR (PFC failure - impulsivity)
     if response_time_ms < THRESHOLDS["impulsivity_max_ms"]:
         confidence = 1.0 - (response_time_ms / THRESHOLDS["impulsivity_max_ms"])
-        evidence_item = f"Response time {response_time_ms}ms < {THRESHOLDS['impulsivity_max_ms']}ms (impulsive)"
-        candidates.append((
-            FailMode.EXECUTIVE_ERROR,
-            min(0.85, confidence * 0.9),  # Cap at 0.85
-            [evidence_item]
-        ))
+        evidence_item = (
+            f"Response time {response_time_ms}ms < {THRESHOLDS['impulsivity_max_ms']}ms (impulsive)"
+        )
+        candidates.append(
+            (
+                FailMode.EXECUTIVE_ERROR,
+                min(0.85, confidence * 0.9),  # Cap at 0.85
+                [evidence_item],
+            )
+        )
 
     # Check 2: FATIGUE ERROR (Global depletion)
     fatigue_signals = 0
@@ -349,34 +357,31 @@ def diagnose_interaction(
         fatigue_evidence.append(f"Error streak: {session_error_streak} consecutive")
 
     if fatigue_signals >= 2:
-        candidates.append((
-            FailMode.FATIGUE_ERROR,
-            min(0.9, fatigue_signals * 0.25),
-            fatigue_evidence
-        ))
+        candidates.append(
+            (FailMode.FATIGUE_ERROR, min(0.9, fatigue_signals * 0.25), fatigue_evidence)
+        )
 
     # Check 3: ENCODING ERROR (Hippocampus - never consolidated)
-    if review_count < THRESHOLDS["encoding_min_reviews"] and stability < THRESHOLDS["encoding_max_stability"]:
+    if (
+        review_count < THRESHOLDS["encoding_min_reviews"]
+        and stability < THRESHOLDS["encoding_max_stability"]
+    ):
         encoding_confidence = 0.7 - (review_count * 0.15)
         encoding_evidence = [
             f"Low review count: {review_count}",
-            f"Low stability: {stability:.1f} days"
+            f"Low stability: {stability:.1f} days",
         ]
-        candidates.append((
-            FailMode.ENCODING_ERROR,
-            max(0.4, encoding_confidence),
-            encoding_evidence
-        ))
+        candidates.append(
+            (FailMode.ENCODING_ERROR, max(0.4, encoding_confidence), encoding_evidence)
+        )
 
     # Check 4: ENCODING ERROR (Chronic lapses)
     if lapses >= THRESHOLDS["chronic_lapse_threshold"]:
         lapse_confidence = min(0.85, 0.5 + (lapses * 0.1))
-        lapse_evidence = [f"Chronic lapses: {lapses} (threshold: {THRESHOLDS['chronic_lapse_threshold']})"]
-        candidates.append((
-            FailMode.ENCODING_ERROR,
-            lapse_confidence,
-            lapse_evidence
-        ))
+        lapse_evidence = [
+            f"Chronic lapses: {lapses} (threshold: {THRESHOLDS['chronic_lapse_threshold']})"
+        ]
+        candidates.append((FailMode.ENCODING_ERROR, lapse_confidence, lapse_evidence))
 
     # Check 5: DISCRIMINATION ERROR (Dentate Gyrus - pattern separation failure)
     if ps_index > THRESHOLDS["ps_high_threshold"]:
@@ -388,11 +393,7 @@ def diagnose_interaction(
             disc_evidence.append(f"Confusable with {len(confusable_atoms)} similar atoms")
             disc_confidence += 0.1
 
-        candidates.append((
-            FailMode.DISCRIMINATION_ERROR,
-            min(0.9, disc_confidence),
-            disc_evidence
-        ))
+        candidates.append((FailMode.DISCRIMINATION_ERROR, min(0.9, disc_confidence), disc_evidence))
 
     # Check 6: INTEGRATION ERROR (P-FIT failure)
     if atom_type in ("numeric", "parsons", "ranking", "sequence"):
@@ -404,11 +405,9 @@ def diagnose_interaction(
             integration_confidence += 0.1
             integration_evidence.append(f"High P-FIT index: {pfit_index:.2f}")
 
-        candidates.append((
-            FailMode.INTEGRATION_ERROR,
-            integration_confidence,
-            integration_evidence
-        ))
+        candidates.append(
+            (FailMode.INTEGRATION_ERROR, integration_confidence, integration_evidence)
+        )
 
     # === SELECT BEST DIAGNOSIS ===
     if not candidates:
@@ -573,7 +572,9 @@ def _infer_cognitive_state(
 
 def _set_remediation(diagnosis: CognitiveDiagnosis, atom: dict[str, Any]) -> None:
     """Set remediation strategy based on diagnosis."""
-    source_section = atom.get("source_fact_basis") or atom.get("section_id") or atom.get("ccna_section_id")
+    source_section = (
+        atom.get("source_fact_basis") or atom.get("section_id") or atom.get("ccna_section_id")
+    )
     concept_id = atom.get("concept_id")
 
     if diagnosis.fail_mode == FailMode.EXECUTIVE_ERROR:
@@ -624,8 +625,7 @@ def _set_remediation(diagnosis: CognitiveDiagnosis, atom: dict[str, Any]) -> Non
             "atom_id": atom.get("id"),
         }
         diagnosis.explanation = (
-            "The pieces aren't connecting. Let me walk you through "
-            "a worked example step-by-step."
+            "The pieces aren't connecting. Let me walk you through a worked example step-by-step."
         )
 
     else:  # RETRIEVAL_ERROR
@@ -640,6 +640,7 @@ def _set_remediation(diagnosis: CognitiveDiagnosis, atom: dict[str, Any]) -> Non
 # PERCEPTUAL LEARNING MODULE (PLM)
 # =============================================================================
 
+
 @dataclass
 class PLMResult:
     """
@@ -650,6 +651,7 @@ class PLMResult:
     - Conceptual discrimination (similar-meaning concepts)
     - Procedural discrimination (similar-looking steps)
     """
+
     is_fluent: bool = False
     avg_response_ms: float = 0.0
     fluency_rate: float = 0.0
@@ -679,10 +681,7 @@ def analyze_perceptual_fluency(
         PLMResult with fluency analysis and recommendations
     """
     # Filter history for this atom
-    atom_history = [
-        h for h in recent_history
-        if h.get("atom_id") == atom_id
-    ]
+    atom_history = [h for h in recent_history if h.get("atom_id") == atom_id]
 
     if len(atom_history) < 3:
         return PLMResult(
@@ -712,10 +711,10 @@ def analyze_perceptual_fluency(
         needs_plm_training=needs_training,
         recommendation=(
             "Perceptual fluency achieved! Consider increasing difficulty."
-            if is_fluent else
-            "PLM training recommended: Practice rapid discrimination."
-            if needs_training else
-            "Continue standard practice."
+            if is_fluent
+            else "PLM training recommended: Practice rapid discrimination."
+            if needs_training
+            else "Continue standard practice."
         ),
     )
 
@@ -724,18 +723,20 @@ def analyze_perceptual_fluency(
 # STRUGGLE PATTERN DETECTION
 # =============================================================================
 
+
 @dataclass
 class StrugglePattern:
     """Detected pattern of struggle requiring intervention."""
+
     concept_id: str
     concept_name: str
     failure_count: int
     total_attempts: int
     failure_rate: float
     avg_response_time_ms: float
-    primary_fail_mode: Optional[FailMode] = None
+    primary_fail_mode: FailMode | None = None
     recommendation: str = ""
-    source_reference: Optional[str] = None
+    source_reference: str | None = None
     priority: str = "medium"  # "critical", "high", "medium", "low"
 
     @property
@@ -747,7 +748,7 @@ class StrugglePattern:
 def detect_struggle_pattern(
     session_history: list[dict[str, Any]],
     window_size: int = THRESHOLDS["struggle_window_size"],
-) -> Optional[StrugglePattern]:
+) -> StrugglePattern | None:
     """
     Detect if learner is struggling with a specific concept.
 
@@ -789,9 +790,7 @@ def detect_struggle_pattern(
             if interaction.get("fail_mode"):
                 concept_stats[cid]["fail_modes"].append(interaction["fail_mode"])
 
-        concept_stats[cid]["response_times"].append(
-            interaction.get("response_time_ms", 0)
-        )
+        concept_stats[cid]["response_times"].append(interaction.get("response_time_ms", 0))
 
     # Find struggling concepts
     for cid, stats in concept_stats.items():
@@ -846,9 +845,11 @@ def detect_struggle_pattern(
 # COGNITIVE LOAD ESTIMATION
 # =============================================================================
 
+
 @dataclass
 class CognitiveLoadMetrics:
     """Cognitive load estimation for session management."""
+
     load_percent: int = 0
     load_level: str = "low"  # "low", "moderate", "high", "critical"
     intrinsic_load: float = 0.0  # Complexity of material
@@ -861,7 +862,7 @@ class CognitiveLoadMetrics:
 def compute_cognitive_load(
     session_history: list[dict[str, Any]],
     session_duration_seconds: int,
-    current_atom: Optional[dict[str, Any]] = None,
+    current_atom: dict[str, Any] | None = None,
 ) -> CognitiveLoadMetrics:
     """
     Compute current cognitive load using Sweller's CLT model.
@@ -897,9 +898,14 @@ def compute_cognitive_load(
         pfit = current_atom.get("pfit_index", 0.5)
 
         type_complexity = {
-            "flashcard": 0.2, "cloze": 0.3, "true_false": 0.2,
-            "mcq": 0.4, "matching": 0.4,
-            "parsons": 0.7, "numeric": 0.8, "ranking": 0.6,
+            "flashcard": 0.2,
+            "cloze": 0.3,
+            "true_false": 0.2,
+            "mcq": 0.4,
+            "matching": 0.4,
+            "parsons": 0.7,
+            "numeric": 0.8,
+            "ranking": 0.6,
         }
         intrinsic = type_complexity.get(atom_type, 0.3) * (0.5 + pfit)
 
@@ -961,13 +967,14 @@ def compute_cognitive_load(
             "error_streak": round(streak_factor * 100, 1),
             "response_time": round(max(0, rt_factor) * 100, 1),
             "germane": round(germane * 100, 1),
-        }
+        },
     )
 
 
 # =============================================================================
 # REWARD FUNCTION (For HRL Scheduler)
 # =============================================================================
+
 
 def compute_learning_reward(
     diagnosis: CognitiveDiagnosis,
@@ -1024,11 +1031,12 @@ def compute_learning_reward(
 # LLM PROMPT GENERATION
 # =============================================================================
 
+
 def generate_remediation_prompt(
     atom: dict[str, Any],
     diagnosis: CognitiveDiagnosis,
-    learner_context: Optional[str] = None,
-) -> Optional[str]:
+    learner_context: str | None = None,
+) -> str | None:
     """
     Generate a prompt for AI-powered remediation.
 
@@ -1118,6 +1126,7 @@ Keep under 75 words. Focus on making it memorable."""
 # EMBEDDING-BASED PATTERN SEPARATION (Enhanced PSI Calculation)
 # =============================================================================
 
+
 @dataclass
 class LearningAtomEmbed:
     """
@@ -1126,6 +1135,7 @@ class LearningAtomEmbed:
     The embedding captures the semantic position in "concept space" -
     atoms close together are prone to hippocampal interference.
     """
+
     id: str
     content: str
     embedding: list[float]  # Vector representation (e.g., from Gemini/OpenAI)
@@ -1134,9 +1144,10 @@ class LearningAtomEmbed:
     ps_index: float = 0.5
     pfit_index: float = 0.5
 
-    def to_numpy(self) -> "np.ndarray":
+    def to_numpy(self) -> np.ndarray:
         """Convert embedding to numpy array for vector operations."""
         import numpy as np
+
         return np.array(self.embedding)
 
 
@@ -1148,10 +1159,11 @@ class InteractionEvent:
     Captures the behavioral signature that the cognitive model
     uses to infer what's happening in the learner's brain.
     """
+
     atom_id: str
     is_correct: bool
     response_latency_ms: int
-    selected_lure_id: Optional[str] = None  # ID of the lure they chose (if MCQ)
+    selected_lure_id: str | None = None  # ID of the lure they chose (if MCQ)
     fatigue_index: float = 0.0  # 0.0 to 1.0
 
     # Modality state tracking (for P-FIT analysis)
@@ -1159,7 +1171,7 @@ class InteractionEvent:
     time_in_symbolic_ms: int = 0  # Time spent on equations/text
 
     # Keystroke dynamics (if available)
-    time_to_first_keystroke_ms: Optional[int] = None
+    time_to_first_keystroke_ms: int | None = None
     total_keystrokes: int = 0
     backspace_count: int = 0  # High backspace = uncertainty
 
@@ -1255,7 +1267,9 @@ class NeuroCognitiveModel:
         self,
         event: InteractionEvent,
         target_atom: LearningAtomEmbed,
-        lure_atom: Optional[LearningAtomEmbed] = None,
+        lure_atom: LearningAtomEmbed | None = None,
+        current_stability: float = 0.0,
+        review_count: int = 0,
     ) -> dict[str, Any]:
         """
         Diagnose the cognitive root cause of a failure.
@@ -1267,12 +1281,15 @@ class NeuroCognitiveModel:
         1. EXECUTIVE_ERROR: Fast response or high fatigue (PFC failure)
         2. DISCRIMINATION_ERROR: High PSI with lure (DG failure)
         3. INTEGRATION_ERROR: Mixed modality with long latency (P-FIT failure)
-        4. ENCODING_ERROR: Default fallback (CA3/CA1 failure)
+        4. RETRIEVAL_ERROR: High stability + reviews (CA3/CA1 retrieval failure)
+        5. ENCODING_ERROR: Low stability/reviews (consolidation failure)
 
         Args:
             event: The interaction event with behavioral data
             target_atom: The atom the learner was trying to answer
             lure_atom: The confusable atom they may have selected (if MCQ)
+            current_stability: Current memory stability in days (from FSRS)
+            review_count: Number of times this atom has been reviewed
 
         Returns:
             Diagnosis dict with error_type, region, remediation, reasoning
@@ -1284,21 +1301,7 @@ class NeuroCognitiveModel:
                 "cognitive_state": CognitiveState.FLOW.value,
             }
 
-        # === PRIORITY 1: Executive/Fatigue Error (PFC) ===
-        # Fast errors or high fatigue suggest impulsivity or resource depletion
-        # The prefrontal cortex failed to inhibit the automatic response
-        if event.fatigue_index > self.fatigue_threshold:
-            return {
-                "error_type": FailMode.EXECUTIVE_ERROR,
-                "region": "Prefrontal Cortex (Depleted)",
-                "mechanism": "Executive Resource Exhaustion",
-                "remediation": RemediationType.REST,
-                "reasoning": (
-                    f"Fatigue vector {event.fatigue_index:.2f} exceeds threshold "
-                    f"{self.fatigue_threshold}. PFC resources depleted."
-                ),
-            }
-
+        # === PRIORITY 1: Executive/Impulsivity Error (PFC) ===
         if event.response_latency_ms < self.impulsivity_threshold:
             # Check if this is TTFA-based impulsivity
             ttfa = event.time_to_first_keystroke_ms
@@ -1306,6 +1309,21 @@ class NeuroCognitiveModel:
                 mechanism = "System 1 Heuristic Bypass"
             else:
                 mechanism = "Insufficient Processing Time"
+
+            # If high fatigue, recommend REST (incubation) instead of SLOW_DOWN
+            # because the impulsivity is caused by depleted executive resources
+            if event.fatigue_index > self.fatigue_threshold:
+                return {
+                    "error_type": FailMode.EXECUTIVE_ERROR,
+                    "region": "Prefrontal Cortex (Depleted)",
+                    "mechanism": "Fatigue-Induced Impulsivity",
+                    "remediation": RemediationType.REST,
+                    "reasoning": (
+                        f"Fast response ({event.response_latency_ms}ms) combined with "
+                        f"high fatigue ({event.fatigue_index:.2f}). "
+                        "PFC resources depleted - rest needed before continuing."
+                    ),
+                }
 
             return {
                 "error_type": FailMode.EXECUTIVE_ERROR,
@@ -1339,7 +1357,7 @@ class NeuroCognitiveModel:
 
         # === PRIORITY 3: Integration Error (P-FIT) ===
         # Mixed modality tasks with long latency = parietal-frontal disconnect
-        if target_atom.modality == 'mixed':
+        if target_atom.modality == "mixed":
             # Check for visual-symbolic translation failure
             if event.time_in_visual_ms > 0 and event.time_in_symbolic_ms > 0:
                 visual_ratio = event.time_in_visual_ms / (
@@ -1373,24 +1391,67 @@ class NeuroCognitiveModel:
                     ),
                 }
 
-        # === DEFAULT: Encoding Error (Hippocampus - CA3) ===
-        # General failure to retrieve or encode the trace
-        return {
-            "error_type": FailMode.ENCODING_ERROR,
-            "region": "Hippocampus (CA3/CA1)",
-            "mechanism": "Trace Consolidation Failure",
-            "remediation": RemediationType.ELABORATE,
-            "reasoning": (
-                "General failure to retrieve or encode the memory trace. "
-                "Requires elaborative encoding with spacing."
-            ),
-        }
+        # === PRIORITY 4: Fatigue Error (Global Resource Depletion) ===
+        # High fatigue without fast impulsive response = pure exhaustion
+        # (If fast + fatigued, the impulsivity check above would catch it as EXECUTIVE)
+        if event.fatigue_index > self.fatigue_threshold:
+            return {
+                "error_type": FailMode.FATIGUE_ERROR,
+                "region": "Global (Prefrontal Cortex Depleted)",
+                "mechanism": "Cognitive Resource Exhaustion",
+                "remediation": RemediationType.REST,
+                "reasoning": (
+                    f"Fatigue vector {event.fatigue_index:.2f} exceeds threshold "
+                    f"{self.fatigue_threshold}. Cognitive resources depleted - rest needed."
+                ),
+            }
+
+        # === DEFAULT: Encoding vs Retrieval Error (Hippocampus) ===
+        # Distinguish based on memory history:
+        # - Low stability/reviews = ENCODING (never properly learned)
+        # - High stability/reviews = RETRIEVAL (learned but can't access)
+
+        # Thresholds for "learned" status
+        LEARNED_STABILITY_THRESHOLD = 7.0  # 7+ days stability = was learned
+        LEARNED_REVIEW_THRESHOLD = 3  # 3+ reviews = had exposure
+
+        is_learned = (
+            current_stability >= LEARNED_STABILITY_THRESHOLD
+            or review_count >= LEARNED_REVIEW_THRESHOLD
+        )
+
+        if is_learned:
+            # RETRIEVAL_ERROR: The memory was consolidated but can't be accessed
+            return {
+                "error_type": FailMode.RETRIEVAL_ERROR,
+                "region": "Hippocampus (CA3/CA1)",
+                "mechanism": "Retrieval Failure (Cue-Dependent Forgetting)",
+                "remediation": RemediationType.SPACED_REPEAT,
+                "reasoning": (
+                    f"Memory was previously consolidated (stability={current_stability:.1f}d, "
+                    f"reviews={review_count}) but retrieval failed. "
+                    "Standard spaced repetition will strengthen the retrieval pathway."
+                ),
+            }
+        else:
+            # ENCODING_ERROR: The memory was never properly consolidated
+            return {
+                "error_type": FailMode.ENCODING_ERROR,
+                "region": "Hippocampus (Dentate Gyrus → CA3)",
+                "mechanism": "Trace Consolidation Failure",
+                "remediation": RemediationType.ELABORATE,
+                "reasoning": (
+                    f"Memory not yet consolidated (stability={current_stability:.1f}d, "
+                    f"reviews={review_count}). Requires elaborative encoding with "
+                    "deeper processing before spacing can help."
+                ),
+            }
 
     def diagnose_with_full_context(
         self,
         event: InteractionEvent,
         target_atom: LearningAtomEmbed,
-        lure_atom: Optional[LearningAtomEmbed] = None,
+        lure_atom: LearningAtomEmbed | None = None,
         session_duration_seconds: int = 0,
         session_error_streak: int = 0,
     ) -> CognitiveDiagnosis:
@@ -1460,6 +1521,7 @@ class NeuroCognitiveModel:
 # UTILITY FUNCTIONS FOR EMBEDDING-BASED PSI
 # =============================================================================
 
+
 def compute_psi_matrix(atoms: list[LearningAtomEmbed]) -> dict[tuple[str, str], float]:
     """
     Compute PSI (Pattern Separation Index) for all pairs of atoms.
@@ -1477,7 +1539,7 @@ def compute_psi_matrix(atoms: list[LearningAtomEmbed]) -> dict[tuple[str, str], 
     psi_matrix = {}
 
     for i, atom_a in enumerate(atoms):
-        for atom_b in atoms[i+1:]:
+        for atom_b in atoms[i + 1 :]:
             psi = model.calculate_psi(atom_a, atom_b)
             psi_matrix[(atom_a.id, atom_b.id)] = psi
             psi_matrix[(atom_b.id, atom_a.id)] = psi  # Symmetric

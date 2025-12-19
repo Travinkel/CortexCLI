@@ -14,13 +14,14 @@ Usage:
     pipeline = CCNAGenerationPipeline()
     result = await pipeline.process_module(Path("docs/CCNA/CCNA Module 1.txt"))
 """
+
 from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from loguru import logger
@@ -31,12 +32,11 @@ from config import get_settings
 from src.ccna.anki_migration import (
     AnkiMigrationService,
     CardLearningState,
-    CardMatch,
     MigrationReport,
 )
 from src.ccna.atomizer_service import (
-    AtomType,
     AtomizerService,
+    AtomType,
     GeneratedAtom,
     KnowledgeType,
 )
@@ -252,9 +252,9 @@ class CCNAGenerationPipeline:
 
             # Calculate average score
             if qa_report.results:
-                result.avg_quality_score = sum(
-                    r.quality_score for r in qa_report.results
-                ) / len(qa_report.results)
+                result.avg_quality_score = sum(r.quality_score for r in qa_report.results) / len(
+                    qa_report.results
+                )
 
             # Count by type
             for atom in all_atoms:
@@ -269,9 +269,7 @@ class CCNAGenerationPipeline:
 
             # 6. Migrate learning state for replaced cards
             if include_migration and cards_to_replace:
-                approved_atoms = [
-                    r.atom for r in qa_report.results if r.is_approved
-                ]
+                approved_atoms = [r.atom for r in qa_report.results if r.is_approved]
                 matches = self.migration_service.find_content_matches(
                     cards_to_replace, approved_atoms
                 )
@@ -344,10 +342,7 @@ class CCNAGenerationPipeline:
                 AND quality_grade IS NOT NULL
             """)
 
-            result = self.db.execute(
-                query,
-                {"prefix": f"{module_id}%"}
-            )
+            result = self.db.execute(query, {"prefix": f"{module_id}%"})
 
             for row in result:
                 grades[row[0]] = row[1]
@@ -385,25 +380,29 @@ class CCNAGenerationPipeline:
             """)
 
             import json
-            self.db.execute(job_query, {
-                "id": result.job_id,
-                "module_id": result.module_id,
-                "status": result.status,
-                "started_at": result.started_at,
-                "completed_at": result.completed_at,
-                "sections_total": result.sections_total,
-                "sections_processed": result.sections_processed,
-                "atoms_generated": result.atoms_generated,
-                "atoms_passed_qa": result.atoms_passed_qa,
-                "atoms_flagged": result.atoms_flagged,
-                "atoms_rejected": result.atoms_rejected,
-                "flashcards": result.flashcards_generated,
-                "mcq": result.mcq_generated,
-                "cloze": result.cloze_generated,
-                "parsons": result.parsons_generated,
-                "avg_score": result.avg_quality_score,
-                "grade_dist": json.dumps(result.grade_distribution),
-            })
+
+            self.db.execute(
+                job_query,
+                {
+                    "id": result.job_id,
+                    "module_id": result.module_id,
+                    "status": result.status,
+                    "started_at": result.started_at,
+                    "completed_at": result.completed_at,
+                    "sections_total": result.sections_total,
+                    "sections_processed": result.sections_processed,
+                    "atoms_generated": result.atoms_generated,
+                    "atoms_passed_qa": result.atoms_passed_qa,
+                    "atoms_flagged": result.atoms_flagged,
+                    "atoms_rejected": result.atoms_rejected,
+                    "flashcards": result.flashcards_generated,
+                    "mcq": result.mcq_generated,
+                    "cloze": result.cloze_generated,
+                    "parsons": result.parsons_generated,
+                    "avg_score": result.avg_quality_score,
+                    "grade_dist": json.dumps(result.grade_distribution),
+                },
+            )
 
             # Update module coverage
             coverage_query = text("""
@@ -442,23 +441,26 @@ class CCNAGenerationPipeline:
             estimated = module.estimated_atoms or result.sections_total * 10
             coverage = (result.atoms_generated / estimated * 100) if estimated else 0
 
-            self.db.execute(coverage_query, {
-                "module_id": module.module_id,
-                "module_num": module.module_number,
-                "title": module.title,
-                "lines": module.total_lines,
-                "sections": module.section_count,
-                "estimated": estimated,
-                "actual": result.atoms_generated,
-                "coverage": round(coverage, 2),
-                "grade_a": result.grade_distribution.get("A", 0),
-                "grade_b": result.grade_distribution.get("B", 0),
-                "grade_c": result.grade_distribution.get("C", 0),
-                "grade_d": result.grade_distribution.get("D", 0),
-                "grade_f": result.grade_distribution.get("F", 0),
-                "avg_score": result.avg_quality_score,
-                "job_id": result.job_id,
-            })
+            self.db.execute(
+                coverage_query,
+                {
+                    "module_id": module.module_id,
+                    "module_num": module.module_number,
+                    "title": module.title,
+                    "lines": module.total_lines,
+                    "sections": module.section_count,
+                    "estimated": estimated,
+                    "actual": result.atoms_generated,
+                    "coverage": round(coverage, 2),
+                    "grade_a": result.grade_distribution.get("A", 0),
+                    "grade_b": result.grade_distribution.get("B", 0),
+                    "grade_c": result.grade_distribution.get("C", 0),
+                    "grade_d": result.grade_distribution.get("D", 0),
+                    "grade_f": result.grade_distribution.get("F", 0),
+                    "avg_score": result.avg_quality_score,
+                    "job_id": result.job_id,
+                },
+            )
 
             # Save generated atoms
             for qa_result in qa_report.results:
@@ -487,28 +489,35 @@ class CCNAGenerationPipeline:
                         last_qa_at = NOW()
                 """)
 
-                self.db.execute(atom_query, {
-                    "card_id": atom.card_id,
-                    "atom_type": atom.atom_type.value,
-                    "module_id": result.module_id,
-                    "section_id": atom.source_section_id,
-                    "job_id": result.job_id,
-                    "front": atom.front,
-                    "back": atom.back,
-                    "content_json": json.dumps(atom.content_json) if atom.content_json else None,
-                    "knowledge_type": atom.knowledge_type.value,
-                    "grade": qa_result.quality_grade,
-                    "score": qa_result.quality_score,
-                    "details": json.dumps({
-                        "issues": qa_result.issues,
-                        "recommendations": qa_result.recommendations,
-                    }),
-                    "is_atomic": qa_result.is_atomic,
-                    "is_accurate": qa_result.is_accurate,
-                    "is_clear": qa_result.is_clear,
-                    "needs_review": qa_result.needs_review,
-                    "tags": atom.tags,
-                })
+                self.db.execute(
+                    atom_query,
+                    {
+                        "card_id": atom.card_id,
+                        "atom_type": atom.atom_type.value,
+                        "module_id": result.module_id,
+                        "section_id": atom.source_section_id,
+                        "job_id": result.job_id,
+                        "front": atom.front,
+                        "back": atom.back,
+                        "content_json": json.dumps(atom.content_json)
+                        if atom.content_json
+                        else None,
+                        "knowledge_type": atom.knowledge_type.value,
+                        "grade": qa_result.quality_grade,
+                        "score": qa_result.quality_score,
+                        "details": json.dumps(
+                            {
+                                "issues": qa_result.issues,
+                                "recommendations": qa_result.recommendations,
+                            }
+                        ),
+                        "is_atomic": qa_result.is_atomic,
+                        "is_accurate": qa_result.is_accurate,
+                        "is_clear": qa_result.is_clear,
+                        "needs_review": qa_result.needs_review,
+                        "tags": atom.tags,
+                    },
+                )
 
             self.db.commit()
             logger.info(f"Saved generation results for {result.module_id}")
@@ -541,9 +550,11 @@ class CCNAGenerationPipeline:
 
         # Sort by priority
         if priority_modules:
+
             def sort_key(path: Path) -> int:
                 num = self.parser._extract_module_number(path.stem)
                 return (0 if num in priority_modules else 1, num)
+
             module_paths = sorted(module_paths, key=sort_key)
 
         results: list[GenerationJobResult] = []
@@ -641,6 +652,7 @@ class CCNAGenerationPipeline:
                 # Find concepts in the module's cluster
                 # The cluster name should contain module info
                 from sqlalchemy import or_
+
                 from src.db.models.canonical import CleanConceptCluster
 
                 # Get cluster for this module
@@ -649,7 +661,8 @@ class CCNAGenerationPipeline:
                     .filter(
                         or_(
                             CleanConceptCluster.name.ilike(f"%{module_id}%"),
-                            CleanConceptCluster.display_order == int(module_id.replace("NET-M", "")),
+                            CleanConceptCluster.display_order
+                            == int(module_id.replace("NET-M", "")),
                         )
                     )
                     .first()
@@ -695,9 +708,7 @@ class CCNAGenerationPipeline:
             with session_scope() as session:
                 # Get UUIDs
                 module_uuid = self._get_module_uuid(module_id)
-                concept_id = self._get_concept_for_section(
-                    atom.source_section_id, module_id
-                )
+                concept_id = self._get_concept_for_section(atom.source_section_id, module_id)
 
                 # Create CleanAtom
                 clean_atom = CleanAtom(
@@ -709,7 +720,9 @@ class CCNAGenerationPipeline:
                     concept_id=concept_id,
                     module_id=module_uuid,
                     # Quality metadata
-                    quality_score=qa_result.quality_score / 100.0 if qa_result.quality_score else 0.0,
+                    quality_score=qa_result.quality_score / 100.0
+                    if qa_result.quality_score
+                    else 0.0,
                     is_atomic=qa_result.is_atomic,
                     needs_review=qa_result.needs_review,
                     front_word_count=len(atom.front.split()),
@@ -740,9 +753,7 @@ class CCNAGenerationPipeline:
                         atom_id=clean_atom.id,
                         question_type=quiz_type_map[atom.atom_type],
                         question_content=atom.content_json or {},
-                        knowledge_type=knowledge_type_map.get(
-                            atom.knowledge_type, "conceptual"
-                        ),
+                        knowledge_type=knowledge_type_map.get(atom.knowledge_type, "conceptual"),
                         difficulty=0.5,  # Default, can be refined
                         intrinsic_load=self._estimate_cognitive_load(atom),
                         points=1,
@@ -754,7 +765,7 @@ class CCNAGenerationPipeline:
 
                 logger.debug(
                     f"Created CleanAtom {clean_atom.id}"
-                    + (f" with QuizQuestion" if quiz_question else "")
+                    + (" with QuizQuestion" if quiz_question else "")
                 )
 
                 return clean_atom, quiz_question

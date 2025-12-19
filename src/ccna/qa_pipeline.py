@@ -11,22 +11,21 @@ Quality Grades:
 - D (40-59): Significant issues, needs revision
 - F (<40): Replace entirely (hallucinated, multi-fact, unclear)
 """
+
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Optional
 
 from loguru import logger
 
 from config import get_settings
 from src.ccna.atomizer_service import AtomType, GeneratedAtom, KnowledgeType
 from src.ccna.content_parser import Section
-from src.cleaning.atomicity import CardQualityAnalyzer, QualityGrade, QualityReport
+from src.content.cleaning.atomicity import CardQualityAnalyzer
 from src.quiz.quiz_quality_analyzer import (
     QuestionType,
     QuizQuestionAnalyzer,
-    QuestionQualityReport,
 )
 
 
@@ -88,10 +87,10 @@ class QAResult:
     recommendations: list[str] = field(default_factory=list)
 
     # Detailed results
-    atomicity_result: Optional[AtomicityResult] = None
-    accuracy_result: Optional[AccuracyResult] = None
-    length_result: Optional[LengthResult] = None
-    clarity_result: Optional[ClarityResult] = None
+    atomicity_result: AtomicityResult | None = None
+    accuracy_result: AccuracyResult | None = None
+    length_result: LengthResult | None = None
+    clarity_result: ClarityResult | None = None
 
 
 @dataclass
@@ -180,17 +179,13 @@ class QAPipeline:
         }
 
         # Compile patterns
-        self.multi_fact_patterns = [
-            re.compile(p, re.IGNORECASE) for p in self.MULTI_FACT_PATTERNS
-        ]
-        self.networking_patterns = [
-            re.compile(p, re.IGNORECASE) for p in self.NETWORKING_TERMS
-        ]
+        self.multi_fact_patterns = [re.compile(p, re.IGNORECASE) for p in self.MULTI_FACT_PATTERNS]
+        self.networking_patterns = [re.compile(p, re.IGNORECASE) for p in self.NETWORKING_TERMS]
 
     def grade_atom(
         self,
         atom: GeneratedAtom,
-        source_section: Optional[Section] = None,
+        source_section: Section | None = None,
     ) -> QAResult:
         """
         Grade a single atom for quality.
@@ -466,7 +461,7 @@ class QAPipeline:
         # Check for vague question words
         vague_patterns = [
             r"\bwhat\s+is\s+\w+\s*\?$",  # "What is X?" without context
-            r"\bdefine\s+\w+\s*\?$",      # "Define X?" without context
+            r"\bdefine\s+\w+\s*\?$",  # "Define X?" without context
         ]
 
         for pattern in vague_patterns:
@@ -489,7 +484,10 @@ class QAPipeline:
 
         # Check for missing question mark in question
         if not atom.front.strip().endswith("?") and atom.atom_type == AtomType.FLASHCARD:
-            if not any(atom.front.lower().startswith(w) for w in ["what", "how", "why", "when", "where", "which"]):
+            if not any(
+                atom.front.lower().startswith(w)
+                for w in ["what", "how", "why", "when", "where", "which"]
+            ):
                 issues.append("Consider phrasing as a question")
                 score -= 0.1
 
@@ -528,7 +526,7 @@ class QAPipeline:
         self,
         base_score: float,
         atomicity: AtomicityResult,
-        accuracy: Optional[AccuracyResult],
+        accuracy: AccuracyResult | None,
         length: LengthResult,
         clarity: ClarityResult,
     ) -> float:
@@ -571,7 +569,7 @@ class QAPipeline:
     def batch_qa(
         self,
         atoms: list[GeneratedAtom],
-        source_section: Optional[Section] = None,
+        source_section: Section | None = None,
     ) -> QAReport:
         """
         Process a batch of atoms and return a quality report.

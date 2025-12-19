@@ -4,12 +4,12 @@ CCNA Content Parser.
 Parses CCNA module TXT files into structured content for learning atom generation.
 Extracts sections, CLI commands, tables, and key terms with content density estimation.
 """
+
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
@@ -19,7 +19,7 @@ class CLICommand:
     command: str
     mode: str  # user, privileged, config, interface, etc.
     purpose: str
-    example: Optional[str] = None
+    example: str | None = None
     context_section: str = ""
 
     def __post_init__(self):
@@ -111,11 +111,7 @@ class ContentDensity:
     @property
     def total_estimated_atoms(self) -> int:
         """Total estimated learning atoms."""
-        return (
-            self.estimated_flashcards
-            + self.estimated_mcq
-            + self.estimated_parsons
-        )
+        return self.estimated_flashcards + self.estimated_mcq + self.estimated_parsons
 
 
 @dataclass
@@ -127,13 +123,13 @@ class Section:
     level: int  # 1=topic (#), 2=topic (##), 3=subtopic (###), 4=sub-subtopic (####)
     content: str
     raw_content: str  # Unparsed original content
-    subsections: list["Section"] = field(default_factory=list)
+    subsections: list[Section] = field(default_factory=list)
     commands: list[CLICommand] = field(default_factory=list)
     tables: list[Table] = field(default_factory=list)
     key_terms: list[KeyTerm] = field(default_factory=list)
     bullet_points: list[str] = field(default_factory=list)
     numbered_lists: list[list[str]] = field(default_factory=list)
-    _density: Optional[ContentDensity] = field(default=None, repr=False)
+    _density: ContentDensity | None = field(default=None, repr=False)
 
     @property
     def density(self) -> ContentDensity:
@@ -252,7 +248,7 @@ class ModuleContent:
             count += self._count_subsections(sub)
         return count
 
-    def get_section_by_id(self, section_id: str) -> Optional[Section]:
+    def get_section_by_id(self, section_id: str) -> Section | None:
         """Find a section by its ID."""
         for section in self.sections:
             if section.id == section_id:
@@ -262,9 +258,7 @@ class ModuleContent:
                 return result
         return None
 
-    def _find_in_subsections(
-        self, section: Section, target_id: str
-    ) -> Optional[Section]:
+    def _find_in_subsections(self, section: Section, target_id: str) -> Section | None:
         """Recursively search subsections for a target ID."""
         for sub in section.subsections:
             if sub.id == target_id:
@@ -291,15 +285,18 @@ class CCNAContentParser:
 
     # Cisco course format: "9.1.1 Topic Title" or "9.0 Introduction"
     # Also captures variations like "9.1.1. Topic" (with trailing dot)
-    CISCO_HEADER_PATTERN = re.compile(
-        r"^(\d+(?:\.\d+){0,2})\.?\s+([A-Z][^\n]+)$", re.MULTILINE
-    )
+    CISCO_HEADER_PATTERN = re.compile(r"^(\d+(?:\.\d+){0,2})\.?\s+([A-Z][^\n]+)$", re.MULTILINE)
 
     # Alternative header formats commonly seen in course materials
     # "Part 1: Title", "Section 1.1: Title", "Module 1 - Title"
     ALT_HEADER_PATTERNS = [
-        re.compile(r"^(?:Part|Section|Module|Unit|Chapter)\s+(\d+(?:\.\d+)*)[:\s\-]+(.+)$", re.MULTILINE | re.IGNORECASE),
-        re.compile(r"^(\d+(?:\.\d+)*)\s*[:\-–—]\s*(.+)$", re.MULTILINE),  # "1.1: Title" or "1.1 - Title"
+        re.compile(
+            r"^(?:Part|Section|Module|Unit|Chapter)\s+(\d+(?:\.\d+)*)[:\s\-]+(.+)$",
+            re.MULTILINE | re.IGNORECASE,
+        ),
+        re.compile(
+            r"^(\d+(?:\.\d+)*)\s*[:\-–—]\s*(.+)$", re.MULTILINE
+        ),  # "1.1: Title" or "1.1 - Title"
     ]
 
     TABLE_HEADER_PATTERN = re.compile(r"^\|(.+)\|$", re.MULTILINE)
@@ -338,7 +335,7 @@ class CCNAContentParser:
         """Parse a CCNA module TXT file into structured content."""
         file_path = Path(file_path)
 
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         lines = content.split("\n")
@@ -374,6 +371,25 @@ class CCNAContentParser:
         for file_path in self.get_available_modules():
             modules.append(self.parse_module(file_path))
         return modules
+
+    # Backwards-compatible helper expected by some tests/utilities
+    def parse_file(self, file_path: str | Path, module_number: int | None = None) -> ModuleContent:
+        """Parse a single file path into ModuleContent.
+
+        Args:
+            file_path: Path to a CCNA module-like text file.
+            module_number: Optional override for module number when filename does not follow
+                           the standard pattern. Used by tests creating temp files.
+
+        Returns:
+            ModuleContent instance for the parsed file.
+        """
+        module = self.parse_module(file_path)
+        if module_number is not None:
+            # Override module metadata to satisfy tests using synthetic files
+            module.module_number = int(module_number)
+            module.module_id = f"NET-M{int(module_number)}"
+        return module
 
     def _extract_title_description(self, content: str) -> tuple[str, str]:
         """Extract title and description from module header."""
@@ -417,10 +433,12 @@ class CCNAContentParser:
         if table and table.headers:
             for row in table.rows:
                 if len(row) >= 2:
-                    objectives.append({
-                        "topic": row[0].strip(),
-                        "objective": row[1].strip(),
-                    })
+                    objectives.append(
+                        {
+                            "topic": row[0].strip(),
+                            "objective": row[1].strip(),
+                        }
+                    )
 
         return objectives
 
@@ -442,14 +460,16 @@ class CCNAContentParser:
         for match in self.HEADER_PATTERN.finditer(content):
             level = len(match.group(1))  # Number of #
             title = match.group(2).strip()
-            header_matches.append({
-                "pos": match.start(),
-                "end": match.end(),
-                "level": level,
-                "title": title,
-                "section_number": None,
-                "format": "markdown",
-            })
+            header_matches.append(
+                {
+                    "pos": match.start(),
+                    "end": match.end(),
+                    "level": level,
+                    "title": title,
+                    "section_number": None,
+                    "format": "markdown",
+                }
+            )
 
         # Cisco course format (9.1.1 Title)
         for match in self.CISCO_HEADER_PATTERN.finditer(content):
@@ -470,14 +490,16 @@ class CCNAContentParser:
             else:
                 level = 3  # Subsection (9.1.1)
 
-            header_matches.append({
-                "pos": match.start(),
-                "end": match.end(),
-                "level": level,
-                "title": title,
-                "section_number": section_number,
-                "format": "cisco",
-            })
+            header_matches.append(
+                {
+                    "pos": match.start(),
+                    "end": match.end(),
+                    "level": level,
+                    "title": title,
+                    "section_number": section_number,
+                    "format": "cisco",
+                }
+            )
 
         # Alternative header formats (Part 1:, Section 1.1:, etc.)
         for alt_pattern in self.ALT_HEADER_PATTERNS:
@@ -486,23 +508,23 @@ class CCNAContentParser:
                 title = match.group(2).strip()
 
                 # Skip if position already captured by another pattern
-                already_captured = any(
-                    abs(h["pos"] - match.start()) < 20 for h in header_matches
-                )
+                already_captured = any(abs(h["pos"] - match.start()) < 20 for h in header_matches)
                 if already_captured:
                     continue
 
                 parts = section_number.split(".")
                 level = 2 if len(parts) <= 2 else 3
 
-                header_matches.append({
-                    "pos": match.start(),
-                    "end": match.end(),
-                    "level": level,
-                    "title": title,
-                    "section_number": section_number,
-                    "format": "alternative",
-                })
+                header_matches.append(
+                    {
+                        "pos": match.start(),
+                        "end": match.end(),
+                        "level": level,
+                        "title": title,
+                        "section_number": section_number,
+                        "format": "alternative",
+                    }
+                )
 
         # Sort by position in content
         header_matches.sort(key=lambda h: h["pos"])
@@ -633,7 +655,7 @@ class CCNAContentParser:
 
         return commands
 
-    def _parse_cli_line(self, line: str, context: str) -> Optional[CLICommand]:
+    def _parse_cli_line(self, line: str, context: str) -> CLICommand | None:
         """Parse a single CLI line into a CLICommand."""
         # Check for prompt patterns
         for pattern in self.CLI_PROMPT_PATTERNS:
@@ -654,9 +676,24 @@ class CCNAContentParser:
         if line and not line.startswith("#") and not line.startswith("!"):
             # Looks like a command if it starts with known keywords
             cmd_keywords = [
-                "show", "configure", "interface", "ip", "router", "enable",
-                "hostname", "line", "password", "service", "no", "exit",
-                "end", "copy", "write", "ping", "traceroute", "debug",
+                "show",
+                "configure",
+                "interface",
+                "ip",
+                "router",
+                "enable",
+                "hostname",
+                "line",
+                "password",
+                "service",
+                "no",
+                "exit",
+                "end",
+                "copy",
+                "write",
+                "ping",
+                "traceroute",
+                "debug",
             ]
             first_word = line.split()[0].lower() if line.split() else ""
             if first_word in cmd_keywords:
@@ -712,9 +749,7 @@ class CCNAContentParser:
 
         return tables
 
-    def _parse_table_from_lines(
-        self, lines: list[str], start: int, context: str
-    ) -> Optional[Table]:
+    def _parse_table_from_lines(self, lines: list[str], start: int, context: str) -> Table | None:
         """Parse a markdown table starting at the given line index."""
         header_line = lines[start].strip()
         headers = [h.strip() for h in header_line.split("|")[1:-1]]
@@ -752,7 +787,7 @@ class CCNAContentParser:
             context_section=context,
         )
 
-    def _parse_table(self, content: str) -> Optional[Table]:
+    def _parse_table(self, content: str) -> Table | None:
         """Parse a single table from content string."""
         tables = self._extract_tables(content, "")
         return tables[0] if tables else None
@@ -917,11 +952,13 @@ class CCNAContentParser:
         def check_section_content(section: Section) -> None:
             # Consider "empty" if < 50 chars of clean content
             if len(section.content.strip()) < 50:
-                empty_sections.append({
-                    "id": section.id,
-                    "title": section.title,
-                    "content_length": len(section.content.strip()),
-                })
+                empty_sections.append(
+                    {
+                        "id": section.id,
+                        "title": section.title,
+                        "content_length": len(section.content.strip()),
+                    }
+                )
             for sub in section.subsections:
                 check_section_content(sub)
 
@@ -935,10 +972,8 @@ class CCNAContentParser:
             )
 
         # Calculate content coverage
-        total_section_chars = sum(
-            len(s.raw_content) for s in module.sections
-        )
-        with open(module.file_path, "r", encoding="utf-8") as f:
+        total_section_chars = sum(len(s.raw_content) for s in module.sections)
+        with open(module.file_path, encoding="utf-8") as f:
             total_file_chars = len(f.read())
 
         coverage_pct = (total_section_chars / max(1, total_file_chars)) * 100
@@ -957,8 +992,7 @@ class CCNAContentParser:
             )
         elif len(module.sections) < 3:
             warnings.append(
-                f"Only {len(module.sections)} sections found. "
-                f"Expected 5-15 for a CCNA module."
+                f"Only {len(module.sections)} sections found. Expected 5-15 for a CCNA module."
             )
 
         return {

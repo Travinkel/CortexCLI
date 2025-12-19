@@ -15,15 +15,17 @@ Mastery Thresholds (from right-learning research):
 - integration: 0.65 (solid understanding required) - DEFAULT
 - mastery: 0.85 (expert level required)
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, Text, func, ARRAY
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
+from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -50,9 +52,7 @@ class ExplicitPrerequisite(Base):
     __tablename__ = "explicit_prerequisites"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.gen_random_uuid()
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
     )
 
     # Source: The concept/atom that requires the prerequisite
@@ -65,19 +65,14 @@ class ExplicitPrerequisite(Base):
 
     # Target: The prerequisite concept that must be mastered
     target_concept_id: Mapped[UUID] = mapped_column(
-        ForeignKey("concepts.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("concepts.id", ondelete="CASCADE"), nullable=False
     )
 
     # Gating configuration
     gating_type: Mapped[str] = mapped_column(Text, nullable=False)  # 'soft' or 'hard'
-    mastery_threshold: Mapped[Decimal] = mapped_column(
-        Numeric(3, 2),
-        default=Decimal("0.65")
-    )
+    mastery_threshold: Mapped[Decimal] = mapped_column(Numeric(3, 2), default=Decimal("0.65"))
     mastery_type: Mapped[str] = mapped_column(
-        Text,
-        default="integration"
+        Text, default="integration"
     )  # foundation/integration/mastery
 
     # Origin tracking
@@ -95,28 +90,25 @@ class ExplicitPrerequisite(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    source_concept: Mapped["CleanConcept | None"] = relationship(
-        "CleanConcept",
-        foreign_keys=[source_concept_id],
-        back_populates="prerequisites_as_source"
+    source_concept: Mapped[CleanConcept | None] = relationship(
+        "CleanConcept", foreign_keys=[source_concept_id], back_populates="prerequisites_as_source"
     )
-    source_atom: Mapped["CleanAtom | None"] = relationship(
-        "CleanAtom",
-        foreign_keys=[source_atom_id],
-        back_populates="explicit_prerequisites"
+    source_atom: Mapped[CleanAtom | None] = relationship(
+        "CleanAtom", foreign_keys=[source_atom_id], back_populates="explicit_prerequisites"
     )
-    target_concept: Mapped["CleanConcept"] = relationship(
-        "CleanConcept",
-        foreign_keys=[target_concept_id],
-        back_populates="prerequisites_as_target"
+    target_concept: Mapped[CleanConcept] = relationship(
+        "CleanConcept", foreign_keys=[target_concept_id], back_populates="prerequisites_as_target"
     )
-    waivers: Mapped[list["PrerequisiteWaiver"]] = relationship(
-        back_populates="prerequisite",
-        cascade="all, delete-orphan"
+    waivers: Mapped[list[PrerequisiteWaiver]] = relationship(
+        back_populates="prerequisite", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
-        source = f"concept:{self.source_concept_id}" if self.source_concept_id else f"atom:{self.source_atom_id}"
+        source = (
+            f"concept:{self.source_concept_id}"
+            if self.source_concept_id
+            else f"atom:{self.source_atom_id}"
+        )
         return f"<ExplicitPrerequisite({source} -> concept:{self.target_concept_id}, {self.gating_type})>"
 
     @property
@@ -133,10 +125,7 @@ class ExplicitPrerequisite(Base):
     def has_active_waiver(self) -> bool:
         """Check if there's an active (non-expired) waiver."""
         now = datetime.utcnow()
-        return any(
-            w.expires_at is None or w.expires_at > now
-            for w in self.waivers
-        )
+        return any(w.expires_at is None or w.expires_at > now for w in self.waivers)
 
     def get_threshold_for_type(self) -> Decimal:
         """Get the default threshold based on mastery_type."""
@@ -168,13 +157,10 @@ class PrerequisiteWaiver(Base):
     __tablename__ = "prerequisite_waivers"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.gen_random_uuid()
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
     )
     prerequisite_id: Mapped[UUID] = mapped_column(
-        ForeignKey("explicit_prerequisites.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("explicit_prerequisites.id", ondelete="CASCADE"), nullable=False
     )
 
     # Waiver type
@@ -193,9 +179,7 @@ class PrerequisiteWaiver(Base):
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
     # Relationships
-    prerequisite: Mapped["ExplicitPrerequisite"] = relationship(
-        back_populates="waivers"
-    )
+    prerequisite: Mapped[ExplicitPrerequisite] = relationship(back_populates="waivers")
 
     def __repr__(self) -> str:
         return f"<PrerequisiteWaiver(prereq:{self.prerequisite_id}, type:{self.waiver_type})>"
@@ -229,18 +213,14 @@ class QuestionPool(Base):
     __tablename__ = "question_pools"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.gen_random_uuid()
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
     )
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
 
     # Scope
-    concept_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("concepts.id", ondelete="SET NULL")
-    )
+    concept_id: Mapped[UUID | None] = mapped_column(ForeignKey("concepts.id", ondelete="SET NULL"))
     concept_cluster_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("concept_clusters.id", ondelete="SET NULL")
     )
@@ -254,12 +234,10 @@ class QuestionPool(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    concept: Mapped["CleanConcept | None"] = relationship("CleanConcept")
-    concept_cluster: Mapped["CleanConceptCluster | None"] = relationship("CleanConceptCluster")
-    questions: Mapped[list["QuizQuestion"]] = relationship(
-        "QuizQuestion",
-        back_populates="pool",
-        foreign_keys="QuizQuestion.pool_id"
+    concept: Mapped[CleanConcept | None] = relationship("CleanConcept")
+    concept_cluster: Mapped[CleanConceptCluster | None] = relationship("CleanConceptCluster")
+    questions: Mapped[list[QuizQuestion]] = relationship(
+        "QuizQuestion", back_populates="pool", foreign_keys="QuizQuestion.pool_id"
     )
 
     def __repr__(self) -> str:

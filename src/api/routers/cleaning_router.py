@@ -7,14 +7,14 @@ Includes curriculum-scoped pipeline for filtering cards by module.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 from src.db.database import get_session
-from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -37,16 +37,16 @@ class CleaningResponse(BaseModel):
 
     success: bool
     message: str
-    stats: Dict[str, int]
+    stats: dict[str, int]
 
 
 class QualityCheckResponse(BaseModel):
     """Response model for quality check."""
 
     total_checked: int
-    grade_distribution: Dict[str, int]
+    grade_distribution: dict[str, int]
     average_quality: float
-    issues_found: List[Dict[str, Any]]
+    issues_found: list[dict[str, Any]]
 
 
 class CurriculumPipelineRequest(BaseModel):
@@ -54,7 +54,7 @@ class CurriculumPipelineRequest(BaseModel):
 
     module_name: str = Field(..., description="Name of the module (e.g., 'CCNA Module 1')")
     source: str = Field("anki", description="Data source: 'anki' or 'learning_atoms'")
-    deck_name: Optional[str] = Field(None, description="Optional Anki deck name filter")
+    deck_name: str | None = Field(None, description="Optional Anki deck name filter")
     auto_split: bool = Field(True, description="Automatically split verbose cards")
     generate_embeddings: bool = Field(True, description="Generate embeddings for semantic analysis")
     remove_duplicates: bool = Field(True, description="Remove duplicate cards")
@@ -71,10 +71,10 @@ class CurriculumPipelineResponse(BaseModel):
     cards_reassigned: int
     cards_split: int
     duplicates_removed: int
-    quality_distribution: Dict[str, int]
-    reassignment_suggestions: List[Dict[str, Any]]
+    quality_distribution: dict[str, int]
+    reassignment_suggestions: list[dict[str, Any]]
     processing_time_seconds: float
-    errors: List[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
 
 
 # ========================================
@@ -116,7 +116,9 @@ def run_cleaning_pipeline(request: CleaningRequest = CleaningRequest()) -> Clean
     # )
 
 
-@router.get("/check", response_model=QualityCheckResponse, summary="Check quality without modifications")
+@router.get(
+    "/check", response_model=QualityCheckResponse, summary="Check quality without modifications"
+)
 def check_quality(
     limit: int = 100,
     source: str = "staging",
@@ -142,7 +144,7 @@ def check_quality(
 def detect_duplicates(
     method: str = "fuzzy",
     threshold: float = 0.85,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Detect duplicate cards using various methods.
 
@@ -166,7 +168,7 @@ def detect_duplicates(
 def rewrite_atom(
     atom_id: str,
     dry_run: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Rewrite a specific atom using Gemini AI.
 
@@ -184,7 +186,7 @@ def rewrite_atom(
 
 
 @router.get("/stats", summary="Get cleaning pipeline stats")
-def get_cleaning_stats() -> Dict[str, Any]:
+def get_cleaning_stats() -> dict[str, Any]:
     """
     Get statistics about the cleaning pipeline.
 
@@ -240,7 +242,7 @@ def run_curriculum_pipeline(
     logger.info(f"Curriculum pipeline requested for module: {request.module_name}")
 
     try:
-        from src.cleaning.curriculum_pipeline import CurriculumPipeline
+        from src.content.cleaning.curriculum_pipeline import CurriculumPipeline
 
         pipeline = CurriculumPipeline(db)
         result = pipeline.process_module(
@@ -279,14 +281,14 @@ def run_curriculum_pipeline(
 def get_module_summary(
     module_name: str,
     db: Session = Depends(get_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get a summary of cards assigned to a module.
 
     Returns card counts, quality distribution, and atomic vs verbose breakdown.
     """
     try:
-        from src.cleaning.curriculum_pipeline import CurriculumPipeline
+        from src.content.cleaning.curriculum_pipeline import CurriculumPipeline
 
         pipeline = CurriculumPipeline(db)
         return pipeline.get_module_summary(module_name)

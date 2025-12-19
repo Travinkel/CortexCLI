@@ -9,11 +9,11 @@ References:
 - https://www.sbert.net/docs/pretrained_models.html
 - https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
 
 import numpy as np
 from loguru import logger
@@ -31,7 +31,7 @@ class EmbeddingResult:
     model_name: str
     generated_at: datetime
 
-    def to_list(self) -> List[float]:
+    def to_list(self) -> list[float]:
         """Convert embedding to list for database storage."""
         return self.embedding.tolist()
 
@@ -64,7 +64,7 @@ class EmbeddingService:
         >>> print(result.to_list()[:5])  # First 5 values
     """
 
-    def __init__(self, model_name: Optional[str] = None):
+    def __init__(self, model_name: str | None = None):
         """
         Initialize the embedding service.
 
@@ -77,7 +77,7 @@ class EmbeddingService:
         self.expected_dimension = settings.embedding_dimension
         self.batch_size = settings.embedding_batch_size
         self.show_progress = settings.embedding_show_progress
-        self._model: Optional[SentenceTransformer] = None
+        self._model: SentenceTransformer | None = None
 
     @property
     def model(self) -> SentenceTransformer:
@@ -90,7 +90,9 @@ class EmbeddingService:
         if self._model is None:
             logger.info(f"Loading embedding model: {self.model_name}")
             self._model = SentenceTransformer(self.model_name)
-            logger.info(f"Embedding model loaded: {self.model_name} ({self.expected_dimension}-dim)")
+            logger.info(
+                f"Embedding model loaded: {self.model_name} ({self.expected_dimension}-dim)"
+            )
         return self._model
 
     def generate_embedding(self, text: str) -> EmbeddingResult:
@@ -114,10 +116,10 @@ class EmbeddingService:
 
     def generate_embeddings_batch(
         self,
-        texts: List[str],
-        batch_size: Optional[int] = None,
-        show_progress: Optional[bool] = None,
-    ) -> List[EmbeddingResult]:
+        texts: list[str],
+        batch_size: int | None = None,
+        show_progress: bool | None = None,
+    ) -> list[EmbeddingResult]:
         """
         Generate embeddings for multiple texts efficiently.
 

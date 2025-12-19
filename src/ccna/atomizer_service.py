@@ -15,61 +15,63 @@ Hardening:
 - Uses json_repair for robust LLM output parsing (handles malformed JSON)
 - Tracks parse failures for monitoring silent data loss
 """
+
 from __future__ import annotations
 
 import json
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from loguru import logger
 
 # Robust JSON parsing for LLM outputs (handles trailing commas, unescaped quotes, etc.)
 try:
     from json_repair import repair_json
+
     JSON_REPAIR_AVAILABLE = True
 except ImportError:
     JSON_REPAIR_AVAILABLE = False
     repair_json = None
 
 from config import get_settings
-from src.ccna.content_parser import CLICommand, KeyTerm, Section, Table
+from src.ccna.content_parser import CLICommand, KeyTerm, Section
 
 
 class AtomType(str, Enum):
     """Learning atom types with effect sizes from research."""
 
-    FLASHCARD = "flashcard"      # d=0.7 - Retrieval
-    CLOZE = "cloze"              # d=0.7 - Retrieval, Generation
-    MCQ = "mcq"                  # d=0.6 - Discrimination, Retrieval
-    TRUE_FALSE = "true_false"   # d=0.5 - Discrimination
+    FLASHCARD = "flashcard"  # d=0.7 - Retrieval
+    CLOZE = "cloze"  # d=0.7 - Retrieval, Generation
+    MCQ = "mcq"  # d=0.6 - Discrimination, Retrieval
+    TRUE_FALSE = "true_false"  # d=0.5 - Discrimination
     SHORT_ANSWER = "short_answer"  # d=0.7 - Generation, Retrieval
-    MATCHING = "matching"        # d=0.6 - Discrimination
-    RANKING = "ranking"          # d=0.5 - Discrimination
-    SEQUENCE = "sequence"        # d=0.6 - Retrieval
-    PARSONS = "parsons"          # d=0.6 - Application (CLI ordering)
-    NUMERIC = "numeric"          # d=0.7 - Application (Binary/Hex/Subnetting)
-    EXPLAIN = "explain"          # d=0.6 - Elaboration
-    COMPARE = "compare"          # d=0.6 - Elaboration
-    PROBLEM = "problem"          # d=0.5 - Application
-    PREDICTION = "prediction"    # d=0.5 - Elaboration
+    MATCHING = "matching"  # d=0.6 - Discrimination
+    RANKING = "ranking"  # d=0.5 - Discrimination
+    SEQUENCE = "sequence"  # d=0.6 - Retrieval
+    PARSONS = "parsons"  # d=0.6 - Application (CLI ordering)
+    NUMERIC = "numeric"  # d=0.7 - Application (Binary/Hex/Subnetting)
+    EXPLAIN = "explain"  # d=0.6 - Elaboration
+    COMPARE = "compare"  # d=0.6 - Elaboration
+    PROBLEM = "problem"  # d=0.5 - Application
+    PREDICTION = "prediction"  # d=0.5 - Elaboration
     PASSAGE_BASED = "passage_based"  # d=0.6 - Multiple
 
 
 class KnowledgeType(str, Enum):
     """Knowledge types with passing thresholds."""
 
-    FACTUAL = "factual"          # 70% passing
-    CONCEPTUAL = "conceptual"    # 80% passing
-    PROCEDURAL = "procedural"    # 85% passing
+    FACTUAL = "factual"  # 70% passing
+    CONCEPTUAL = "conceptual"  # 80% passing
+    PROCEDURAL = "procedural"  # 85% passing
 
 
 class FidelityType(str, Enum):
     """Fidelity classification for atom content origin."""
 
-    VERBATIM_EXTRACT = "verbatim_extract"      # Exact quote from source
-    REPHRASED_FACT = "rephrased_fact"          # Reworded but factually identical
+    VERBATIM_EXTRACT = "verbatim_extract"  # Exact quote from source
+    REPHRASED_FACT = "rephrased_fact"  # Reworded but factually identical
     AI_SCENARIO_ENRICHMENT = "ai_scenario_enrichment"  # AI-generated scenario/example
 
 
@@ -90,7 +92,9 @@ class GeneratedAtom:
 
     # --- FIDELITY TRACKING (Hydration Audit) ---
     is_hydrated: bool = False  # True if scenario NOT in source text
-    fidelity_type: str = "verbatim_extract"  # verbatim_extract | rephrased_fact | ai_scenario_enrichment
+    fidelity_type: str = (
+        "verbatim_extract"  # verbatim_extract | rephrased_fact | ai_scenario_enrichment
+    )
     source_fact_basis: str | None = None  # The exact raw fact from source used as anchor
 
     # Database linkage (set by generation pipeline)
@@ -563,6 +567,7 @@ class AtomizerService:
                 raise ValueError("Gemini API key not configured")
 
             import google.generativeai as genai
+
             genai.configure(api_key=self.api_key)
             self._client = genai.GenerativeModel(
                 model_name=self.model_name,
@@ -593,9 +598,7 @@ class AtomizerService:
         if target_types is None:
             target_types = self._determine_types_for_section(section)
 
-        logger.info(
-            f"Generating atoms for section {section.id}: {[t.value for t in target_types]}"
-        )
+        logger.info(f"Generating atoms for section {section.id}: {[t.value for t in target_types]}")
 
         # Generate each type
         for atom_type in target_types:
@@ -640,15 +643,32 @@ class AtomizerService:
         # --- NUMERIC DETECTION (Binary/Hex/Subnetting) ---
         # Critical for Modules 5, 10, and 11
         numeric_keywords = [
-            "binary", "hexadecimal", "hex", "decimal",
-            "subnet", "subnetting", "cidr", "/24", "/26", "/28",
-            "network address", "broadcast address", "host address",
-            "wildcard mask", "255.255.255", "octet",
-            "convert", "calculation", "2^", "power of 2",
+            "binary",
+            "hexadecimal",
+            "hex",
+            "decimal",
+            "subnet",
+            "subnetting",
+            "cidr",
+            "/24",
+            "/26",
+            "/28",
+            "network address",
+            "broadcast address",
+            "host address",
+            "wildcard mask",
+            "255.255.255",
+            "octet",
+            "convert",
+            "calculation",
+            "2^",
+            "power of 2",
         ]
         if any(kw in content_lower for kw in numeric_keywords):
             types.append(AtomType.NUMERIC)
-            logger.info(f"NUMERIC type enabled for {section.id} (binary/hex/subnet content detected)")
+            logger.info(
+                f"NUMERIC type enabled for {section.id} (binary/hex/subnet content detected)"
+            )
 
         return types
 
@@ -840,8 +860,7 @@ class AtomizerService:
                     data = json.loads(repaired)
                     parse_method = "json_repair"
                     logger.info(
-                        f"json_repair salvaged response for {section_id} "
-                        f"(original error: {e})"
+                        f"json_repair salvaged response for {section_id} (original error: {e})"
                     )
                 except Exception as repair_error:
                     logger.error(
@@ -855,11 +874,11 @@ class AtomizerService:
                     # Remove trailing commas before ] or }
                     fixed = re.sub(r",\s*([}\]])", r"\1", json_str)
                     # Escape unescaped newlines in strings
-                    fixed = re.sub(r'(?<!\\)\n(?=[^"]*"[^"]*$)', r'\\n', fixed)
+                    fixed = re.sub(r'(?<!\\)\n(?=[^"]*"[^"]*$)', r"\\n", fixed)
                     data = json.loads(fixed)
                     parse_method = "manual_fix"
                     logger.info(f"Manual JSON fix worked for {section_id}")
-                except Exception as fix_error:
+                except Exception:
                     logger.error(
                         f"JSON parse FAILED for {section_id}. "
                         f"Install json_repair for better LLM output handling: "
@@ -947,13 +966,16 @@ class AtomizerService:
                 # Binary/Hex/Subnetting calculations
                 front = item.get("front", "")
                 back = item.get("back", "")
-                content_json = item.get("content_json", {
-                    "question": front,
-                    "answer": back,
-                    "answer_type": "numeric",
-                    "steps": "",
-                    "difficulty": 2,
-                })
+                content_json = item.get(
+                    "content_json",
+                    {
+                        "question": front,
+                        "answer": back,
+                        "answer_type": "numeric",
+                        "steps": "",
+                        "difficulty": 2,
+                    },
+                )
 
             else:
                 # Standard flashcard/cloze
@@ -984,7 +1006,7 @@ class AtomizerService:
             # Extract fidelity fields from LLM response (if provided)
             is_hydrated = item.get("is_hydrated", False)
             fidelity_type = item.get("fidelity_type", "verbatim_extract")
-            source_fact_basis = item.get("source_fact_basis", None)
+            source_fact_basis = item.get("source_fact_basis")
 
             # NUMERIC atoms are always hydrated (AI-generated calculations)
             if atom_type == AtomType.NUMERIC:

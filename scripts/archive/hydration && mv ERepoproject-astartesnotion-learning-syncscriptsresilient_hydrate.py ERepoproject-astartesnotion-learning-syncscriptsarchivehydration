@@ -1,0 +1,60 @@
+"""
+Slow Hydration Script (Fixed).
+Sequentially generates atoms and SAVES them to 'outputs/'.
+"""
+from __future__ import annotations
+
+import asyncio
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from src.generation.ccna_atom_factory import CCNAAtomFactory
+
+
+class TargetedAtomFactory(CCNAAtomFactory):
+    def __init__(self, target_types: list[str], **kwargs):
+        super().__init__(**kwargs)
+        self.target_types = target_types
+
+    def get_module_settings(self, module_number: int) -> dict:
+        return {"validate_math": False, "atom_types": self.target_types}
+
+
+async def main():
+    print(" STARTING SLOW HYDRATION (With Auto-Save)...")
+    
+    # 1. PARSONS PASS (Modules 2, 7, 10, 12, 16, 17)
+    print("\n[1/3] Generating Parsons Problems...")
+    factory = TargetedAtomFactory(target_types=["parsons"], concurrency=1)
+    
+    for mod in [2, 7, 10, 12, 16, 17]:
+        print(f"  > Module {mod}...")
+        result = await factory.process_module(mod)
+        if result.total_atoms_approved > 0:
+            factory.export_results(result)
+            print(f"     Saved {result.total_atoms_approved} atoms.")
+        else:
+            print("    ⚠️ No atoms generated.")
+        time.sleep(5)
+
+    # 2. MATH PASS (Modules 5, 11, 12) - Re-running to ensure they are on disk
+    print("\n[2/3] Generating Math Drills...")
+    math_factory = TargetedAtomFactory(target_types=["numeric"], concurrency=1)
+    
+    for mod in [5, 11, 12]:
+        print(f"  > Module {mod}...")
+        result = await math_factory.process_module(mod)
+        if result.total_atoms_approved > 0:
+            math_factory.export_results(result)
+            print(f"     Saved {result.total_atoms_approved} atoms.")
+        else:
+            print("    ⚠️ No atoms generated.")
+        time.sleep(5)
+
+    print("\n✅ HYDRATION COMPLETE.")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

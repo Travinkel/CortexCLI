@@ -8,22 +8,20 @@ Calculates mastery scores based on multiple signals:
 
 Mastery threshold: 90% retrievability + <2 average lapses
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
-from typing import Optional
-
-from loguru import logger
 
 
 @dataclass
 class MasteryMetrics:
     """Mastery metrics for a section or atom."""
+
     avg_retrievability: float
     avg_stability_days: float
     avg_lapses: float
-    mcq_score: Optional[float]
+    mcq_score: float | None
     atoms_total: int
     atoms_mastered: int
     atoms_learning: int
@@ -34,10 +32,11 @@ class MasteryMetrics:
 @dataclass
 class MasteryResult:
     """Result of mastery calculation."""
+
     mastery_score: float  # 0-100
     is_mastered: bool
     needs_remediation: bool
-    remediation_reason: Optional[str]
+    remediation_reason: str | None
     remediation_priority: int
 
 
@@ -91,9 +90,9 @@ class MasteryCalculator:
 
     def calculate_mastery_score(
         self,
-        avg_retrievability: Optional[float],
-        avg_lapses: Optional[float],
-        mcq_score: Optional[float],
+        avg_retrievability: float | None,
+        avg_lapses: float | None,
+        mcq_score: float | None,
     ) -> float:
         """
         Calculate composite mastery score (0-100).
@@ -125,18 +124,18 @@ class MasteryCalculator:
 
         # Weighted composite
         score = (
-            ret_score * self.WEIGHT_RETRIEVABILITY +
-            lapse_score * self.WEIGHT_LAPSE_RATE +
-            mcq * self.WEIGHT_MCQ +
-            10  # Buffer
+            ret_score * self.WEIGHT_RETRIEVABILITY
+            + lapse_score * self.WEIGHT_LAPSE_RATE
+            + mcq * self.WEIGHT_MCQ
+            + 10  # Buffer
         )
 
         return min(max(score, 0), 100)
 
     def check_mastery(
         self,
-        avg_retrievability: Optional[float],
-        avg_lapses: Optional[float],
+        avg_retrievability: float | None,
+        avg_lapses: float | None,
     ) -> bool:
         """
         Check if section meets mastery threshold.
@@ -155,17 +154,14 @@ class MasteryCalculator:
         ret = avg_retrievability or 0
         lapses = avg_lapses or 0
 
-        return (
-            ret >= self.mastery_retrievability and
-            lapses < self.mastery_max_lapses
-        )
+        return ret >= self.mastery_retrievability and lapses < self.mastery_max_lapses
 
     def check_remediation(
         self,
-        avg_retrievability: Optional[float],
-        avg_lapses: Optional[float],
-        mcq_score: Optional[float],
-    ) -> tuple[bool, Optional[str], int]:
+        avg_retrievability: float | None,
+        avg_lapses: float | None,
+        mcq_score: float | None,
+    ) -> tuple[bool, str | None, int]:
         """
         Check if section needs remediation.
 
@@ -193,24 +189,24 @@ class MasteryCalculator:
         # Check retrievability
         if ret < self.remediation_min_retrievability:
             needs_remediation = True
-            reasons.append('low_retrievability')
+            reasons.append("low_retrievability")
             priority += 3
 
         # Check lapses
         if lapses > self.remediation_max_lapses:
             needs_remediation = True
-            reasons.append('high_lapses')
+            reasons.append("high_lapses")
             priority += 2
 
         # Check MCQ
         if mcq < self.remediation_min_mcq * 100:
             needs_remediation = True
-            reasons.append('low_mcq')
+            reasons.append("low_mcq")
             priority += 1
 
         # Determine final reason
         if len(reasons) > 1:
-            reason = 'combined'
+            reason = "combined"
         elif len(reasons) == 1:
             reason = reasons[0]
         else:

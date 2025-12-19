@@ -779,6 +779,318 @@ def cortex_result_panel(
     )
 
 
+def render_tf_feedback_panel(
+    console: Console,
+    correct: bool,
+    correct_answer: str,
+    user_answer: str,
+    explanation: str | None = None,
+) -> None:
+    """
+    Render educational feedback for True/False questions.
+
+    Unlike generic result panels, this provides specific educational context
+    for binary questions where retry isn't allowed.
+
+    Args:
+        console: Rich Console instance
+        correct: Whether user's answer was correct
+        correct_answer: The correct answer (True/False)
+        user_answer: What the user answered
+        explanation: Why the statement is true/false
+    """
+    color = CORTEX_THEME["success"] if correct else CORTEX_THEME["error"]
+    icon = "◉" if correct else "✗"
+    status = "CORRECT" if correct else "INCORRECT"
+
+    content = Text()
+    content.append(f"{icon} {status}\n\n", style=Style(color=color, bold=True))
+
+    # Show answer comparison for wrong answers
+    if not correct:
+        content.append("You answered: ", style=STYLES["cortex_dim"])
+        content.append(f"{user_answer}\n", style=Style(color=CORTEX_THEME["error"]))
+        content.append("Correct answer: ", style=STYLES["cortex_dim"])
+        content.append(f"{correct_answer}\n\n", style=Style(color=CORTEX_THEME["success"], bold=True))
+
+    # Educational explanation - the key learning value
+    if explanation:
+        content.append("─" * 40 + "\n", style=STYLES["cortex_dim"])
+        content.append("WHY: ", style=Style(color=CORTEX_THEME["warning"], bold=True))
+        content.append(explanation, style=Style(color=CORTEX_THEME["white"]))
+    else:
+        # Fallback if no explanation available
+        content.append("─" * 40 + "\n", style=STYLES["cortex_dim"])
+        content.append(
+            f"The statement is {correct_answer.upper()} - review this concept.",
+            style=STYLES["cortex_dim"],
+        )
+
+    console.print(Panel(
+        content,
+        title="[bold]TRUE/FALSE FEEDBACK[/bold]",
+        border_style=Style(color=color),
+        box=box.HEAVY,
+        padding=(1, 2),
+    ))
+
+
+def render_parsons_diff_panel(
+    console: Console,
+    user_sequence: list[str],
+    correct_sequence: list[str],
+    step_explanations: dict[int, str] | None = None,
+) -> None:
+    """
+    Render enhanced side-by-side diff for Parsons problems.
+
+    Shows:
+    - Left column: User's sequence with status icons
+    - Right column: Correct sequence
+    - Color coding: ✓ green (correct position), ~ yellow (wrong position), ✗ red (extra)
+    - Optional step explanations for key ordering reasons
+
+    Args:
+        console: Rich Console instance
+        user_sequence: List of steps in user's order
+        correct_sequence: List of steps in correct order
+        step_explanations: Optional dict mapping step index to explanation why order matters
+    """
+    from rich.table import Table
+
+    # Build comparison table
+    table = Table(
+        box=box.DOUBLE_EDGE,
+        border_style=Style(color=CORTEX_THEME["error"]),
+        show_header=True,
+        header_style=Style(color=CORTEX_THEME["primary"], bold=True),
+    )
+    table.add_column("#", width=3, justify="center")
+    table.add_column("Your Sequence", ratio=2, overflow="fold")
+    table.add_column("", width=3, justify="center")  # Status
+    table.add_column("Correct Sequence", ratio=2, overflow="fold")
+
+    correct_set = set(correct_sequence)
+    max_len = max(len(user_sequence), len(correct_sequence))
+
+    for i in range(max_len):
+        step_num = str(i + 1)
+        user_step = user_sequence[i] if i < len(user_sequence) else ""
+        correct_step = correct_sequence[i] if i < len(correct_sequence) else ""
+
+        # Determine status
+        if user_step == correct_step:
+            icon = "✓"
+            user_style = Style(color=CORTEX_THEME["success"])
+            correct_style = Style(color=CORTEX_THEME["success"])
+        elif user_step in correct_set:
+            icon = "~"
+            user_style = Style(color=CORTEX_THEME["warning"])
+            correct_style = Style(color=CORTEX_THEME["dim"])
+        elif user_step:
+            icon = "✗"
+            user_style = Style(color=CORTEX_THEME["error"])
+            correct_style = Style(color=CORTEX_THEME["dim"])
+        else:
+            icon = "○"
+            user_style = Style(color=CORTEX_THEME["dim"])
+            correct_style = Style(color=CORTEX_THEME["warning"])
+
+        table.add_row(
+            Text(step_num, style=Style(color=CORTEX_THEME["dim"])),
+            Text(user_step, style=user_style),
+            Text(icon, style=user_style),
+            Text(correct_step, style=correct_style),
+        )
+
+    # Legend
+    legend = Text()
+    legend.append("✓ ", style=Style(color=CORTEX_THEME["success"]))
+    legend.append("Correct  ", style=Style(color=CORTEX_THEME["dim"]))
+    legend.append("~ ", style=Style(color=CORTEX_THEME["warning"]))
+    legend.append("Wrong position  ", style=Style(color=CORTEX_THEME["dim"]))
+    legend.append("✗ ", style=Style(color=CORTEX_THEME["error"]))
+    legend.append("Missing/Extra", style=Style(color=CORTEX_THEME["dim"]))
+
+    content = Text()
+    content.append_text(legend)
+    content.append("\n\n")
+
+    # Show step explanations if provided
+    if step_explanations:
+        content.append("─" * 50 + "\n", style=Style(color=CORTEX_THEME["dim"]))
+        content.append("WHY ORDER MATTERS:\n", style=Style(color=CORTEX_THEME["warning"], bold=True))
+        for idx, explanation in step_explanations.items():
+            if idx < len(correct_sequence):
+                content.append(f"  Step {idx + 1}: ", style=Style(color=CORTEX_THEME["primary"]))
+                content.append(f"{explanation}\n", style=Style(color=CORTEX_THEME["white"]))
+
+    console.print(Panel(
+        Columns([table], padding=(1, 2)),
+        title="[bold]SEQUENCE COMPARISON[/bold]",
+        border_style=Style(color=CORTEX_THEME["error"]),
+        box=box.HEAVY,
+    ))
+
+    if step_explanations:
+        console.print(Panel(
+            content,
+            border_style=Style(color=CORTEX_THEME["warning"]),
+            box=box.ROUNDED,
+        ))
+
+
+def prompt_flag_option(console: Console) -> str | None:
+    """
+    Prompt user to flag a problematic question after incorrect answer.
+
+    Shows a subtle prompt that doesn't interrupt flow but allows reporting.
+
+    Returns:
+        flag_type if user chose to flag, None otherwise
+    """
+    from rich.prompt import Prompt
+
+    console.print(
+        "\n[dim]Think this question has an issue? "
+        "Press [bold]f[/bold] to flag, [bold]Enter[/bold] to continue[/dim]"
+    )
+
+    response = Prompt.ask(
+        "[dim]>[/dim]",
+        default="",
+        show_default=False,
+    ).strip().lower()
+
+    if response != "f":
+        return None
+
+    # Show flag type options
+    console.print("\n[bold cyan]FLAG TYPE[/bold cyan]")
+    console.print("  [cyan]1[/cyan] - Wrong answer (correct answer is incorrect)")
+    console.print("  [cyan]2[/cyan] - Ambiguous (question unclear)")
+    console.print("  [cyan]3[/cyan] - Typo (spelling/grammar)")
+    console.print("  [cyan]4[/cyan] - Outdated (info no longer accurate)")
+    console.print("  [cyan]5[/cyan] - Other")
+    console.print("  [dim]c[/dim] - Cancel")
+
+    flag_choice = Prompt.ask(
+        ">_ [cyan]SELECT[/cyan]",
+        choices=["1", "2", "3", "4", "5", "c"],
+        default="c",
+    )
+
+    flag_types = {
+        "1": "wrong_answer",
+        "2": "ambiguous",
+        "3": "typo",
+        "4": "outdated",
+        "5": "other",
+    }
+
+    flag_type = flag_types.get(flag_choice)
+
+    if flag_type:
+        # Optional reason
+        reason = Prompt.ask(
+            "[dim]Reason (optional, press Enter to skip)[/dim]",
+            default="",
+        ).strip()
+
+        console.print(
+            f"[green]Flag recorded:[/green] {flag_type}"
+            + (f" - {reason}" if reason else "")
+        )
+        return {"type": flag_type, "reason": reason} if reason else {"type": flag_type}
+
+    return None
+
+
+def render_contrastive_panel(
+    console: Console,
+    concept_a: dict,
+    concept_b: dict,
+    confusion_evidence: str | None = None,
+) -> None:
+    """
+    Render side-by-side concept comparison for discrimination errors.
+
+    When learners confuse similar concepts, this panel shows them
+    side-by-side with key differentiating facts highlighted.
+
+    Args:
+        console: Rich Console instance
+        concept_a: Dict with 'name', 'definition', 'key_facts' (list), 'example'
+        concept_b: Dict with same structure
+        confusion_evidence: Optional string explaining why learner confused them
+    """
+    from rich.table import Table
+
+    # Build comparison table
+    table = Table(
+        box=box.DOUBLE_EDGE,
+        border_style=Style(color=CORTEX_THEME["primary"]),
+        show_header=True,
+        header_style=Style(color=CORTEX_THEME["primary"], bold=True),
+        title="[bold]CONCEPT COMPARISON[/bold]",
+        title_style=Style(color=CORTEX_THEME["warning"], bold=True),
+    )
+
+    name_a = concept_a.get("name", "Concept A")
+    name_b = concept_b.get("name", "Concept B")
+
+    table.add_column(name_a, ratio=1, style=Style(color=CORTEX_THEME["accent"]))
+    table.add_column(name_b, ratio=1, style=Style(color=CORTEX_THEME["secondary"]))
+
+    # Definition row
+    def_a = concept_a.get("definition", "")
+    def_b = concept_b.get("definition", "")
+    table.add_row(
+        Text(def_a, style=Style(color=CORTEX_THEME["white"])),
+        Text(def_b, style=Style(color=CORTEX_THEME["white"])),
+    )
+
+    # Key facts rows
+    facts_a = concept_a.get("key_facts", [])
+    facts_b = concept_b.get("key_facts", [])
+    max_facts = max(len(facts_a), len(facts_b))
+
+    for i in range(max_facts):
+        fact_a = facts_a[i] if i < len(facts_a) else ""
+        fact_b = facts_b[i] if i < len(facts_b) else ""
+        table.add_row(
+            Text(f"• {fact_a}", style=Style(color=CORTEX_THEME["dim"])) if fact_a else Text(""),
+            Text(f"• {fact_b}", style=Style(color=CORTEX_THEME["dim"])) if fact_b else Text(""),
+        )
+
+    # Example row (highlighted)
+    example_a = concept_a.get("example", "")
+    example_b = concept_b.get("example", "")
+    if example_a or example_b:
+        table.add_row(
+            Text(f"Ex: {example_a}", style=Style(color=CORTEX_THEME["success"], italic=True)) if example_a else Text(""),
+            Text(f"Ex: {example_b}", style=Style(color=CORTEX_THEME["success"], italic=True)) if example_b else Text(""),
+        )
+
+    console.print(Panel(
+        table,
+        border_style=Style(color=CORTEX_THEME["warning"]),
+        box=box.HEAVY,
+        padding=(1, 2),
+    ))
+
+    # Show confusion evidence if available
+    if confusion_evidence:
+        console.print(Panel(
+            Text.assemble(
+                ("WHY YOU MIGHT CONFUSE THEM: ", Style(color=CORTEX_THEME["warning"], bold=True)),
+                (confusion_evidence, Style(color=CORTEX_THEME["dim"])),
+            ),
+            border_style=Style(color=CORTEX_THEME["dim"]),
+            box=box.ROUNDED,
+        ))
+
+
 # =============================================================================
 # ASI-STYLE PROMPTS
 # =============================================================================
@@ -816,7 +1128,7 @@ def get_asi_prompt(atom_type: str, suffix: str = "") -> str:
 
 class CortexSpinner:
     """
-    Animated brain spinner for loading states.
+    Simple spinner for loading states using Rich's console.status().
 
     Usage:
         with CortexSpinner(console, "Loading atoms..."):
@@ -826,43 +1138,23 @@ class CortexSpinner:
     def __init__(self, console: Console, message: str = "Processing..."):
         self.console = console
         self.message = message
-        self.live = None
-        self.frame_index = 0
+        self._status = None
 
     def __enter__(self):
-        self.live = Live(console=self.console, refresh_per_second=4)
-        self.live.__enter__()
-        self._update()
+        # Use console.status() - handles concurrent output gracefully
+        self._status = self.console.status(f"[cyan]{self.message}[/cyan]", spinner="dots")
+        self._status.__enter__()
         return self
 
     def __exit__(self, *args):
-        if self.live:
-            self.live.__exit__(*args)
-
-    def _update(self):
-        # Simple spinner instead of brain animation (brain shown in boot sequence)
-        spinner_frames = ["|", "/", "-", "\\"]
-        spinner = spinner_frames[self.frame_index % len(spinner_frames)]
-
-        status = Text()
-        status.append(f"[{spinner}] ", style=Style(color=CORTEX_THEME["primary"], bold=True))
-        status.append(self.message, style=STYLES["cortex_accent"])
-
-        panel = Panel(
-            Align.center(status),
-            border_style=Style(color=CORTEX_THEME["primary"]),
-            box=box.ROUNDED,
-            padding=(0, 2),
-        )
-
-        if self.live:
-            self.live.update(panel)
-        self.frame_index += 1
+        if self._status:
+            self._status.__exit__(*args)
 
     def update_message(self, message: str):
         """Update the spinner message."""
         self.message = message
-        self._update()
+        if self._status:
+            self._status.update(f"[cyan]{self.message}[/cyan]")
 
 
 # =============================================================================

@@ -8,10 +8,9 @@ Handles bulk embedding generation for:
 
 Supports incremental processing (skip existing) and regeneration modes.
 """
+
 from __future__ import annotations
 
-from datetime import datetime
-from typing import List, Optional
 from uuid import uuid4
 
 from loguru import logger
@@ -56,7 +55,7 @@ class BatchEmbeddingProcessor:
     def __init__(
         self,
         db_session: Session,
-        embedding_service: Optional[EmbeddingService] = None,
+        embedding_service: EmbeddingService | None = None,
     ):
         """
         Initialize the batch processor.
@@ -72,9 +71,9 @@ class BatchEmbeddingProcessor:
     def generate_embeddings(
         self,
         source: str = "learning_atoms",
-        batch_size: Optional[int] = None,
+        batch_size: int | None = None,
         regenerate: bool = False,
-        limit: Optional[int] = None,
+        limit: int | None = None,
     ) -> dict:
         """
         Generate embeddings for records in a source table.
@@ -89,7 +88,9 @@ class BatchEmbeddingProcessor:
             Dictionary with processing statistics.
         """
         if source not in self.SUPPORTED_SOURCES:
-            raise ValueError(f"Unsupported source: {source}. Use: {list(self.SUPPORTED_SOURCES.keys())}")
+            raise ValueError(
+                f"Unsupported source: {source}. Use: {list(self.SUPPORTED_SOURCES.keys())}"
+            )
 
         config = self.SUPPORTED_SOURCES[source]
         batch_size = batch_size or self.settings.embedding_batch_size
@@ -130,7 +131,7 @@ class BatchEmbeddingProcessor:
         config: dict,
         batch_size: int,
         regenerate: bool,
-        limit: Optional[int],
+        limit: int | None,
         batch_id: str,
     ) -> dict:
         """
@@ -156,7 +157,6 @@ class BatchEmbeddingProcessor:
         else:
             where_clause = "WHERE embedding IS NULL"
 
-        limit_clause = f"LIMIT {limit}" if limit else ""
 
         # Count total records
         count_query = text(f"SELECT COUNT(*) FROM {table} {where_clause}")
@@ -184,7 +184,7 @@ class BatchEmbeddingProcessor:
         while True:
             # Fetch batch
             fetch_query = text(f"""
-                SELECT {id_col}, {', '.join(text_cols)}
+                SELECT {id_col}, {", ".join(text_cols)}
                 FROM {table}
                 {where_clause}
                 ORDER BY {id_col}
@@ -240,7 +240,7 @@ class BatchEmbeddingProcessor:
         batch: list,
         table: str,
         id_col: str,
-        text_cols: List[str],
+        text_cols: list[str],
     ) -> tuple:
         """
         Process a single batch of records.
@@ -301,7 +301,9 @@ class BatchEmbeddingProcessor:
                         "embedding": result.to_bytes(),  # Store as BYTEA
                         "model": result.model_name,
                         "generated_at": result.generated_at,
-                        "record_id": str(record_id) if isinstance(record_id, (int, str)) else str(record_id),
+                        "record_id": str(record_id)
+                        if isinstance(record_id, (int, str))
+                        else str(record_id),
                     },
                 )
                 processed += 1
@@ -351,7 +353,7 @@ class BatchEmbeddingProcessor:
         records_processed: int = 0,
         records_skipped: int = 0,
         records_failed: int = 0,
-        error_message: Optional[str] = None,
+        error_message: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -407,7 +409,7 @@ class BatchEmbeddingProcessor:
                     COUNT(*) as total,
                     COUNT(*) FILTER (WHERE embedding IS NOT NULL) as with_embedding,
                     COUNT(*) FILTER (WHERE embedding IS NULL) as without_embedding
-                FROM {config['table']}
+                FROM {config["table"]}
             """)
 
             result = self.db.execute(query).fetchone()
@@ -424,7 +426,7 @@ class BatchEmbeddingProcessor:
 
         return coverage
 
-    def generate_for_new_atoms(self, atom_ids: List[str]) -> int:
+    def generate_for_new_atoms(self, atom_ids: list[str]) -> int:
         """
         Generate embeddings for specific new atoms.
 

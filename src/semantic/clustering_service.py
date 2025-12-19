@@ -10,11 +10,11 @@ the knowledge space. This helps with:
 References:
 - Silhouette score: https://scikit-learn.org/stable/modules/clustering.html#silhouette-coefficient
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 import numpy as np
@@ -34,12 +34,12 @@ class ClusterResult:
 
     cluster_id: int
     centroid: np.ndarray
-    atom_ids: List[UUID]
+    atom_ids: list[UUID]
     size: int
-    exemplar_id: Optional[UUID] = None
+    exemplar_id: UUID | None = None
 
     @property
-    def centroid_list(self) -> List[float]:
+    def centroid_list(self) -> list[float]:
         """Convert centroid to list for database storage."""
         return self.centroid.tolist()
 
@@ -51,8 +51,8 @@ class ClusterInfo:
     cluster_db_id: UUID
     name: str
     size: int
-    silhouette_score: Optional[float]
-    sample_fronts: List[str]
+    silhouette_score: float | None
+    sample_fronts: list[str]
 
 
 class ClusteringService:
@@ -75,7 +75,7 @@ class ClusteringService:
     def __init__(
         self,
         db_session: Session,
-        embedding_service: Optional[EmbeddingService] = None,
+        embedding_service: EmbeddingService | None = None,
     ):
         """
         Initialize the clustering service.
@@ -91,10 +91,10 @@ class ClusteringService:
     def cluster_atoms(
         self,
         n_clusters: int = 10,
-        concept_area_id: Optional[UUID] = None,
+        concept_area_id: UUID | None = None,
         max_atoms: int = 10000,
         random_state: int = 42,
-    ) -> List[ClusterResult]:
+    ) -> list[ClusterResult]:
         """
         Cluster atoms into semantic groups.
 
@@ -200,11 +200,11 @@ class ClusteringService:
 
     def store_clusters(
         self,
-        clusters: List[ClusterResult],
+        clusters: list[ClusterResult],
         cluster_name_prefix: str = "Auto-Cluster",
-        concept_area_id: Optional[UUID] = None,
+        concept_area_id: UUID | None = None,
         cluster_method: str = "kmeans",
-    ) -> List[UUID]:
+    ) -> list[UUID]:
         """
         Store clusters in database.
 
@@ -269,7 +269,7 @@ class ClusteringService:
         self,
         active_only: bool = True,
         limit: int = 50,
-    ) -> List[ClusterInfo]:
+    ) -> list[ClusterInfo]:
         """
         List existing knowledge clusters.
 
@@ -329,7 +329,7 @@ class ClusteringService:
         self,
         cluster_id: UUID,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get atoms belonging to a cluster.
 
@@ -366,7 +366,9 @@ class ClusteringService:
                 "card_id": row.card_id,
                 "front": row.front,
                 "back": row.back,
-                "distance_to_centroid": float(row.distance_to_centroid) if row.distance_to_centroid else None,
+                "distance_to_centroid": float(row.distance_to_centroid)
+                if row.distance_to_centroid
+                else None,
                 "is_exemplar": row.is_exemplar,
             }
             for row in results
@@ -398,7 +400,7 @@ class ClusteringService:
         self,
         n_clusters: int = 10,
         deactivate_existing: bool = True,
-    ) -> List[UUID]:
+    ) -> list[UUID]:
         """
         Re-run clustering and replace existing clusters.
 

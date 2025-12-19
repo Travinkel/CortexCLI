@@ -3,6 +3,7 @@ Configuration settings for notion-learning-sync service.
 
 Uses Pydantic Settings for environment variable management with .env file support.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -150,12 +151,24 @@ class Settings(BaseSettings):
         description="AnkiConnect plugin URL",
     )
     anki_deck_name: str = Field(
-        default="LearningOS::Synced",
+        default="CCNA::ITN",
         description="Target Anki deck for synced cards",
     )
     anki_note_type: str = Field(
         default="Basic",
         description="Anki note type for new cards",
+    )
+    anki_query: str = Field(
+        default="deck:CCNA::ITN::* (tag:section:2.1.4 OR tag:section:2.1.5 OR tag:section:2.2.1 OR tag:section:2.2.2 OR tag:section:2.2.4 OR tag:section:2.3.1 OR tag:section:2.3.2 OR tag:section:2.3.3 OR tag:section:2.3.5 OR tag:section:2.4.2 OR tag:section:2.4.3 OR tag:section:2.4.5 OR tag:section:2.6.2 OR tag:section:2.7.1 OR tag:section:2.7.4 OR tag:section:2.8.1 OR tag:section:2.8.2 OR tag:section:3.1.2 OR tag:section:3.1.3 OR tag:section:3.2.* OR tag:section:3.3.* OR tag:section:4.1.* OR tag:section:4.2.1 OR tag:section:4.2.2 OR tag:section:4.2.3 OR tag:section:4.3.* OR tag:section:5.1.1 OR tag:section:5.1.2 OR tag:section:5.1.4 OR tag:section:5.1.5 OR tag:section:5.2.1 OR tag:section:5.2.2 OR tag:section:5.2.3 OR tag:section:5.3.1 OR tag:section:5.3.2 OR tag:section:5.3.3 OR tag:section:5.4.1 OR tag:section:5.4.2 OR tag:section:6.1.* OR tag:section:6.2.* OR tag:section:6.3.* OR tag:section:7.1.2 OR tag:section:7.1.3 OR tag:section:7.1.4 OR tag:section:7.2.1 OR tag:section:7.2.2 OR tag:section:7.2.3 OR tag:section:7.2.4 OR tag:section:7.2.5 OR tag:section:7.2.6 OR tag:section:8.1.* OR tag:section:8.2.* OR tag:section:8.3.* OR tag:section:9.1.* OR tag:section:9.2.* OR tag:section:9.3.* OR tag:section:10.1.* OR tag:section:10.2.* OR tag:section:10.3.* OR tag:section:10.4.* OR tag:section:11.1.* OR tag:section:11.2.* OR tag:section:11.3.* OR tag:section:11.4.* OR tag:section:11.5.* OR tag:section:11.6.* OR tag:section:11.7.* OR tag:section:11.8.* OR tag:section:12.1.* OR tag:section:12.2.* OR tag:section:12.3.* OR tag:section:12.4.* OR tag:section:12.5.* OR tag:section:12.6.* OR tag:section:13.1.* OR tag:section:13.2.* OR tag:section:14.* OR tag:section:15.* OR tag:section:16.* OR tag:section:17.*) -is:suspended",
+        description="Anki search query for filtering cards to import",
+    )
+
+    # ========================================
+    # Google Calendar Integration
+    # ========================================
+    google_calendar_timezone: str = Field(
+        default="America/New_York",
+        description="Timezone for Google Calendar events (IANA format)",
     )
 
     # ========================================
@@ -305,10 +318,10 @@ class Settings(BaseSettings):
         """Return a dictionary of all Notion database IDs (including None)."""
         return {
             # Cortex 2.0 Core Databases
-            "flashcards": self.flashcards_db_id,      # All-Atom Master
+            "flashcards": self.flashcards_db_id,  # All-Atom Master
             "superconcepts": self.superconcepts_db_id,  # Knowledge Areas (L0/L1)
-            "subconcepts": self.subconcepts_db_id,    # Being merged
-            "projects": self.projects_db_id,          # Learning focus
+            "subconcepts": self.subconcepts_db_id,  # Being merged
+            "projects": self.projects_db_id,  # Learning focus
             # Legacy concept databases (backwards compatibility)
             "concepts": self.concepts_db_id,
             "concept_areas": self.concept_areas_db_id,
@@ -786,7 +799,7 @@ class Settings(BaseSettings):
     # CCNA Content Generation (Phase 4)
     # ========================================
     ccna_modules_path: str = Field(
-        default="docs/CCNA",
+        default="docs/source-materials/CCNA",
         description="Path to CCNA module TXT files",
     )
     ccna_generation_batch_size: int = Field(

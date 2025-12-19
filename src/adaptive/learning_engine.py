@@ -10,67 +10,63 @@ Main orchestration layer that coordinates:
 
 This is the primary interface for learning applications.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID, uuid4
 
 from loguru import logger
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from src.adaptive.mastery_calculator import MasteryCalculator
 from src.adaptive.models import (
-    SessionMode,
-    SessionStatus,
-    SessionState,
-    SessionProgress,
-    AtomPresentation,
     AnswerResult,
+    AtomPresentation,
     ConceptMastery,
-    RemediationPlan,
-    LearningPath,
     KnowledgeGap,
+    LearningPath,
+    RemediationPlan,
+    SessionMode,
+    SessionProgress,
+    SessionState,
+    SessionStatus,
     TriggerType,
 )
-from src.adaptive.mastery_calculator import MasteryCalculator
-from src.adaptive.path_sequencer import PathSequencer
-from src.adaptive.remediation_router import RemediationRouter
-from src.adaptive.suitability_scorer import SuitabilityScorer
 from src.adaptive.neuro_model import (
-    diagnose_interaction,
     CognitiveDiagnosis,
     FailMode,
-    RemediationType,
-    CognitiveState,
+    diagnose_interaction,
 )
+from src.adaptive.path_sequencer import PathSequencer
 from src.adaptive.persona_service import (
-    PersonaService,
     LearnerPersona,
+    PersonaService,
     SessionStatistics,
 )
+from src.adaptive.remediation_router import RemediationRouter
+from src.adaptive.suitability_scorer import SuitabilityScorer
 from src.db.database import session_scope
 
 # Optional imports for Cortex 2.0 features
 try:
     from src.graph.zscore_engine import (
-        ZScoreEngine,
-        ForceZEngine,
         AtomMetrics,
-        get_zscore_engine,
+        ForceZEngine,
+        ZScoreEngine,
         get_forcez_engine,
+        get_zscore_engine,
     )
+
     HAS_ZSCORE = True
 except ImportError:
     HAS_ZSCORE = False
     logger.warning("Z-Score engine not available - using default atom ordering")
 
 try:
-    from src.integrations.vertex_tutor import (
-        VertexTutor,
-        get_tutor,
-        get_quick_hint,
-    )
+    from src.integrations.vertex_tutor import get_quick_hint
+
     HAS_TUTOR = True
 except ImportError:
     HAS_TUTOR = False
@@ -88,12 +84,17 @@ class LearningEngine:
     - Tracking mastery progress
     """
 
-    def __init__(self, session: Optional[Session] = None):
+    # Minimum remediation atoms before triggering JIT generation
+    MIN_REMEDIATION_ATOMS = 3
+
+    def __init__(self, session: Session | None = None, enable_jit: bool = True):
         self._session = session
         self._mastery_calc = MasteryCalculator(session)
         self._sequencer = PathSequencer(session)
-        self._remediator = RemediationRouter(session)
+        self._remediator = RemediationRouter(session, enable_jit=enable_jit)
         self._suitability = SuitabilityScorer(session)
+        self._enable_jit = enable_jit
+        self._jit_generator = None
 
         # NCDE (Neural Cognitive Diagnosis Engine) state
         # Tracks interaction history per session for cognitive diagnosis
@@ -102,17 +103,26 @@ class LearningEngine:
         self._session_start_times: dict[UUID, datetime] = {}
 
         # Cortex 2.0 components
-        self._zscore_engine: Optional["ZScoreEngine"] = None
-        self._forcez_engine: Optional["ForceZEngine"] = None
+        self._zscore_engine: ZScoreEngine | None = None
+        self._forcez_engine: ForceZEngine | None = None
         if HAS_ZSCORE:
             self._zscore_engine = get_zscore_engine()
             self._forcez_engine = get_forcez_engine()
 
         # Persona service for learner profile updates
-        self._persona_service: Optional[PersonaService] = None
+        self._persona_service: PersonaService | None = None
 
         # Session statistics accumulator (for persona updates)
         self._session_stats: dict[UUID, SessionStatistics] = {}
+
+    @property
+    def jit_generator(self):
+        """Lazy-load JIT generator."""
+        if self._jit_generator is None and self._enable_jit:
+            from src.adaptive.jit_generator import JITGenerationService
+
+            self._jit_generator = JITGenerationService(session=self._session)
+        return self._jit_generator
 
     # =========================================================================
     # Session Management
@@ -122,8 +132,8 @@ class LearningEngine:
         self,
         learner_id: str,
         mode: SessionMode = SessionMode.ADAPTIVE,
-        target_concept_id: Optional[UUID] = None,
-        target_cluster_id: Optional[UUID] = None,
+        target_concept_id: UUID | None = None,
+        target_cluster_id: UUID | None = None,
         atom_count: int = 20,
     ) -> SessionState:
         """
@@ -143,15 +153,7 @@ class LearningEngine:
             session_id = uuid4()
 
             # Get atoms for the session based on mode
-            if mode == SessionMode.ADAPTIVE:
-                atom_sequence = self._sequencer.get_next_atoms(
-                    learner_id,
-                    concept_id=target_concept_id,
-                    cluster_id=target_cluster_id,
-                    count=atom_count,
-                    include_review=True,
-                )
-            elif mode == SessionMode.REVIEW:
+            if mode == SessionMode.ADAPTIVE or mode == SessionMode.REVIEW:
                 atom_sequence = self._sequencer.get_next_atoms(
                     learner_id,
                     concept_id=target_concept_id,
@@ -231,7 +233,7 @@ class LearningEngine:
                 started_at=datetime.utcnow(),
             )
 
-    def get_session(self, session_id: UUID) -> Optional[SessionState]:
+    def get_session(self, session_id: UUID) -> SessionState | None:
         """
         Get current state of a learning session.
 
@@ -259,10 +261,10 @@ class LearningEngine:
                     lps.started_at,
                     lps.completed_at,
                     cc.name as concept_name,
-                    cl.name as cluster_name
+                    kc.name as cluster_name
                 FROM learning_path_sessions lps
                 LEFT JOIN concepts cc ON lps.target_concept_id = cc.id
-                LEFT JOIN clusters cl ON lps.target_cluster_id = cl.id
+                LEFT JOIN knowledge_clusters kc ON lps.target_cluster_id = kc.id
                 WHERE lps.id = :session_id
             """)
 
@@ -331,10 +333,13 @@ class LearningEngine:
                 WHERE id = :session_id
             """)
 
-            session.execute(query, {
-                "session_id": str(session_id),
-                "status": status.value,
-            })
+            session.execute(
+                query,
+                {
+                    "session_id": str(session_id),
+                    "status": status.value,
+                },
+            )
             session.commit()
 
         return self.get_session(session_id)
@@ -348,8 +353,8 @@ class LearningEngine:
         session_id: UUID,
         atom_id: UUID,
         answer: str,
-        confidence: Optional[float] = None,
-        time_taken_seconds: Optional[int] = None,
+        confidence: float | None = None,
+        time_taken_seconds: int | None = None,
     ) -> AnswerResult:
         """
         Submit an answer and get the result with cognitive diagnosis and remediation.
@@ -410,15 +415,19 @@ class LearningEngine:
             )
 
             # Update session history for future diagnoses
-            self._session_histories.setdefault(session_id, []).append({
-                "atom_id": str(atom_id),
-                "concept_id": atom_info.get("concept_id"),
-                "is_correct": is_correct,
-                "response_time_ms": response_time_ms,
-                "fail_mode": diagnosis.fail_mode.value if diagnosis.fail_mode else None,
-                "success_mode": diagnosis.success_mode.value if diagnosis.success_mode else None,
-                "cognitive_state": diagnosis.cognitive_state.value,
-            })
+            self._session_histories.setdefault(session_id, []).append(
+                {
+                    "atom_id": str(atom_id),
+                    "concept_id": atom_info.get("concept_id"),
+                    "is_correct": is_correct,
+                    "response_time_ms": response_time_ms,
+                    "fail_mode": diagnosis.fail_mode.value if diagnosis.fail_mode else None,
+                    "success_mode": diagnosis.success_mode.value
+                    if diagnosis.success_mode
+                    else None,
+                    "cognitive_state": diagnosis.cognitive_state.value,
+                }
+            )
 
             # Update error streak
             if is_correct:
@@ -450,9 +459,7 @@ class LearningEngine:
             )
 
             # Update session progress
-            self._update_session_progress(
-                session, session_id, is_correct
-            )
+            self._update_session_progress(session, session_id, is_correct)
 
             # =====================================================================
             # Update Session Statistics for Persona
@@ -504,11 +511,18 @@ class LearningEngine:
                         confidence=int(confidence * 5),
                     )
 
+                # JIT Enhancement: Generate content if remediation atoms are insufficient
+                if remediation_plan and self._enable_jit:
+                    remediation_plan = self._enhance_remediation_with_jit(
+                        session=session,
+                        learner_id=learner_id,
+                        remediation_plan=remediation_plan,
+                        fail_mode=diagnosis.fail_mode.value if diagnosis.fail_mode else None,
+                    )
+
             # Update mastery state
             if atom_info.get("concept_id"):
-                self._mastery_calc.update_mastery_state(
-                    learner_id, UUID(atom_info["concept_id"])
-                )
+                self._mastery_calc.update_mastery_state(learner_id, UUID(atom_info["concept_id"]))
 
             session.commit()
 
@@ -528,7 +542,7 @@ class LearningEngine:
                 # diagnosis=diagnosis.to_dict(),
             )
 
-    def get_next_atom(self, session_id: UUID) -> Optional[AtomPresentation]:
+    def get_next_atom(self, session_id: UUID) -> AtomPresentation | None:
         """
         Get the next atom in the session.
 
@@ -569,9 +583,7 @@ class LearningEngine:
 
                 if rem_index < len(rem_atoms):
                     # Return next remediation atom
-                    atom = self._get_atom_presentation(
-                        session, UUID(rem_atoms[rem_index])
-                    )
+                    atom = self._get_atom_presentation(session, UUID(rem_atoms[rem_index]))
                     if atom:
                         atom.is_remediation = True
                     return atom
@@ -590,15 +602,16 @@ class LearningEngine:
                     SET current_atom_index = :index
                     WHERE id = :session_id
                 """)
-                session.execute(update_query, {
-                    "session_id": str(session_id),
-                    "index": current_index,
-                })
+                session.execute(
+                    update_query,
+                    {
+                        "session_id": str(session_id),
+                        "index": current_index,
+                    },
+                )
                 session.commit()
 
-                return self._get_atom_presentation(
-                    session, UUID(atom_sequence[current_index])
-                )
+                return self._get_atom_presentation(session, UUID(atom_sequence[current_index]))
 
             # Session complete
             self.end_session(session_id, SessionStatus.COMPLETED)
@@ -630,10 +643,13 @@ class LearningEngine:
                 WHERE id = :session_id
             """)
 
-            session.execute(query, {
-                "session_id": str(session_id),
-                "atoms": atom_ids,
-            })
+            session.execute(
+                query,
+                {
+                    "session_id": str(session_id),
+                    "atoms": atom_ids,
+                },
+            )
             session.commit()
 
             return True
@@ -645,8 +661,8 @@ class LearningEngine:
     def get_learner_mastery(
         self,
         learner_id: str,
-        concept_ids: Optional[list[UUID]] = None,
-        cluster_id: Optional[UUID] = None,
+        concept_ids: list[UUID] | None = None,
+        cluster_id: UUID | None = None,
     ) -> list[ConceptMastery]:
         """
         Get mastery state for a learner.
@@ -709,14 +725,12 @@ class LearningEngine:
         Returns:
             LearningPath with prerequisites and atoms
         """
-        return self._sequencer.get_learning_path(
-            learner_id, target_concept_id, target_mastery
-        )
+        return self._sequencer.get_learning_path(learner_id, target_concept_id, target_mastery)
 
     def get_knowledge_gaps(
         self,
         learner_id: str,
-        cluster_id: Optional[UUID] = None,
+        cluster_id: UUID | None = None,
     ) -> list[KnowledgeGap]:
         """
         Identify knowledge gaps for a learner.
@@ -733,7 +747,7 @@ class LearningEngine:
     def recalculate_mastery(
         self,
         learner_id: str,
-        concept_ids: Optional[list[UUID]] = None,
+        concept_ids: list[UUID] | None = None,
     ) -> int:
         """
         Recalculate and persist mastery state.
@@ -809,7 +823,7 @@ class LearningEngine:
 
     def batch_compute_suitability(
         self,
-        atom_ids: Optional[list[UUID]] = None,
+        atom_ids: list[UUID] | None = None,
         limit: int = 100,
     ) -> int:
         """
@@ -834,8 +848,8 @@ class LearningEngine:
         session_id: UUID,
         learner_id: str,
         mode: SessionMode,
-        target_concept_id: Optional[UUID],
-        target_cluster_id: Optional[UUID],
+        target_concept_id: UUID | None,
+        target_cluster_id: UUID | None,
         atom_sequence: list[UUID],
     ) -> None:
         """Create session record in database."""
@@ -851,21 +865,24 @@ class LearningEngine:
             )
         """)
 
-        session.execute(query, {
-            "id": str(session_id),
-            "learner_id": learner_id,
-            "concept_id": str(target_concept_id) if target_concept_id else None,
-            "cluster_id": str(target_cluster_id) if target_cluster_id else None,
-            "mode": mode.value,
-            "atoms": atom_id_strs,
-        })
+        session.execute(
+            query,
+            {
+                "id": str(session_id),
+                "learner_id": learner_id,
+                "concept_id": str(target_concept_id) if target_concept_id else None,
+                "cluster_id": str(target_cluster_id) if target_cluster_id else None,
+                "mode": mode.value,
+                "atoms": atom_id_strs,
+            },
+        )
         session.commit()
 
     def _get_atom_presentation(
         self,
         session: Session,
         atom_id: UUID,
-    ) -> Optional[AtomPresentation]:
+    ) -> AtomPresentation | None:
         """Get atom formatted for presentation."""
         query = text("""
             SELECT
@@ -873,8 +890,10 @@ class LearningEngine:
                 ca.atom_type,
                 ca.front,
                 ca.back,
-                ca.content_json,
+                ca.quiz_question_metadata as content_json,
                 ca.concept_id,
+                ca.card_id,
+                ca.ccna_section_id,
                 cc.name as concept_name
             FROM learning_atoms ca
             LEFT JOIN concepts cc ON ca.concept_id = cc.id
@@ -895,13 +914,15 @@ class LearningEngine:
             content_json=row.content_json,
             concept_id=UUID(str(row.concept_id)) if row.concept_id else None,
             concept_name=row.concept_name,
+            card_id=row.card_id,
+            ccna_section_id=row.ccna_section_id,
         )
 
-    def _get_atom_info(self, session: Session, atom_id: UUID) -> Optional[dict]:
+    def _get_atom_info(self, session: Session, atom_id: UUID) -> dict | None:
         """Get atom info for answer evaluation."""
         query = text("""
             SELECT
-                id, atom_type, front, back, content_json, concept_id
+                id, atom_type, front, back, quiz_question_metadata as content_json, concept_id
             FROM learning_atoms
             WHERE id = :atom_id
         """)
@@ -926,7 +947,7 @@ class LearningEngine:
         atom_id: UUID,
         answer: str,
         atom_info: dict,
-    ) -> tuple[bool, float, str, Optional[str]]:
+    ) -> tuple[bool, float, str, str | None]:
         """
         Evaluate learner's answer.
 
@@ -982,13 +1003,10 @@ class LearningEngine:
             # Matching: answer should be pairs like "A-1,B-2,C-3"
             correct_pairs = content_json.get("correct_pairs", {})
             try:
-                answer_pairs = dict(
-                    p.split("-") for p in answer.split(",")
-                )
+                answer_pairs = dict(p.split("-") for p in answer.split(","))
                 is_correct = answer_pairs == correct_pairs
                 if not is_correct and correct_pairs:
-                    matches = sum(1 for k, v in answer_pairs.items()
-                                  if correct_pairs.get(k) == v)
+                    matches = sum(1 for k, v in answer_pairs.items() if correct_pairs.get(k) == v)
                     score = matches / len(correct_pairs)
                 else:
                     score = 1.0 if is_correct else 0.0
@@ -1008,8 +1026,8 @@ class LearningEngine:
         answer: str,
         is_correct: bool,
         score: float,
-        confidence: Optional[float],
-        time_taken: Optional[int],
+        confidence: float | None,
+        time_taken: int | None,
     ) -> None:
         """Record answer response in database."""
         query = text("""
@@ -1022,16 +1040,19 @@ class LearningEngine:
             )
         """)
 
-        session.execute(query, {
-            "id": str(uuid4()),
-            "session_id": str(session_id),
-            "atom_id": str(atom_id),
-            "answer": answer,
-            "correct": is_correct,
-            "score": score,
-            "confidence": confidence,
-            "time_taken": time_taken,
-        })
+        session.execute(
+            query,
+            {
+                "id": str(uuid4()),
+                "session_id": str(session_id),
+                "atom_id": str(atom_id),
+                "answer": answer,
+                "correct": is_correct,
+                "score": score,
+                "confidence": confidence,
+                "time_taken": time_taken,
+            },
+        )
 
     def _update_session_progress(
         self,
@@ -1077,7 +1098,7 @@ class LearningEngine:
         session.execute(query, {"session_id": str(session_id)})
         session.commit()
 
-    def _get_concept_info(self, session: Session, concept_id: UUID) -> Optional[dict]:
+    def _get_concept_info(self, session: Session, concept_id: UUID) -> dict | None:
         """Get concept info."""
         query = text("""
             SELECT id, name FROM concepts WHERE id = :concept_id
@@ -1088,7 +1109,7 @@ class LearningEngine:
             return {"id": str(row.id), "name": row.name}
         return None
 
-    def _get_cluster_info(self, session: Session, cluster_id: UUID) -> Optional[dict]:
+    def _get_cluster_info(self, session: Session, cluster_id: UUID) -> dict | None:
         """Get cluster info."""
         query = text("""
             SELECT id, name FROM clusters WHERE id = :cluster_id
@@ -1110,7 +1131,7 @@ class LearningEngine:
         atom_id: UUID,
         atom_info: dict,
         diagnosis: CognitiveDiagnosis,
-    ) -> Optional[RemediationPlan]:
+    ) -> RemediationPlan | None:
         """
         Get strategy-specific remediation based on cognitive diagnosis.
 
@@ -1224,11 +1245,14 @@ class LearningEngine:
             LIMIT :limit
         """)
 
-        result = session.execute(query, {
-            "concept_id": str(concept_id),
-            "exclude_id": str(exclude_atom_id),
-            "limit": limit,
-        })
+        result = session.execute(
+            query,
+            {
+                "concept_id": str(concept_id),
+                "exclude_id": str(exclude_atom_id),
+                "limit": limit,
+            },
+        )
         return [UUID(str(row.id)) for row in result.fetchall()]
 
     def _get_worked_example_atoms(
@@ -1259,10 +1283,13 @@ class LearningEngine:
             LIMIT :limit
         """)
 
-        result = session.execute(query, {
-            "concept_id": str(concept_id),
-            "limit": limit,
-        })
+        result = session.execute(
+            query,
+            {
+                "concept_id": str(concept_id),
+                "limit": limit,
+            },
+        )
         atoms = [UUID(str(row.id)) for row in result.fetchall()]
 
         # Fall back to any atoms if no procedural ones found
@@ -1301,11 +1328,14 @@ class LearningEngine:
             LIMIT :limit
         """)
 
-        result = session.execute(query, {
-            "concept_id": str(concept_id),
-            "exclude_id": str(exclude_atom_id),
-            "limit": limit,
-        })
+        result = session.execute(
+            query,
+            {
+                "concept_id": str(concept_id),
+                "exclude_id": str(exclude_atom_id),
+                "limit": limit,
+            },
+        )
         atoms = [UUID(str(row.id)) for row in result.fetchall()]
 
         # Fall back to standard remediation if no elaboration atoms
@@ -1313,6 +1343,148 @@ class LearningEngine:
             return self._remediator._get_remediation_atoms(session, concept_id, limit)
 
         return atoms
+
+    # =========================================================================
+    # JIT Content Generation
+    # =========================================================================
+
+    def _enhance_remediation_with_jit(
+        self,
+        session: Session,
+        learner_id: str,
+        remediation_plan: RemediationPlan,
+        fail_mode: str | None = None,
+    ) -> RemediationPlan:
+        """
+        Enhance a remediation plan with JIT-generated content if atoms are insufficient.
+
+        Called after cognitive/prerequisite remediation to fill gaps with AI-generated
+        content when existing atoms are exhausted.
+
+        Args:
+            session: Database session
+            learner_id: Learner identifier
+            remediation_plan: Existing remediation plan (may have few atoms)
+            fail_mode: NCDE diagnosis fail mode (guides content type selection)
+
+        Returns:
+            Enhanced RemediationPlan with JIT-generated atoms if needed
+        """
+        existing_count = len(remediation_plan.atoms)
+
+        # If we have enough atoms, return the plan as-is
+        if existing_count >= self.MIN_REMEDIATION_ATOMS:
+            return remediation_plan
+
+        # No JIT generator available
+        if not self.jit_generator:
+            logger.debug("JIT generator not available, returning original plan")
+            return remediation_plan
+
+        logger.info(
+            f"JIT enhancing remediation for concept {remediation_plan.gap_concept_id}: "
+            f"have {existing_count}, need {self.MIN_REMEDIATION_ATOMS}"
+        )
+
+        try:
+            import asyncio
+
+            # Run async JIT generation
+            result = asyncio.run(
+                self.jit_generator.generate_for_failed_question(
+                    concept_id=remediation_plan.gap_concept_id,
+                    learner_id=learner_id,
+                    fail_mode=fail_mode,
+                    existing_atom_count=existing_count,
+                )
+            )
+
+            if result.atoms:
+                # Save generated atoms to database
+                new_atom_ids = self._save_jit_atoms(
+                    session, result.atoms, remediation_plan.gap_concept_id
+                )
+
+                logger.info(
+                    f"JIT generated {len(new_atom_ids)} atoms in {result.generation_time_ms}ms"
+                )
+
+                # Create enhanced plan with combined atoms
+                combined_atoms = list(remediation_plan.atoms) + new_atom_ids
+                return RemediationPlan(
+                    gap_concept_id=remediation_plan.gap_concept_id,
+                    gap_concept_name=remediation_plan.gap_concept_name,
+                    atoms=combined_atoms,
+                    priority=remediation_plan.priority,
+                    gating_type=remediation_plan.gating_type,
+                    mastery_target=remediation_plan.mastery_target,
+                    estimated_duration_minutes=len(combined_atoms) * 2,
+                    trigger_type=remediation_plan.trigger_type,
+                    trigger_atom_id=remediation_plan.trigger_atom_id,
+                )
+
+        except Exception as e:
+            logger.error(f"JIT enhancement failed: {e}")
+            # Return original plan on error
+
+        return remediation_plan
+
+    def _save_jit_atoms(
+        self,
+        session: Session,
+        atoms: list,
+        concept_id: UUID,
+    ) -> list[UUID]:
+        """Save JIT-generated atoms to the database."""
+        from uuid import uuid4
+        import json
+
+        saved_ids = []
+
+        for atom in atoms:
+            atom_id = uuid4()
+
+            try:
+                query = text("""
+                    INSERT INTO learning_atoms (
+                        id, concept_id, card_id, atom_type, front, back,
+                        knowledge_type, tags, is_hydrated, fidelity_type,
+                        source_fact_basis, quality_score, created_at
+                    ) VALUES (
+                        :id, :concept_id, :card_id, :atom_type, :front, :back,
+                        :knowledge_type, :tags, :is_hydrated, :fidelity_type,
+                        :source_fact_basis, :quality_score, NOW()
+                    )
+                    RETURNING id
+                """)
+
+                result = session.execute(
+                    query,
+                    {
+                        "id": str(atom_id),
+                        "concept_id": str(concept_id),
+                        "card_id": atom.card_id,
+                        "atom_type": atom.atom_type.value,
+                        "front": atom.front,
+                        "back": atom.back,
+                        "knowledge_type": atom.knowledge_type.value,
+                        "tags": atom.tags,
+                        "is_hydrated": atom.is_hydrated,
+                        "fidelity_type": atom.fidelity_type,
+                        "source_fact_basis": atom.source_fact_basis,
+                        "quality_score": atom.quality_score or 75.0,
+                    },
+                )
+
+                row = result.fetchone()
+                if row:
+                    saved_ids.append(UUID(str(row.id)))
+
+            except Exception as e:
+                logger.error(f"Failed to save JIT atom {atom.card_id}: {e}")
+                continue
+
+        return saved_ids
 
     # =========================================================================
     # Persona & Session Statistics
@@ -1324,7 +1496,7 @@ class LearningEngine:
         atom_info: dict,
         is_correct: bool,
         response_time_ms: int,
-        confidence: Optional[float],
+        confidence: float | None,
         diagnosis: CognitiveDiagnosis,
     ) -> None:
         """
@@ -1351,20 +1523,25 @@ class LearningEngine:
         if is_correct:
             stats.correct_by_type[knowledge_type] = stats.correct_by_type.get(knowledge_type, 0) + 1
         else:
-            stats.incorrect_by_type[knowledge_type] = stats.incorrect_by_type.get(knowledge_type, 0) + 1
+            stats.incorrect_by_type[knowledge_type] = (
+                stats.incorrect_by_type.get(knowledge_type, 0) + 1
+            )
 
         # Update by atom type (mechanism)
         atom_type = atom_info.get("atom_type", "flashcard")
         if is_correct:
             stats.correct_by_mechanism[atom_type] = stats.correct_by_mechanism.get(atom_type, 0) + 1
         else:
-            stats.incorrect_by_mechanism[atom_type] = stats.incorrect_by_mechanism.get(atom_type, 0) + 1
+            stats.incorrect_by_mechanism[atom_type] = (
+                stats.incorrect_by_mechanism.get(atom_type, 0) + 1
+            )
 
         # Update response time (rolling average)
         total = stats.total_correct + stats.total_incorrect
         stats.avg_response_time_ms = (
             (stats.avg_response_time_ms * (total - 1) + response_time_ms) // total
-            if total > 0 else response_time_ms
+            if total > 0
+            else response_time_ms
         )
 
         # Track calibration (confidence vs actual)
@@ -1386,7 +1563,7 @@ class LearningEngine:
             if concept:
                 stats.confusion_pairs.append((concept, atom_type))
 
-    def end_session(self, session_id: UUID) -> Optional[LearnerPersona]:
+    def end_session_with_persona(self, session_id: UUID) -> LearnerPersona | None:
         """
         End a learning session and update the learner persona.
 
@@ -1458,7 +1635,7 @@ class LearningEngine:
         self,
         learner_id: str,
         limit: int = 20,
-        active_project_ids: Optional[list[str]] = None,
+        active_project_ids: list[str] | None = None,
     ) -> list[UUID]:
         """
         Get atoms for the Focus Stream based on Z-Score.
@@ -1508,14 +1685,16 @@ class LearningEngine:
             # Build metrics for Z-Score computation
             metrics_list = []
             for row in rows:
-                metrics_list.append(AtomMetrics(
-                    atom_id=str(row.id),
-                    last_touched=row.last_reviewed_at,
-                    review_count=row.review_count or 0,
-                    stability=float(row.stability or 0),
-                    difficulty=float(row.difficulty or 0.3),
-                    memory_state=row.memory_state or "NEW",
-                ))
+                metrics_list.append(
+                    AtomMetrics(
+                        atom_id=str(row.id),
+                        last_touched=row.last_reviewed_at,
+                        review_count=row.review_count or 0,
+                        stability=float(row.stability or 0),
+                        difficulty=float(row.difficulty or 0.3),
+                        memory_state=row.memory_state or "NEW",
+                    )
+                )
 
             # Compute Z-Scores
             results = self._zscore_engine.compute_batch(
@@ -1533,7 +1712,7 @@ class LearningEngine:
         self,
         atom_id: UUID,
         session_id: UUID,
-    ) -> Optional[list[UUID]]:
+    ) -> list[UUID] | None:
         """
         Check if Force Z backtracking is needed for a struggling atom.
 
@@ -1555,9 +1734,7 @@ class LearningEngine:
         if not result.should_backtrack:
             return None
 
-        logger.info(
-            f"Force Z activated: {result.explanation}"
-        )
+        logger.info(f"Force Z activated: {result.explanation}")
 
         # Convert to UUIDs
         return [UUID(aid) for aid in result.recommended_path]
@@ -1589,12 +1766,16 @@ class LearningEngine:
     def _get_session(self):
         """Get session context manager."""
         if self._session:
+
             class SessionWrapper:
                 def __init__(self, s):
                     self.session = s
+
                 def __enter__(self):
                     return self.session
+
                 def __exit__(self, *args):
                     pass
+
             return SessionWrapper(self._session)
         return session_scope()

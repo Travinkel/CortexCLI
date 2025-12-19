@@ -4,38 +4,39 @@ Gating service for prerequisite access evaluation.
 Provides access evaluation, waiver management, and mastery threshold
 calculations for the prerequisite system.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.db.models import (
+    CleanConcept,
     ExplicitPrerequisite,
     PrerequisiteWaiver,
-    CleanConcept,
-    CleanAtom,
 )
 
 
 class AccessStatus(Enum):
     """Access status for gating evaluation."""
+
     ALLOWED = "allowed"  # No prerequisites or all met
     WARNING = "warning"  # Soft-gated prerequisites not met
     BLOCKED = "blocked"  # Hard-gated prerequisites not met
-    WAIVED = "waived"    # Prerequisites waived
+    WAIVED = "waived"  # Prerequisites waived
 
 
 @dataclass
 class BlockingPrerequisite:
     """Information about a prerequisite blocking access."""
+
     prerequisite_id: UUID
     target_concept_id: UUID
     target_concept_name: str
@@ -48,11 +49,12 @@ class BlockingPrerequisite:
 @dataclass
 class AccessResult:
     """Result of access evaluation."""
+
     status: AccessStatus
     can_access: bool
     message: str
-    blocking_prerequisites: List[BlockingPrerequisite] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    blocking_prerequisites: list[BlockingPrerequisite] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     waiver_applied: bool = False
 
     @property
@@ -95,7 +97,7 @@ class GatingService:
         self,
         concept_id: UUID | None = None,
         atom_id: UUID | None = None,
-        user_mastery_data: Dict[UUID, float] | None = None,
+        user_mastery_data: dict[UUID, float] | None = None,
     ) -> AccessResult:
         """
         Evaluate access to a concept or atom based on prerequisites.
@@ -204,7 +206,7 @@ class GatingService:
         self,
         concept_id: UUID | None,
         atom_id: UUID | None,
-    ) -> List[ExplicitPrerequisite]:
+    ) -> list[ExplicitPrerequisite]:
         """Get active prerequisites for a concept or atom."""
         conditions = [ExplicitPrerequisite.status == "active"]
 
@@ -227,7 +229,7 @@ class GatingService:
         )
         return result.scalar_one_or_none()
 
-    def _build_blocked_message(self, blocking: List[BlockingPrerequisite]) -> str:
+    def _build_blocked_message(self, blocking: list[BlockingPrerequisite]) -> str:
         """Build a human-readable message for blocked access."""
         if len(blocking) == 1:
             b = blocking[0]
@@ -247,8 +249,8 @@ class GatingService:
         self,
         concept_id: UUID | None = None,
         atom_id: UUID | None = None,
-        user_mastery_data: Dict[UUID, float] | None = None,
-    ) -> List[BlockingPrerequisite]:
+        user_mastery_data: dict[UUID, float] | None = None,
+    ) -> list[BlockingPrerequisite]:
         """
         Get list of prerequisites blocking access.
 
@@ -277,12 +279,9 @@ class GatingService:
         Returns:
             Threshold as Decimal (0-1)
         """
-        return self.MASTERY_THRESHOLDS.get(
-            mastery_type,
-            self.MASTERY_THRESHOLDS["integration"]
-        )
+        return self.MASTERY_THRESHOLDS.get(mastery_type, self.MASTERY_THRESHOLDS["integration"])
 
-    def get_all_thresholds(self) -> Dict[str, Decimal]:
+    def get_all_thresholds(self) -> dict[str, Decimal]:
         """Get all mastery thresholds."""
         return dict(self.MASTERY_THRESHOLDS)
 
@@ -333,7 +332,7 @@ class GatingService:
         self,
         prerequisite_id: UUID,
         include_expired: bool = False,
-    ) -> List[PrerequisiteWaiver]:
+    ) -> list[PrerequisiteWaiver]:
         """
         Get waivers for a prerequisite.
 
@@ -352,8 +351,7 @@ class GatingService:
             # Filter out expired waivers
             now = datetime.utcnow()
             query = query.where(
-                (PrerequisiteWaiver.expires_at.is_(None)) |
-                (PrerequisiteWaiver.expires_at > now)
+                (PrerequisiteWaiver.expires_at.is_(None)) | (PrerequisiteWaiver.expires_at > now)
             )
 
         query = query.order_by(PrerequisiteWaiver.granted_at.desc())
@@ -415,7 +413,7 @@ class GatingService:
     async def check_challenge_eligibility(
         self,
         concept_id: UUID,
-        user_mastery_data: Dict[UUID, float],
+        user_mastery_data: dict[UUID, float],
         threshold: float = 0.95,
     ) -> bool:
         """

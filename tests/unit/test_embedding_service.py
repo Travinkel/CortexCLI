@@ -3,10 +3,11 @@ Unit tests for the Embedding Service.
 
 Tests embedding generation, similarity calculation, and batch processing.
 """
+
 import numpy as np
 import pytest
 
-from src.semantic.embedding_service import EmbeddingService, EmbeddingResult
+from src.semantic.embedding_service import EmbeddingResult, EmbeddingService
 
 
 class TestEmbeddingService:

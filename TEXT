@@ -1,0 +1,86 @@
+### Root cause and fastest fix right now
+- Your DB auth is sorted (the last run connected) but inserts failed because the generator still targets `clean_atoms` while your DB was renamed to `learning_atoms` (migration 013).
+- Easiest zero‑code fix tonight: create a compatibility view named `clean_atoms` that forwards inserts/updates to `learning_atoms`. Postgres supports auto‑updatable views for this simple case.
+
+Run this once in psql/GUI (connected to your `notion_learning_sync` DB):
+```
+CREATE OR REPLACE VIEW clean_atoms AS
+SELECT * FROM learning_atoms;
+```
+After that, the generator’s current INSERTs into `clean_atoms` will succeed and actually write into `learning_atoms` under the hood. We can update the script to target `learning_atoms` later.
+
+### Correct CLI commands for DB
+You tried `db-init` / `db-migrate` as top‑level commands; they’re subcommands under `db`:
+- Initialize tables: `python -m src.cli.main db init`
+- Run specific migration: `python -m src.cli.main db migrate -m 013`
+- Then run the newest one if needed: `python -m src.cli.main db migrate -m 014`
+
+### “Do it all for me” — paste‑ready sequence (PowerShell)
+Assumptions:
+- You already activated the venv and installed `asyncpg`.
+- Anki is open with AnkiConnect enabled (default 127.0.0.1:8765).
+- Replace the DB URL/deck name if yours differ.
+
+```
+# 0) Ensure env and DB URL
+venv\Scripts\Activate
+$Env:DATABASE_URL = "postgresql://postgres:learning123@localhost:5432/notion_learning_sync"
+
+# 1) DB: init + migrations (013 does the rename)
+python -m src.cli.main db init
+python -m src.cli.main db migrate -m 013
+python -m src.cli.main db migrate -m 014
+
+# 1a) Backward-compat view so existing tools inserting into clean_atoms work tonight
+# Run this in psql (or use your PG GUI):
+#   psql "postgresql://postgres:learning123@localhost:5432/notion_learning_sync"
+# Then paste:
+#   CREATE OR REPLACE VIEW clean_atoms AS SELECT * FROM learning_atoms;
+
+# 2) Save newly generated atoms into DB
+#    (You already exported; now persist. You can add --export to also keep files.)
+python scripts/atoms/generate_struggle_atoms.py --module 11 --types numeric --limit 20 --save
+python scripts/atoms/generate_struggle_atoms.py --module 5  --types numeric --limit 20 --save
+python scripts/atoms/generate_struggle_atoms.py --module 12 --types numeric --limit 20 --save
+# Optional: high-priority mix from your struggle map
+# python scripts/atoms/generate_struggle_atoms.py --struggle-map data/ccna_struggle_map.yaml --severity high --limit 20 --save
+
+# 3) Anki → Postgres (metadata + stats)
+python -m src.cli.main anki-import --deck "CCNA" --quality
+python -m src.cli.main sync-anki-pull --deck "CCNA"
+
+# 4) Optional: improve low-grade cards before pushing
+# python -m src.cli.main clean-run --rewrite
+
+# 5) Postgres → Anki (push updated content)
+python -m src.cli.main sync-anki-push --min-quality B
+```
+
+If `psql` isn’t on PATH, you can create the view from any GUI (pgAdmin, DBeaver) connected to your DB — just run the `CREATE OR REPLACE VIEW ...` statement once.
+
+### If you prefer not to create a view
+We can also switch the generator’s INSERT to `learning_atoms` (instead of `clean_atoms`). That’s a one‑line code tweak. If you want me to commit that change now, say “switch the generator to learning_atoms” and I’ll patch it and give you a minimal migration safety check.
+
+### Confirming readiness to learn
+You’re essentially ready. After running the block above (and creating the view), you can jump straight into study:
+```
+# Adaptive
+.\cortex start
+
+# War mode cram (11–12 focus, 25 Q)
+.\cortex start --mode war --limit 25
+
+# Manual targeting
+.\cortex manual --sections 11-17 --types all --limit 20
+```
+
+### Quick checks and troubleshooting
+- List available commands: `python -m src.cli.main --help`
+- DB group help: `python -m src.cli.main db --help`
+- If you still see “relation clean_atoms does not exist” after creating the view, it means the view wasn’t created in the correct database. Re-run the `CREATE VIEW` against `notion_learning_sync`.
+- If you get Anki errors, ensure Anki is open and AnkiConnect is enabled (default port 8765), and pass your exact deck name to `--deck`.
+
+### Answer to “how far off?”
+- One compatibility view away (or a tiny script tweak). After that, you’re fully unblocked. You already generated Module 5 and 11 numeric atoms successfully; saving them + syncing Anki is the final step before full study flow.
+
+Want me to switch the generator to `learning_atoms` right now and push that change so you don’t need the view? If yes, I’ll update the script and reply with a leaner command set (no view needed).

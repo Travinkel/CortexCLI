@@ -15,8 +15,8 @@ Mastery Thresholds:
 - mastery: 0.85
 """
 
-from .prerequisite_service import PrerequisiteService
 from .gating_service import GatingService
+from .prerequisite_service import PrerequisiteService
 
 __all__ = [
     "PrerequisiteService",

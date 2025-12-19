@@ -12,24 +12,20 @@ Commands:
     nls clean check         - Check quality without modifications
     nls export cards        - Export cards to CSV
     nls export stats        - Export Anki stats to CSV
-    nls study today         - Show daily study session summary
-    nls study path          - Show full CCNA learning path
-    nls study module <n>    - Show module details
-    nls study stats         - Show study statistics
-    nls study sync          - Sync mastery from Anki
-    nls study remediation   - Show sections needing remediation
-    nls war study --modules 11,12,13 - War Room: Focus on specific modules
-    nls war study --cram             - War Room: Cram mode (Modules 11-17)
-    nls war study -d 30              - War Room: 30-minute session
-    nls war stats                    - War Room: Show session statistics
+    nls cortex start        - Start Cortex study session (adaptive mode)
+    nls cortex start --mode war - Start aggressive War Mode session
+    nls cortex today        - Show daily study session summary
+    nls cortex path         - Show full CCNA learning path
+    nls cortex stats        - Show study statistics
 
 Usage:
     nls --help
     nls sync notion
     nls sync all --dry-run
-    nls db migrate --migration 014
-    nls war study --cram
+    nls db migrate --migration 018
+    nls cortex start --mode war
 """
+
 from __future__ import annotations
 
 import os
@@ -38,14 +34,12 @@ import sys
 # Fix Windows encoding issues for Unicode characters (ASCII art, box drawing)
 if sys.platform == "win32":
     os.environ.setdefault("PYTHONIOENCODING", "utf-8")
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    if hasattr(sys.stderr, 'reconfigure'):
-        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-import json
 from pathlib import Path
-from typing import Optional
 
 import typer
 from loguru import logger
@@ -61,25 +55,21 @@ app = typer.Typer(
     invoke_without_command=True,
 )
 
-# Import and register study commands
-from src.cli.study_commands import study_app
-app.add_typer(study_app, name="study")
-
-# Import and register war room commands
-from src.cli.war_room import app as war_app
-app.add_typer(war_app, name="war")
-
-# Cortex (rich dashboard CLI)
+# Cortex (rich dashboard CLI) - Primary study interface
 from src.cli.cortex import cortex_app
+
 app.add_typer(cortex_app, name="cortex")
 
 # Cortex 2.0 Sync Commands (Notion <-> Neo4j)
 from src.cli.cortex_sync import (
-    sync_app as cortex_sync_app,
+    forcez_app,
     graph_app,
     zscore_app,
-    forcez_app,
 )
+from src.cli.cortex_sync import (
+    sync_app as cortex_sync_app,
+)
+
 # Note: We register these under the cortex namespace for organization
 # Usage: nls cortex sync pull, nls cortex graph stats, etc.
 cortex_app.add_typer(cortex_sync_app, name="sync2")  # sync2 to avoid conflict with existing sync
@@ -98,10 +88,11 @@ def main_callback(ctx: typer.Context):
     Run without arguments to start an interactive study session with
     continuous Anki sync. Or use subcommands for specific operations.
     """
-    # If no subcommand is provided, launch interactive mode
+    # If no subcommand is provided, launch Cortex menu
     if ctx.invoked_subcommand is None:
-        from src.cli.interactive import main as interactive_main
-        interactive_main()
+        from src.cli.cortex import _run_interactive_hub
+
+        _run_interactive_hub()
 
 
 # ========================================
@@ -138,8 +129,8 @@ class CLIContext:
         """Lazy load SyncService (Phase 2)."""
         if self._sync_service is None:
             try:
-                from src.sync.sync_service import SyncService
                 from src.sync.notion_client import NotionClient
+                from src.sync.sync_service import SyncService
 
                 # Create progress callback for CLI
                 def progress_callback(entity_type: str, current: int, total: int):
@@ -162,7 +153,7 @@ class CLIContext:
             try:
                 from src.anki.anki_client import AnkiClient
 
-                self._anki_client = AnkiClient(settings=self.settings)
+                self._anki_client = AnkiClient()
             except ImportError:
                 logger.error("AnkiClient not yet implemented (Phase 4)")
                 raise typer.Exit(code=1)
@@ -281,7 +272,7 @@ def sync_notion(
         rprint(f"\n[yellow]⚠[/yellow] {total_errors} errors occurred during sync")
         rprint("  Check logs for details")
     else:
-        rprint(f"\n[bold green]✓ Sync complete![/bold green]")
+        rprint("\n[bold green]✓ Sync complete![/bold green]")
 
     logger.info("Notion sync complete!")
 
@@ -321,7 +312,7 @@ def sync_anki_push(
 @sync_app.command("anki-pull")
 def sync_anki_pull(
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without writing to DB"),
-    deck: Optional[str] = typer.Option(None, "--deck", help="Deck name (default: from config)"),
+    deck: str | None = typer.Option(None, "--deck", help="Deck name (default: from config)"),
 ) -> None:
     """
     Pull FSRS stats from Anki to PostgreSQL.
@@ -386,7 +377,7 @@ app.add_typer(anki_app, name="anki")
 
 @anki_app.command("import")
 def anki_import(
-    deck: Optional[str] = typer.Option(
+    deck: str | None = typer.Option(
         None, "--deck", help="Deck name to import (default: from config)"
     ),
     dry_run: bool = typer.Option(
@@ -547,7 +538,7 @@ def db_init() -> None:
     logger.info("Initializing database tables...")
 
     try:
-        from src.db.database import engine, init_db
+        from src.db.database import engine
         from src.db.models import Base
 
         Base.metadata.create_all(engine)
@@ -560,14 +551,12 @@ def db_init() -> None:
 @db_app.command("migrate")
 def db_migrate(
     migration: str = typer.Option(
-        "014",
+        "018",
         "--migration",
         "-m",
         help="Migration number (e.g., '014' for 014_learning_atoms_quality.sql)",
     ),
-    force: bool = typer.Option(
-        False, "--force", help="Run migration even if already applied"
-    ),
+    force: bool = typer.Option(False, "--force", help="Run migration even if already applied"),
 ) -> None:
     """
     Run raw SQL migration files.
@@ -576,6 +565,7 @@ def db_migrate(
     Skips statements that already exist (idempotent).
     """
     from pathlib import Path
+
     from sqlalchemy import text
 
     logger.info(f"Running migration: {migration}")
@@ -640,7 +630,7 @@ def db_migrate(
                         errors += 1
                         logger.error(f"Statement {i} failed: {e}")
 
-        rprint(f"\n[green]✓[/green] Migration complete!")
+        rprint("\n[green]✓[/green] Migration complete!")
         rprint(f"  Executed: {executed}")
         rprint(f"  Skipped: {skipped}")
         if errors > 0:
@@ -673,7 +663,7 @@ def clean_run(
     # Phase 3 implementation
     result = ctx.cleaning_pipeline.process_all(enable_rewrite=rewrite)
 
-    rprint(f"\n[green]✓[/green] Cleaning complete!")
+    rprint("\n[green]✓[/green] Cleaning complete!")
     rprint(f"  Processed: {result['processed']}")
     rprint(f"  Grade A: {result['grade_a']}")
     rprint(f"  Grade B: {result['grade_b']}")
@@ -738,9 +728,7 @@ app.add_typer(export_app, name="export")
 @export_app.command("cards")
 def export_cards(
     output: Path = typer.Option(Path("cards_export.csv"), "--output", "-o"),
-    source: str = typer.Option(
-        "postgresql", "--source", "-s", help="Source: notion or postgresql"
-    ),
+    source: str = typer.Option("postgresql", "--source", "-s", help="Source: notion or postgresql"),
 ) -> None:
     """Export flashcards to CSV."""
     logger.info(f"Exporting cards from {source} to {output}...")
@@ -756,7 +744,7 @@ def export_cards(
 @export_app.command("stats")
 def export_stats(
     output: Path = typer.Option(Path("anki_stats.csv"), "--output", "-o"),
-    deck: Optional[str] = typer.Option(None, "--deck", help="Deck name filter"),
+    deck: str | None = typer.Option(None, "--deck", help="Deck name filter"),
 ) -> None:
     """Export Anki FSRS stats to CSV."""
     ctx = _build_context()
@@ -770,6 +758,127 @@ def export_stats(
     count = export_anki_stats_to_csv(deck=deck_name, output=output)
 
     rprint(f"[green]✓[/green] Exported {count} stats to {output}")
+
+
+# ========================================
+# CONTENT COMMANDS (Local file import)
+# ========================================
+
+content_app = typer.Typer(help="Local content management (txt/md import)")
+app.add_typer(content_app, name="content")
+
+
+@content_app.command("import")
+def content_import(
+    path: Path = typer.Argument(..., help="File or directory to import"),
+    pattern: str = typer.Option("*.txt", "--pattern", "-p", help="Glob pattern for directory import"),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Preview without importing"),
+    force_type: str = typer.Option(None, "--type", "-t", help="Force atom type (flashcard, mcq, cloze, etc.)"),
+) -> None:
+    """
+    Import learning atoms from local text/markdown files.
+
+    Supports multiple formats:
+    - Q/A pairs (Q: ... A: ...)
+    - Markdown headers (## Question\\nAnswer)
+    - Cloze deletions ({{c1::answer}})
+    - MCQ format (A) B) C) D) with * marking correct)
+
+    Examples:
+        nls content import notes.txt
+        nls content import ./docs --pattern "*.md"
+        nls content import notes.txt --dry-run
+    """
+    from src.content.importer import ContentImporter, preview_import
+
+    if not path.exists():
+        rprint(f"[red]Error:[/red] Path not found: {path}")
+        raise typer.Exit(1)
+
+    if dry_run:
+        # Preview mode
+        rprint(f"[cyan]Preview import from:[/cyan] {path}")
+        rprint()
+
+        if path.is_file():
+            atoms = preview_import(path)
+        else:
+            from src.content.importer import ContentImporter
+            importer = ContentImporter(dry_run=True)
+            result = importer.import_directory(path, pattern)
+            rprint(f"[dim]Parsed {result.total_parsed} atoms from directory[/dim]")
+            return
+
+        if not atoms:
+            rprint("[yellow]No atoms detected in file[/yellow]")
+            return
+
+        table = Table(title=f"Preview: {len(atoms)} atoms detected")
+        table.add_column("Type", style="cyan", width=12)
+        table.add_column("Front", style="white", max_width=50)
+        table.add_column("Back", style="dim", max_width=30)
+
+        for atom in atoms[:20]:  # Limit preview
+            front_preview = atom.front[:47] + "..." if len(atom.front) > 50 else atom.front
+            back_preview = atom.back[:27] + "..." if len(atom.back) > 30 else atom.back
+            table.add_row(atom.atom_type, front_preview, back_preview)
+
+        console.print(table)
+
+        if len(atoms) > 20:
+            rprint(f"[dim]... and {len(atoms) - 20} more[/dim]")
+
+        rprint()
+        rprint("[dim]Run without --dry-run to import[/dim]")
+        return
+
+    # Actual import
+    importer = ContentImporter(dry_run=False)
+
+    if path.is_file():
+        result = importer.import_file(path)
+    else:
+        result = importer.import_directory(path, pattern)
+
+    rprint()
+    rprint(f"[green]Import complete:[/green]")
+    rprint(f"  Parsed: {result.total_parsed}")
+    rprint(f"  Imported: {result.total_imported}")
+    rprint(f"  Duplicates skipped: {result.duplicates_skipped}")
+
+    if result.errors:
+        rprint(f"  [yellow]Errors: {len(result.errors)}[/yellow]")
+        for err in result.errors[:5]:
+            rprint(f"    - {err}")
+
+
+@content_app.command("stats")
+def content_stats() -> None:
+    """Show statistics about available local content."""
+    from src.content.loader import ContentLoader
+
+    loader = ContentLoader()
+    stats = loader.get_stats()
+
+    if stats["total_files"] == 0:
+        rprint("[yellow]No content files found[/yellow]")
+        rprint(f"[dim]Looking in: {loader.base_path}[/dim]")
+        return
+
+    table = Table(title="Local Content Statistics")
+    table.add_column("Metric", style="cyan")
+    table.add_column("Value", style="green", justify="right")
+
+    table.add_row("Total Files", str(stats["total_files"]))
+    table.add_row("Total Sections", str(stats["total_sections"]))
+    table.add_row("Total Words", f"{stats['total_words']:,}")
+
+    console.print(table)
+
+    if stats["by_extension"]:
+        rprint("\n[cyan]By Extension:[/cyan]")
+        for ext, count in sorted(stats["by_extension"].items()):
+            rprint(f"  {ext}: {count}")
 
 
 # ========================================

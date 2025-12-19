@@ -13,10 +13,11 @@ Components:
 - StateStore: SQLite persistence
 - CortexCLI: Main terminal interface
 """
-from .atom_deck import AtomDeck, Atom
-from .state_store import StateStore, ReviewRecord, SM2State
-from .scheduler import SM2Scheduler, InterleaveScheduler, StudySession
-from .telemetry import SessionTelemetry, FatigueDetector, FatigueSignal
+
+from .atom_deck import Atom, AtomDeck
+from .scheduler import InterleaveScheduler, SM2Scheduler, StudySession
+from .state_store import ReviewRecord, SM2State, StateStore
+from .telemetry import FatigueDetector, FatigueSignal, SessionTelemetry
 from .tutor import SocraticTutor, get_socratic_guidance
 
 __all__ = [

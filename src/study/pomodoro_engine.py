@@ -16,33 +16,32 @@ Session Flow:
 3. 5 min break between pomodoros
 4. Summary and mastery update
 """
+
 from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional
 from uuid import UUID, uuid4
 
 from loguru import logger
 from rich import print as rprint
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
-from rich.prompt import Prompt, Confirm, IntPrompt
-from rich.table import Table
+from rich.prompt import Confirm, Prompt
 from rich.text import Text
-
 from sqlalchemy import text
+
 from src.db.database import session_scope
-from src.study.quiz_engine import QuizEngine, AtomType, QuizAtom
+from src.study.quiz_engine import AtomType, QuizEngine
 
 console = Console()
 
 
 class BlockType(str, Enum):
     """Type of study block within a pomodoro."""
+
     ANKI = "anki"
     QUIZ = "quiz"
     BREAK = "break"
@@ -51,34 +50,38 @@ class BlockType(str, Enum):
 @dataclass
 class PomodoroBlock:
     """A single block within a pomodoro session."""
+
     block_type: BlockType
     duration_minutes: int
-    focus_section: Optional[str] = None
+    focus_section: str | None = None
     atom_types: list[AtomType] = field(default_factory=list)
     completed: bool = False
     cards_done: int = 0
     correct: int = 0
     incorrect: int = 0
     # Per-type quiz counts for accurate tracking
-    quiz_type_counts: dict = field(default_factory=lambda: {
-        "mcq": 0,
-        "true_false": 0,
-        "matching": 0,
-        "parsons": 0,
-    })
+    quiz_type_counts: dict = field(
+        default_factory=lambda: {
+            "mcq": 0,
+            "true_false": 0,
+            "matching": 0,
+            "parsons": 0,
+        }
+    )
 
 
 @dataclass
 class PomodoroSession:
     """A full pomodoro study session."""
+
     id: UUID = field(default_factory=uuid4)
     user_id: str = "default"
     planned_hours: float = 1.0
     pomodoros: list[list[PomodoroBlock]] = field(default_factory=list)
     current_pomodoro: int = 0
     current_block: int = 0
-    started_at: Optional[datetime] = None
-    ended_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
 
     # Totals
     total_anki_cards: int = 0
@@ -86,8 +89,8 @@ class PomodoroSession:
     total_quiz_incorrect: int = 0
 
     # Focus
-    focus_module: Optional[int] = None
-    focus_section: Optional[str] = None
+    focus_module: int | None = None
+    focus_section: str | None = None
 
 
 class PomodoroEngine:
@@ -101,13 +104,13 @@ class PomodoroEngine:
 
     def __init__(self):
         self.quiz_engine = QuizEngine()
-        self.current_session: Optional[PomodoroSession] = None
+        self.current_session: PomodoroSession | None = None
 
     def plan_session(
         self,
         hours: float,
-        focus_module: Optional[int] = None,
-        focus_section: Optional[str] = None,
+        focus_module: int | None = None,
+        focus_section: str | None = None,
     ) -> PomodoroSession:
         """
         Plan a new study session.
@@ -134,28 +137,34 @@ class PomodoroEngine:
             blocks = []
 
             # Anki block (12 min) - flashcard/cloze reviews
-            blocks.append(PomodoroBlock(
-                block_type=BlockType.ANKI,
-                duration_minutes=12,
-                focus_section=focus_section,
-            ))
+            blocks.append(
+                PomodoroBlock(
+                    block_type=BlockType.ANKI,
+                    duration_minutes=12,
+                    focus_section=focus_section,
+                )
+            )
 
             # Quiz block (13 min) - MCQ, T/F, Matching, Parsons
             # Vary the quiz types across pomodoros
             quiz_types = self._get_quiz_types_for_pomodoro(pomo_num)
-            blocks.append(PomodoroBlock(
-                block_type=BlockType.QUIZ,
-                duration_minutes=13,
-                focus_section=focus_section,
-                atom_types=quiz_types,
-            ))
+            blocks.append(
+                PomodoroBlock(
+                    block_type=BlockType.QUIZ,
+                    duration_minutes=13,
+                    focus_section=focus_section,
+                    atom_types=quiz_types,
+                )
+            )
 
             # Break (5 min) - except for last pomodoro
             if pomo_num < num_pomodoros - 1:
-                blocks.append(PomodoroBlock(
-                    block_type=BlockType.BREAK,
-                    duration_minutes=5,
-                ))
+                blocks.append(
+                    PomodoroBlock(
+                        block_type=BlockType.BREAK,
+                        duration_minutes=5,
+                    )
+                )
 
             session.pomodoros.append(blocks)
 
@@ -165,16 +174,16 @@ class PomodoroEngine:
     def _get_quiz_types_for_pomodoro(self, pomo_num: int) -> list[AtomType]:
         """Get quiz types for a specific pomodoro, rotating through types."""
         patterns = [
-            [AtomType.MCQ, AtomType.TRUE_FALSE],           # Pomo 1: Quick recall
-            [AtomType.TRUE_FALSE, AtomType.MCQ],           # Pomo 2: Mix it up
-            [AtomType.MCQ, AtomType.MATCHING],             # Pomo 3: Connections
-            [AtomType.TRUE_FALSE, AtomType.PARSONS],       # Pomo 4: Procedures
+            [AtomType.MCQ, AtomType.TRUE_FALSE],  # Pomo 1: Quick recall
+            [AtomType.TRUE_FALSE, AtomType.MCQ],  # Pomo 2: Mix it up
+            [AtomType.MCQ, AtomType.MATCHING],  # Pomo 3: Connections
+            [AtomType.TRUE_FALSE, AtomType.PARSONS],  # Pomo 4: Procedures
             [AtomType.MCQ, AtomType.TRUE_FALSE, AtomType.MATCHING],  # Pomo 5: Variety
-            [AtomType.PARSONS, AtomType.MCQ],              # Pomo 6: Deeper
+            [AtomType.PARSONS, AtomType.MCQ],  # Pomo 6: Deeper
         ]
         return patterns[pomo_num % len(patterns)]
 
-    def show_plan(self, session: Optional[PomodoroSession] = None) -> None:
+    def show_plan(self, session: PomodoroSession | None = None) -> None:
         """Display the session plan."""
         session = session or self.current_session
         if not session:
@@ -199,7 +208,9 @@ class PomodoroEngine:
             console.print(f"\n[cyan]Pomodoro {i}[/cyan]")
             for block in pomo:
                 if block.block_type == BlockType.ANKI:
-                    console.print(f"  [yellow]ANKI[/yellow] ({block.duration_minutes} min) - Flashcard/Cloze reviews")
+                    console.print(
+                        f"  [yellow]ANKI[/yellow] ({block.duration_minutes} min) - Flashcard/Cloze reviews"
+                    )
                 elif block.block_type == BlockType.QUIZ:
                     types = ", ".join(t.value for t in block.atom_types)
                     console.print(f"  [green]QUIZ[/green] ({block.duration_minutes} min) - {types}")
@@ -208,7 +219,7 @@ class PomodoroEngine:
 
         console.print()
 
-    def run_session(self, session: Optional[PomodoroSession] = None) -> PomodoroSession:
+    def run_session(self, session: PomodoroSession | None = None) -> PomodoroSession:
         """
         Run the full study session interactively.
 
@@ -229,7 +240,9 @@ class PomodoroEngine:
             for pomo_idx, pomo_blocks in enumerate(session.pomodoros):
                 session.current_pomodoro = pomo_idx
 
-                console.print(f"\n[bold cyan]═══ POMODORO {pomo_idx + 1}/{len(session.pomodoros)} ═══[/bold cyan]\n")
+                console.print(
+                    f"\n[bold cyan]═══ POMODORO {pomo_idx + 1}/{len(session.pomodoros)} ═══[/bold cyan]\n"
+                )
 
                 for block_idx, block in enumerate(pomo_blocks):
                     session.current_block = block_idx
@@ -266,7 +279,9 @@ class PomodoroEngine:
         content.append("  3. Break (5 min)\n\n", style="dim")
         content.append("Press Ctrl+C anytime to pause.\n", style="dim")
 
-        panel = Panel(content, title="[bold cyan]NLS Study Session[/bold cyan]", border_style="cyan")
+        panel = Panel(
+            content, title="[bold cyan]NLS Study Session[/bold cyan]", border_style="cyan"
+        )
         console.print(panel)
 
         if not Confirm.ask("\n[bold]Ready to begin?[/bold]", default=True):
@@ -283,7 +298,9 @@ class PomodoroEngine:
 
         if session.focus_section:
             panel_content.append(f"Focus: Section {session.focus_section}\n", style="cyan")
-            panel_content.append(f"Anki query: deck:CCNA* tag:section:{session.focus_section}*\n", style="dim")
+            panel_content.append(
+                f"Anki query: deck:CCNA* tag:section:{session.focus_section}*\n", style="dim"
+            )
         else:
             panel_content.append("Focus: Due reviews first, then new cards\n", style="cyan")
             panel_content.append("Anki query: deck:CCNA* is:due\n", style="dim")
@@ -304,12 +321,12 @@ class PomodoroEngine:
 
         try:
             # Wait for user input or timeout
-            import select
-            import sys
 
             while datetime.now() < target:
                 remaining = (target - datetime.now()).seconds // 60
-                console.print(f"\r[dim]~{remaining} min remaining... (press Enter when done)[/dim]", end="")
+                console.print(
+                    f"\r[dim]~{remaining} min remaining... (press Enter when done)[/dim]", end=""
+                )
 
                 # Check for input (simplified - works better in interactive mode)
                 try:
@@ -402,7 +419,9 @@ class PomodoroEngine:
 
         # Block summary
         accuracy = (block.correct / block.cards_done * 100) if block.cards_done > 0 else 0
-        console.print(f"\n[green]✓ Quiz block complete: {block.correct}/{block.cards_done} ({accuracy:.0f}%)[/green]")
+        console.print(
+            f"\n[green]✓ Quiz block complete: {block.correct}/{block.cards_done} ({accuracy:.0f}%)[/green]"
+        )
 
     def _run_break(self, block: PomodoroBlock) -> None:
         """Run a break period."""
@@ -440,7 +459,9 @@ class PomodoroEngine:
             with session_scope() as db:
                 duration_minutes = 0
                 if session.started_at and session.ended_at:
-                    duration_minutes = int((session.ended_at - session.started_at).total_seconds() / 60)
+                    duration_minutes = int(
+                        (session.ended_at - session.started_at).total_seconds() / 60
+                    )
 
                 # Aggregate quiz type counts from all blocks
                 quiz_counts = {"mcq": 0, "true_false": 0, "matching": 0, "parsons": 0}
@@ -450,7 +471,8 @@ class PomodoroEngine:
                             for quiz_type, count in block.quiz_type_counts.items():
                                 quiz_counts[quiz_type] += count
 
-                db.execute(text("""
+                db.execute(
+                    text("""
                     INSERT INTO pomodoro_sessions (
                         id, user_id, started_at, ended_at, planned_hours, actual_minutes,
                         pomodoros_completed, pomodoros_planned,
@@ -465,25 +487,27 @@ class PomodoroEngine:
                         :correct, :incorrect,
                         :focus_module, :focus_section
                     )
-                """), {
-                    "id": str(session.id),
-                    "user_id": session.user_id,
-                    "started": session.started_at,
-                    "ended": session.ended_at,
-                    "planned_hours": session.planned_hours,
-                    "actual_minutes": duration_minutes,
-                    "pomos_done": session.current_pomodoro + 1,
-                    "pomos_planned": len(session.pomodoros),
-                    "anki_cards": session.total_anki_cards,
-                    "mcq": quiz_counts["mcq"],
-                    "tf": quiz_counts["true_false"],
-                    "matching": quiz_counts["matching"],
-                    "parsons": quiz_counts["parsons"],
-                    "correct": session.total_quiz_correct,
-                    "incorrect": session.total_quiz_incorrect,
-                    "focus_module": session.focus_module,
-                    "focus_section": session.focus_section,
-                })
+                """),
+                    {
+                        "id": str(session.id),
+                        "user_id": session.user_id,
+                        "started": session.started_at,
+                        "ended": session.ended_at,
+                        "planned_hours": session.planned_hours,
+                        "actual_minutes": duration_minutes,
+                        "pomos_done": session.current_pomodoro + 1,
+                        "pomos_planned": len(session.pomodoros),
+                        "anki_cards": session.total_anki_cards,
+                        "mcq": quiz_counts["mcq"],
+                        "tf": quiz_counts["true_false"],
+                        "matching": quiz_counts["matching"],
+                        "parsons": quiz_counts["parsons"],
+                        "correct": session.total_quiz_correct,
+                        "incorrect": session.total_quiz_incorrect,
+                        "focus_module": session.focus_module,
+                        "focus_section": session.focus_section,
+                    },
+                )
                 db.commit()
                 logger.info(
                     f"Session saved: {session.total_anki_cards} Anki, "
@@ -529,8 +553,8 @@ class PomodoroEngine:
     def quick_quiz(
         self,
         count: int = 10,
-        atom_types: Optional[list[AtomType]] = None,
-        section_id: Optional[str] = None,
+        atom_types: list[AtomType] | None = None,
+        section_id: str | None = None,
     ) -> dict:
         """
         Run a quick quiz session without full Pomodoro structure.

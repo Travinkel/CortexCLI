@@ -339,26 +339,178 @@ Your choice:
 
 ### Implementation
 
-The `_offer_remediation_menu()` method in `src/cortex/session.py` presents options based on session outcomes:
+The `_offer_post_session_remediation()` method in `src/cortex/session.py` presents options based on session outcomes:
 
 ```python
-def _offer_remediation_menu(self):
+def _offer_post_session_remediation(self):
     if not self._incorrect_atoms:
         return  # No struggles, no menu
 
-    choice = Prompt.ask(
-        "Your choice",
-        choices=["1", "2", "3", "s"],
-        default="s"
-    )
+    # Group errors by section
+    section_errors = {}
+    for atom in self._incorrect_atoms:
+        section_id = atom.get("ccna_section_id") or atom.get("section_id")
+        if section_id not in section_errors:
+            section_errors[section_id] = []
+        section_errors[section_id].append(atom)
 
-    if choice == "1":
-        self._generate_study_notes()
-    elif choice == "2":
-        self._offer_llm_generation()
-    elif choice == "3":
-        self._full_anki_sync()
+    # Find weak sections (threshold: 1+ error if 3+ total, else 2+)
+    weak_sections = [
+        (section_id, atoms)
+        for section_id, atoms in section_errors.items()
+        if len(atoms) >= threshold and section_id != "unknown"
+    ]
+
+    # Offer automatic remediation cycle
+    if Confirm.ask("Start automatic remediation? (Note -> Practice)"):
+        self._run_remediation_cycle(weak_sections)
 ```
+
+---
+
+## Automatic AI Remediation Cycle
+
+When the learner accepts automatic remediation, the system runs a structured cycle for each weak section:
+
+### Cycle Flow
+
+```
+For each weak section:
+  1. Generate/fetch study note
+  2. Display note content
+  3. Learner presses Enter to continue
+  4. Serve 5-10 targeted exercises
+  5. Track pre/post accuracy
+  6. Display improvement feedback
+```
+
+### Implementation
+
+The `_run_remediation_cycle()` method in `src/cortex/session.py`:
+
+```python
+def _run_remediation_cycle(self, weak_sections):
+    for section_id, error_atoms in weak_sections:
+        # Step 1: Generate or fetch note
+        note_content = self._get_or_generate_note(section_id, error_atoms)
+
+        if note_content:
+            # Step 2: Display note
+            panel = Panel(
+                Markdown(note_content.get("content", "")),
+                title=note_content.get("title"),
+                border_style="cyan",
+            )
+            console.print(panel)
+            console.input("Press Enter to practice this section...")
+
+        # Step 3: Fetch exercises
+        exercises = self.study_service.get_manual_session(
+            sections=[section_id],
+            atom_types=["mcq", "true_false", "cloze", "numeric"],
+            limit=5,
+        )
+
+        # Step 4: Run mini-session
+        pre_error_rate = len(error_atoms) / max(1, self.correct + self.incorrect)
+        result = self._run_mini_session(exercises, section_id)
+        post_error_rate = result.incorrect / max(1, result.total)
+
+        # Step 5: Display effectiveness
+        improvement = pre_error_rate - post_error_rate
+        if improvement > 0.1:
+            console.print(f"Improvement detected: {improvement:.0%} better!")
+```
+
+### Key Methods
+
+| Method | Purpose |
+|--------|---------|
+| `_run_remediation_cycle()` | Orchestrates the Note -> Practice flow |
+| `_get_or_generate_note()` | Fetches existing or generates new study note |
+| `_run_mini_session()` | Runs targeted practice with provided exercises |
+
+### Mini-Session
+
+The `_run_mini_session()` method runs a focused practice session:
+
+```python
+def _run_mini_session(self, exercises, section_id):
+    result = MiniSessionResult(total=0, correct=0, incorrect=0)
+
+    for i, atom in enumerate(exercises, 1):
+        handler = get_atom_handler(atom.get("atom_type"))
+        response = handler.present(console, atom)
+        is_correct, feedback = handler.evaluate(atom, response)
+
+        if is_correct:
+            result.correct += 1
+        else:
+            result.incorrect += 1
+        result.total += 1
+
+    return result
+```
+
+### Effectiveness Tracking
+
+The system tracks pre/post accuracy to measure remediation effectiveness:
+
+| Metric | Calculation |
+|--------|-------------|
+| Pre-Error Rate | `len(error_atoms) / (correct + incorrect)` |
+| Post-Error Rate | `mini_session.incorrect / mini_session.total` |
+| Improvement | `pre_error_rate - post_error_rate` |
+
+Feedback thresholds:
+- **> 10% improvement**: "Improvement detected!"
+- **Perfect score**: "Perfect score on remediation exercises!"
+- **Other**: Shows raw accuracy
+
+---
+
+## NCDE Fail Mode Strategies
+
+The remediation system uses NCDE diagnosis to select appropriate content strategies. The `FAIL_MODE_STRATEGIES` mapping in `src/adaptive/remediation_router.py` defines targeted remediation for each cognitive failure type.
+
+### Strategy Mapping
+
+| Fail Mode | Note Type | Atom Types | Exercise Count | Rationale |
+|-----------|-----------|------------|----------------|-----------|
+| **FM1_ENCODING** | Elaborative | flashcard, cloze | 8 | Information never properly stored; deep explanation + memorization drills |
+| **FM2_RETRIEVAL** | None | flashcard, cloze, mcq | 10 | Stored but cannot access; practice-only to strengthen retrieval pathways |
+| **FM3_DISCRIMINATION** | Contrastive | matching, mcq, true_false | 6 | Confuses similar concepts; side-by-side comparison + discrimination drills |
+| **FM4_INTEGRATION** | Procedural | parsons, numeric | 5 | Cannot apply knowledge in context; worked examples + procedure practice |
+| **FM5_EXECUTIVE** | Summary | mcq, true_false | 8 | Wrong strategy selection; strategy review + decision practice |
+| **FM6_FATIGUE** | None | None | 0 | Cognitive overload; suggest break, no new content |
+
+### Note Types
+
+| Type | Description |
+|------|-------------|
+| `elaborative` | Deep explanation with multiple examples |
+| `contrastive` | Side-by-side comparison of similar concepts |
+| `procedural` | Step-by-step worked examples |
+| `summary` | High-level overview and key takeaways |
+
+### Usage
+
+```python
+from src.adaptive.remediation_router import get_remediation_strategy
+
+strategy = get_remediation_strategy("FM3_DISCRIMINATION")
+# Returns: {
+#     "note_type": "contrastive",
+#     "atom_types": ["matching", "mcq", "true_false"],
+#     "description": "Side-by-side comparison + discrimination drills",
+#     "exercise_count": 6
+# }
+```
+
+The function supports flexible input formats:
+- Uppercase with underscores: `"FM1_ENCODING"`
+- Lowercase: `"fm1_encoding"`
+- Partial match: `"encoding"`, `"retrieval"`
 
 ---
 

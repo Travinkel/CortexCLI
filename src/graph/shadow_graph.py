@@ -21,21 +21,21 @@ Sync Strategy (Tri-Tiered):
 Author: Cortex System
 Version: 2.0.0 (Notion-Centric Architecture)
 """
+
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, Iterator
-from uuid import UUID
+from typing import Any
 
 from loguru import logger
 
 # Try to import Neo4j driver
 try:
-    from neo4j import GraphDatabase, Driver, Session
-    from neo4j.exceptions import ServiceUnavailable, AuthError
+    from neo4j import Driver, GraphDatabase, Session
+    from neo4j.exceptions import AuthError, ServiceUnavailable
+
     HAS_NEO4J = True
 except ImportError:
     HAS_NEO4J = False
@@ -44,13 +44,14 @@ except ImportError:
 
 from config import get_settings
 
-
 # =============================================================================
 # DATA MODELS
 # =============================================================================
 
+
 class NodeType(str, Enum):
     """Types of nodes in the Shadow Graph."""
+
     LEARNING_ATOM = "LearningAtom"
     CONCEPT = "Concept"
     CONCEPT_CLUSTER = "ConceptCluster"
@@ -63,6 +64,7 @@ class NodeType(str, Enum):
 
 class EdgeType(str, Enum):
     """Types of edges in the Shadow Graph."""
+
     PREREQUISITE = "PREREQUISITE"
     TESTS = "TESTS"  # Atom tests concept
     BELONGS_TO = "BELONGS_TO"
@@ -75,6 +77,7 @@ class EdgeType(str, Enum):
 @dataclass
 class GraphNode:
     """A node in the Shadow Graph."""
+
     id: str  # Notion page ID
     node_type: NodeType
     title: str
@@ -91,12 +94,13 @@ class GraphNode:
     z_activation: bool = False
     memory_state: str = "NEW"
     psi: float = 0.5
-    last_touched: Optional[datetime] = None
+    last_touched: datetime | None = None
 
 
 @dataclass
 class GraphEdge:
     """An edge in the Shadow Graph."""
+
     source_id: str
     target_id: str
     edge_type: EdgeType
@@ -107,6 +111,7 @@ class GraphEdge:
 @dataclass
 class SyncResult:
     """Result of a sync operation."""
+
     nodes_created: int = 0
     nodes_updated: int = 0
     edges_created: int = 0
@@ -118,6 +123,7 @@ class SyncResult:
 # =============================================================================
 # SHADOW GRAPH SERVICE
 # =============================================================================
+
 
 class ShadowGraphService:
     """
@@ -142,15 +148,13 @@ class ShadowGraphService:
     def __init__(self):
         """Initialize the Shadow Graph service."""
         self._settings = get_settings()
-        self._driver: Optional[Driver] = None
+        self._driver: Driver | None = None
         self._connected = False
 
         if HAS_NEO4J:
             self._init_driver()
         else:
-            logger.warning(
-                "Neo4j driver not installed. Install with: pip install neo4j"
-            )
+            logger.warning("Neo4j driver not installed. Install with: pip install neo4j")
 
     def _init_driver(self) -> None:
         """Initialize the Neo4j driver."""
@@ -254,7 +258,8 @@ class ShadowGraphService:
 
         with self._driver.session(database=self._settings.neo4j_database) as session:
             try:
-                session.run(f"""
+                session.run(
+                    f"""
                     MERGE (n:{node.node_type.value} {{id: $id}})
                     SET n.title = $title,
                         n.z_score = $z_score,
@@ -263,16 +268,20 @@ class ShadowGraphService:
                         n.psi = $psi,
                         n.last_touched = $last_touched,
                         n += $properties
-                """, {
-                    "id": node.id,
-                    "title": node.title,
-                    "z_score": node.z_score,
-                    "z_activation": node.z_activation,
-                    "memory_state": node.memory_state,
-                    "psi": node.psi,
-                    "last_touched": node.last_touched.isoformat() if node.last_touched else None,
-                    "properties": node.properties,
-                })
+                """,
+                    {
+                        "id": node.id,
+                        "title": node.title,
+                        "z_score": node.z_score,
+                        "z_activation": node.z_activation,
+                        "memory_state": node.memory_state,
+                        "psi": node.psi,
+                        "last_touched": node.last_touched.isoformat()
+                        if node.last_touched
+                        else None,
+                        "properties": node.properties,
+                    },
+                )
                 return True
             except Exception as e:
                 logger.error(f"Failed to sync node {node.id}: {e}")
@@ -294,18 +303,21 @@ class ShadowGraphService:
         with self._driver.session(database=self._settings.neo4j_database) as session:
             try:
                 # Use a generic merge since we don't know source/target types
-                session.run(f"""
+                session.run(
+                    f"""
                     MATCH (source {{id: $source_id}})
                     MATCH (target {{id: $target_id}})
                     MERGE (source)-[r:{edge.edge_type.value}]->(target)
                     SET r.strength = $strength,
                         r += $properties
-                """, {
-                    "source_id": edge.source_id,
-                    "target_id": edge.target_id,
-                    "strength": edge.strength,
-                    "properties": edge.properties,
-                })
+                """,
+                    {
+                        "source_id": edge.source_id,
+                        "target_id": edge.target_id,
+                        "strength": edge.strength,
+                        "properties": edge.properties,
+                    },
+                )
                 return True
             except Exception as e:
                 logger.error(f"Failed to sync edge {edge.source_id} -> {edge.target_id}: {e}")
@@ -371,8 +383,12 @@ class ShadowGraphService:
 
         # Extract common properties
         z_score = self._extract_number_property(properties, self._settings.notion_prop_z_score)
-        z_activation = self._extract_checkbox_property(properties, self._settings.notion_prop_z_activation)
-        memory_state = self._extract_status_property(properties, self._settings.notion_prop_memory_state)
+        z_activation = self._extract_checkbox_property(
+            properties, self._settings.notion_prop_z_activation
+        )
+        memory_state = self._extract_status_property(
+            properties, self._settings.notion_prop_memory_state
+        )
         psi = self._extract_number_property(properties, self._settings.notion_prop_psi)
 
         # Extract last edited time
@@ -402,7 +418,7 @@ class ShadowGraphService:
         self,
         properties: dict,
         prop_name: str,
-    ) -> Optional[float]:
+    ) -> float | None:
         """Extract a number property from Notion properties."""
         if prop_name not in properties:
             return None
@@ -428,7 +444,7 @@ class ShadowGraphService:
         self,
         properties: dict,
         prop_name: str,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Extract a status property from Notion properties."""
         if prop_name not in properties:
             return None
@@ -509,7 +525,8 @@ class ShadowGraphService:
 
         with self._driver.session(database=self._settings.neo4j_database) as session:
             try:
-                result = session.run("""
+                result = session.run(
+                    """
                     MATCH path = (target {id: $atom_id})<-[:PREREQUISITE*1..$max_depth]-(prereq)
                     WITH prereq, length(path) as depth
                     RETURN prereq.id as id,
@@ -518,17 +535,21 @@ class ShadowGraphService:
                            prereq.z_score as z_score,
                            depth
                     ORDER BY depth DESC
-                """, {"atom_id": atom_id, "max_depth": max_depth})
+                """,
+                    {"atom_id": atom_id, "max_depth": max_depth},
+                )
 
                 nodes = []
                 for record in result:
-                    nodes.append(GraphNode(
-                        id=record["id"],
-                        node_type=NodeType.LEARNING_ATOM,
-                        title=record["title"] or "",
-                        memory_state=record["memory_state"] or "NEW",
-                        z_score=record["z_score"] or 0.0,
-                    ))
+                    nodes.append(
+                        GraphNode(
+                            id=record["id"],
+                            node_type=NodeType.LEARNING_ATOM,
+                            title=record["title"] or "",
+                            memory_state=record["memory_state"] or "NEW",
+                            z_score=record["z_score"] or 0.0,
+                        )
+                    )
                 return nodes
             except Exception as e:
                 logger.error(f"Prerequisite chain query failed: {e}")
@@ -560,7 +581,8 @@ class ShadowGraphService:
 
         with self._driver.session(database=self._settings.neo4j_database) as session:
             try:
-                result = session.run("""
+                result = session.run(
+                    """
                     MATCH (target {id: $atom_id})<-[:PREREQUISITE*1..5]-(prereq:LearningAtom)
                     WHERE prereq.z_score < $threshold
                        OR prereq.memory_state IN ['NEW', 'LEARNING']
@@ -570,18 +592,22 @@ class ShadowGraphService:
                            prereq.z_score as z_score,
                            prereq.psi as psi
                     ORDER BY prereq.z_score ASC
-                """, {"atom_id": atom_id, "threshold": mastery_threshold})
+                """,
+                    {"atom_id": atom_id, "threshold": mastery_threshold},
+                )
 
                 nodes = []
                 for record in result:
-                    nodes.append(GraphNode(
-                        id=record["id"],
-                        node_type=NodeType.LEARNING_ATOM,
-                        title=record["title"] or "",
-                        memory_state=record["memory_state"] or "NEW",
-                        z_score=record["z_score"] or 0.0,
-                        psi=record["psi"] or 0.5,
-                    ))
+                    nodes.append(
+                        GraphNode(
+                            id=record["id"],
+                            node_type=NodeType.LEARNING_ATOM,
+                            title=record["title"] or "",
+                            memory_state=record["memory_state"] or "NEW",
+                            z_score=record["z_score"] or 0.0,
+                            psi=record["psi"] or 0.5,
+                        )
+                    )
                 return nodes
             except Exception as e:
                 logger.error(f"Weak prerequisites query failed: {e}")
@@ -609,22 +635,27 @@ class ShadowGraphService:
 
         with self._driver.session(database=self._settings.neo4j_database) as session:
             try:
-                result = session.run("""
+                result = session.run(
+                    """
                     MATCH (target {id: $atom_id})-[:CONFUSES_WITH]-(confusable:LearningAtom)
                     RETURN confusable.id as id,
                            confusable.title as title,
                            confusable.psi as psi
                     LIMIT $limit
-                """, {"atom_id": atom_id, "limit": limit})
+                """,
+                    {"atom_id": atom_id, "limit": limit},
+                )
 
                 nodes = []
                 for record in result:
-                    nodes.append(GraphNode(
-                        id=record["id"],
-                        node_type=NodeType.LEARNING_ATOM,
-                        title=record["title"] or "",
-                        psi=record["psi"] or 0.5,
-                    ))
+                    nodes.append(
+                        GraphNode(
+                            id=record["id"],
+                            node_type=NodeType.LEARNING_ATOM,
+                            title=record["title"] or "",
+                            psi=record["psi"] or 0.5,
+                        )
+                    )
                 return nodes
             except Exception as e:
                 logger.error(f"Confusables query failed: {e}")
@@ -651,11 +682,14 @@ class ShadowGraphService:
 
         with self._driver.session(database=self._settings.neo4j_database) as session:
             try:
-                result = session.run("""
+                result = session.run(
+                    """
                     MATCH (p:Project {id: $project_id})-[:ACTIVE_FOR]->(c:Concept)
                           <-[:TESTS]-(a:LearningAtom)
                     RETURN DISTINCT a.id as id
-                """, {"project_id": project_id})
+                """,
+                    {"project_id": project_id},
+                )
 
                 return [record["id"] for record in result]
             except Exception as e:
@@ -710,7 +744,7 @@ class ShadowGraphService:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
-_service: Optional[ShadowGraphService] = None
+_service: ShadowGraphService | None = None
 
 
 def get_shadow_graph() -> ShadowGraphService:

@@ -1,6 +1,17 @@
 """
 Quiz Engine for In-App Learning Atoms.
 
+.. deprecated::
+    This module is deprecated in favor of the modular atom handlers in
+    ``src/cortex/atoms/``. New code should use the handler registry pattern:
+
+        from src.cortex.atoms import get_handler
+        handler = get_handler("mcq")
+        handler.present(atom)
+
+    This file is retained for backward compatibility with existing code
+    that imports QuizEngine or AtomType. It will be removed in a future version.
+
 Handles presentation and scoring of:
 - MCQ (Multiple Choice Questions)
 - True/False
@@ -10,6 +21,7 @@ Handles presentation and scoring of:
 These atom types are presented INSIDE NLS, not sent to Anki.
 Only flashcard and cloze go to Anki for FSRS scheduling.
 """
+
 from __future__ import annotations
 
 import json
@@ -18,18 +30,14 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
-from uuid import UUID
 
 from loguru import logger
 from rich import print as rprint
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt, IntPrompt, Confirm
-from rich.table import Table
-from rich.text import Text
-
+from rich.prompt import IntPrompt, Prompt
 from sqlalchemy import text
+
 from src.db.database import session_scope
 
 console = Console()
@@ -37,6 +45,7 @@ console = Console()
 
 class AtomType(str, Enum):
     """Atom types handled by quiz engine."""
+
     MCQ = "mcq"
     TRUE_FALSE = "true_false"
     MATCHING = "matching"
@@ -47,15 +56,16 @@ class AtomType(str, Enum):
 @dataclass
 class QuizAtom:
     """A single quiz atom to present."""
+
     id: str
     card_id: str
     atom_type: AtomType
     front: str  # Question
-    back: str   # Answer/options JSON
+    back: str  # Answer/options JSON
     concept_name: str
-    section_id: Optional[str] = None
+    section_id: str | None = None
     difficulty: float = 0.5
-    last_response: Optional[str] = None
+    last_response: str | None = None
     correct_streak: int = 0
 
     # Parsed content
@@ -74,6 +84,7 @@ class QuizAtom:
 @dataclass
 class QuizResult:
     """Result of answering a quiz atom."""
+
     atom_id: str
     is_correct: bool
     response_time_ms: int
@@ -98,8 +109,8 @@ class QuizEngine:
     def fetch_atoms(
         self,
         atom_types: list[AtomType],
-        section_id: Optional[str] = None,
-        concept_id: Optional[str] = None,
+        section_id: str | None = None,
+        concept_id: str | None = None,
         limit: int = 10,
         difficulty_range: tuple[float, float] = (0.0, 1.0),
         prioritize_weak: bool = True,
@@ -256,7 +267,9 @@ class QuizEngine:
                 if isinstance(answer, bool):
                     atom.correct_answer = "True" if answer else "False"
                 elif isinstance(answer, str):
-                    atom.correct_answer = "True" if answer.lower() in ("true", "t", "yes") else "False"
+                    atom.correct_answer = (
+                        "True" if answer.lower() in ("true", "t", "yes") else "False"
+                    )
                 else:
                     atom.correct_answer = "True" if answer else "False"
                 # Store explanation for feedback
@@ -441,7 +454,6 @@ class QuizEngine:
 
         console.print()
         for i, opt in enumerate(options, 1):
-            marker = "●" if opt == atom.correct_answer else "○"
             console.print(f"  [bold]{i}[/bold]) {opt}")
 
         console.print()
@@ -542,7 +554,7 @@ class QuizEngine:
 
         except (ValueError, KeyboardInterrupt):
             is_correct = False
-            user_answer = response if 'response' in dir() else ""
+            user_answer = response if "response" in dir() else ""
             user_value = 0.0
 
         # Build feedback
@@ -607,7 +619,7 @@ class QuizEngine:
             for part in response.upper().split():
                 if len(part) >= 2:
                     num = int(part[0]) - 1
-                    letter = ord(part[1]) - ord('A')
+                    letter = ord(part[1]) - ord("A")
                     if 0 <= num < len(terms) and 0 <= letter < len(shuffled_defs):
                         user_matches[num] = shuffled_defs[letter]
 
@@ -629,9 +641,11 @@ class QuizEngine:
             atom_id=atom.id,
             is_correct=is_correct,
             response_time_ms=0,
-            user_answer=response if 'response' in dir() else "",
+            user_answer=response if "response" in dir() else "",
             correct_answer=correct_matches,
-            feedback=f"Got {correct_count}/{len(atom.pairs)} correct" if not is_correct else "Perfect matching!",
+            feedback=f"Got {correct_count}/{len(atom.pairs)} correct"
+            if not is_correct
+            else "Perfect matching!",
         )
 
     def _present_parsons(self, atom: QuizAtom) -> QuizResult:
@@ -682,9 +696,12 @@ class QuizEngine:
             atom_id=atom.id,
             is_correct=is_correct,
             response_time_ms=0,
-            user_answer=" ".join(str(i) for i in order_nums) if 'order_nums' in dir() else "",
+            user_answer=" ".join(str(i) for i in order_nums) if "order_nums" in dir() else "",
             correct_answer=" → ".join(correct_order),
-            feedback="Perfect order!" if is_correct else "Correct order: " + " → ".join(f"{i+1}. {s}" for i, s in enumerate(correct_order)),
+            feedback="Perfect order!"
+            if is_correct
+            else "Correct order: "
+            + " → ".join(f"{i + 1}. {s}" for i, s in enumerate(correct_order)),
         )
 
     def _show_result(self, result: QuizResult) -> None:
@@ -697,14 +714,21 @@ class QuizEngine:
             console.print(f"[dim]{result.feedback}[/dim]")
 
         # Show session progress
-        accuracy = (self.current_session_correct / self.current_session_total * 100) if self.current_session_total > 0 else 0
-        console.print(f"\n[dim]Session: {self.current_session_correct}/{self.current_session_total} ({accuracy:.0f}%)[/dim]")
+        accuracy = (
+            (self.current_session_correct / self.current_session_total * 100)
+            if self.current_session_total > 0
+            else 0
+        )
+        console.print(
+            f"\n[dim]Session: {self.current_session_correct}/{self.current_session_total} ({accuracy:.0f}%)[/dim]"
+        )
 
     def _record_response(self, atom: QuizAtom, result: QuizResult) -> None:
         """Record response to database for mastery tracking."""
         try:
             with session_scope() as session:
-                session.execute(text("""
+                session.execute(
+                    text("""
                     INSERT INTO atom_responses (
                         atom_id, user_id, is_correct, response_time_ms,
                         user_answer, responded_at
@@ -712,12 +736,14 @@ class QuizEngine:
                         :atom_id, 'default', :is_correct, :response_time,
                         :user_answer, NOW()
                     )
-                """), {
-                    "atom_id": atom.id,
-                    "is_correct": result.is_correct,
-                    "response_time": result.response_time_ms,
-                    "user_answer": result.user_answer[:500] if result.user_answer else "",
-                })
+                """),
+                    {
+                        "atom_id": atom.id,
+                        "is_correct": result.is_correct,
+                        "response_time": result.response_time_ms,
+                        "user_answer": result.user_answer[:500] if result.user_answer else "",
+                    },
+                )
                 session.commit()
         except Exception as e:
             logger.debug(f"Could not record response: {e}")
@@ -725,7 +751,11 @@ class QuizEngine:
     def get_session_summary(self) -> dict:
         """Get summary of current quiz session."""
         elapsed = datetime.now() - self.session_start
-        accuracy = (self.current_session_correct / self.current_session_total * 100) if self.current_session_total > 0 else 0
+        accuracy = (
+            (self.current_session_correct / self.current_session_total * 100)
+            if self.current_session_total > 0
+            else 0
+        )
 
         return {
             "total": self.current_session_total,

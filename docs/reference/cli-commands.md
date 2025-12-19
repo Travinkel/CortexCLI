@@ -28,11 +28,99 @@ nls sync --help
 | `nls cortex start --mode war` | War/cram mode |
 | `nls cortex start -i` | Interactive mode |
 | `nls cortex start --modules 1-5,10-12` | Specify modules |
+| `nls cortex start --sections 11.4,11.5` | Specify sections |
+| `nls cortex start --source <preset>` | Use source preset |
+| `nls cortex start --list-sources` | List available presets |
 | `nls cortex start --limit 30` | Set session length |
 | `nls cortex optimize` | Retention-optimized session (FSRS-4) |
 | `nls cortex war` | Alias for war mode |
 | `nls cortex resume` | Resume saved session |
 | `nls cortex suggest` | Get study suggestions |
+
+### Subdivided Adaptive Mode
+
+Filter study sessions by module ranges, ITN assessments, or topic themes using source presets.
+
+#### Module Filtering Arguments
+
+| Argument | Description | Example |
+|----------|-------------|---------|
+| `--modules` | Comma-separated modules or ranges | `--modules 1-3,11-13` |
+| `--sections` | Comma-separated section IDs | `--sections 11.4,11.5,11.6` |
+| `--source` | Named source preset | `--source subnetting` |
+| `--list-sources` | Display all available presets | `--list-sources` |
+
+#### Source Presets
+
+**Module Ranges**:
+
+| Preset | Modules | Description |
+|--------|---------|-------------|
+| `modules-1-3` | 1, 2, 3 | Foundations |
+| `modules-4-7` | 4, 5, 6, 7 | Physical & Data Link |
+| `modules-8-10` | 8, 9, 10 | Network Layer Basics |
+| `modules-11-13` | 11, 12, 13 | IP Addressing |
+| `modules-14-15` | 14, 15 | Transport & Application |
+| `modules-16-17` | 16, 17 | Security & Integration |
+
+**ITN Assessments**:
+
+| Preset | Source File | Description |
+|--------|-------------|-------------|
+| `itn-final` | ITNFinalPacketTracer.txt | ITN Final Packet Tracer |
+| `itn-practice` | ITNPracticeFinalExam.txt | ITN Practice Final Exam |
+| `itn-test` | ITNPracticeTest.txt | ITN Practice Test |
+| `itn-skills` | ITNSkillsAssessment.txt | ITN Skills Assessment |
+
+**Topic Themes** (cross-module):
+
+| Preset | Sections | Description |
+|--------|----------|-------------|
+| `subnetting` | 11.4-11.8 | Subnetting Mastery |
+| `osi-model` | 3.1-3.4 | OSI Model |
+| `binary-math` | 5.1-5.3 | Number Systems |
+| `ipv6` | 12.1-12.5 | IPv6 Addressing |
+| `switching` | Modules 6-7 | Switching & VLANs |
+| `routing` | 16.1-16.4 | Routing Fundamentals |
+| `security` | 17.1-17.4 | Network Security |
+| `transport` | 14.1-14.4 | TCP/UDP Transport |
+| `ios-config` | 2.1-2.4 | IOS Configuration |
+| `arp-dhcp` | 9.1-9.3, 10.1-10.3 | ARP & DHCP |
+| `ethernet` | 4.1-4.4, 6.1-6.2 | Ethernet Fundamentals |
+
+#### Usage Examples
+
+```bash
+# Module ranges
+nls cortex start --modules 1-3
+nls cortex start --modules 11-13 --limit 30
+nls cortex start --modules 1-3,11-13
+
+# ITN Assessments
+nls cortex start --source itn-final
+nls cortex start --source itn-practice
+
+# Topic themes
+nls cortex start --source subnetting
+nls cortex start --source ipv6
+
+# Specific sections
+nls cortex start --sections 11.4,11.5
+
+# Combined with limit
+nls cortex start --source subnetting --limit 25
+
+# List all available presets
+nls cortex start --list-sources
+```
+
+#### Argument Priority
+
+When multiple filtering arguments are provided:
+
+1. Explicit `--modules` and `--sections` override preset values
+2. `--source` preset provides defaults if not overridden
+3. Omitting all filters uses the full curriculum
 
 ### Study Modes
 
@@ -219,6 +307,8 @@ See [Use Study Notes](../how-to/use-study-notes.md) for detailed instructions.
 | 019 | Transfer testing |
 | 020 | Struggle weight history |
 | 021 | Socratic dialogue tables |
+| 022 | User flags table |
+| 023 | Source file tracking for subdivided adaptive mode |
 
 ---
 

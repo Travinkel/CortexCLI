@@ -1,30 +1,32 @@
 # SQLAlchemy models
-from .base import Base
-from .staging import (
-    StgNotionFlashcard,
-    StgNotionConcept,
-    StgNotionConceptArea,
-    StgNotionConceptCluster,
-    StgNotionModule,
-    StgNotionTrack,
-    StgNotionProgram,
+from .adaptive import (
+    AtomTypeSuitability,
+    LearnerMasteryState,
+    LearningPathSession,
+    NoteReadHistory,
+    RemediationEvent,
+    RemediationNote,
+    SessionAtomResponse,
+    StruggleWeight,
+    StruggleWeightHistory,
 )
+from .base import Base
 from .canonical import (
+    CleanAtom,
+    CleanConcept,
     CleanConceptArea,
     CleanConceptCluster,
-    CleanConcept,
+    CleaningLog,
+    CleanModule,
     CleanProgram,
     CleanTrack,
-    CleanModule,
-    CleanAtom,
-    ReviewQueueItem,
-    SyncLog,
-    CleaningLog,
-    SemanticDuplicate,
+    EmbeddingGenerationLog,
     InferredPrerequisite,
     KnowledgeCluster,
     KnowledgeClusterMember,
-    EmbeddingGenerationLog,
+    ReviewQueueItem,
+    SemanticDuplicate,
+    SyncLog,
 )
 from .prerequisites import (
     ExplicitPrerequisite,
@@ -32,16 +34,18 @@ from .prerequisites import (
     QuestionPool,
 )
 from .quiz import (
-    QuizQuestion,
     QuizDefinition,
     QuizPassage,
+    QuizQuestion,
 )
-from .adaptive import (
-    LearnerMasteryState,
-    LearningPathSession,
-    SessionAtomResponse,
-    AtomTypeSuitability,
-    RemediationEvent,
+from .staging import (
+    StgNotionConcept,
+    StgNotionConceptArea,
+    StgNotionConceptCluster,
+    StgNotionFlashcard,
+    StgNotionModule,
+    StgNotionProgram,
+    StgNotionTrack,
 )
 
 __all__ = [
@@ -86,4 +90,10 @@ __all__ = [
     "SessionAtomResponse",
     "AtomTypeSuitability",
     "RemediationEvent",
+    # Remediation Notes (Phase 6)
+    "RemediationNote",
+    "NoteReadHistory",
+    # Struggle Tracking (Dynamic)
+    "StruggleWeight",
+    "StruggleWeightHistory",
 ]

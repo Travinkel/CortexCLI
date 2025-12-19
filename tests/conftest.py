@@ -3,9 +3,11 @@ Pytest Configuration and Fixtures.
 
 This file configures pytest and provides shared fixtures for all tests.
 """
-import pytest
+
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -45,9 +47,9 @@ def project_root():
 def db_url():
     """Get database URL from environment or config."""
     import os
+
     return os.environ.get(
-        "DATABASE_URL",
-        "postgresql://postgres:learning123@localhost:5432/notion_learning_sync"
+        "DATABASE_URL", "postgresql://postgres:learning123@localhost:5432/notion_learning_sync"
     )
 
 
@@ -83,11 +85,6 @@ def sample_quiz_question():
         "question": "Which layer of the OSI model handles routing?",
         "answer": "Network Layer (Layer 3)",
         "question_type": "mcq",
-        "options": [
-            "Physical Layer",
-            "Data Link Layer",
-            "Network Layer",
-            "Transport Layer"
-        ],
+        "options": ["Physical Layer", "Data Link Layer", "Network Layer", "Transport Layer"],
         "correct_option": 2,
     }

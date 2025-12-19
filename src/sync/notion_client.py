@@ -5,10 +5,11 @@ IMPORTANT: Uses official Notion Python SDK (notion_client).
 Allowed methods: client.data_sources.query(), client.pages.retrieve(),
                  client.pages.update(), client.pages.create()
 """
+
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from loguru import logger
 from notion_client import Client
@@ -29,23 +30,18 @@ class NotionClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
     ) -> None:
         self._settings = get_settings()
         self.api_key = api_key or self._settings.notion_api_key
-        self._client: Optional[Client] = None
+        self._client: Client | None = None
         self._warned_raw_request = False
 
         if self.api_key:
-            self._client = Client(
-                auth=self.api_key,
-                notion_version=self._settings.notion_version
-            )
+            self._client = Client(auth=self.api_key, notion_version=self._settings.notion_version)
             logger.info("Notion client initialized")
         else:
-            logger.warning(
-                "Notion credentials missing. Set NOTION_API_KEY to enable syncing."
-            )
+            logger.warning("Notion credentials missing. Set NOTION_API_KEY to enable syncing.")
 
     @property
     def ready(self) -> bool:
@@ -60,7 +56,7 @@ class NotionClient:
         self,
         database_id: str,
         entity_type: str = "pages",
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Generic method to fetch all pages from a Notion database.
 
@@ -72,13 +68,11 @@ class NotionClient:
             List of raw Notion page dictionaries
         """
         if not self._client:
-            logger.warning(
-                f"Notion client not ready; returning empty list for {entity_type}"
-            )
+            logger.warning(f"Notion client not ready; returning empty list for {entity_type}")
             return []
 
         pages = []
-        start_cursor: Optional[str] = None
+        start_cursor: str | None = None
         logger.info(f"Querying Notion database {database_id} for {entity_type}")
 
         while True:
@@ -98,7 +92,7 @@ class NotionClient:
     def _query_any_database(
         self,
         database_id: str,
-        start_cursor: Optional[str] = None,
+        start_cursor: str | None = None,
     ) -> dict:
         """
         Query any Notion database by ID using data_sources API.
@@ -142,10 +136,7 @@ class NotionClient:
             body = {k: v for k, v in payload.items() if v is not None}
             try:
                 if not self._warned_raw_request:
-                    logger.info(
-                        "Using raw request to data_sources endpoint "
-                        "(SDK lacks wrapper)"
-                    )
+                    logger.info("Using raw request to data_sources endpoint (SDK lacks wrapper)")
                     self._warned_raw_request = True
                 return request_fn(
                     path=f"data_sources/{database_id}/query",
@@ -153,9 +144,7 @@ class NotionClient:
                     body=body or {},
                 )
             except Exception as e:
-                logger.debug(
-                    f"Raw data_sources request failed for {database_id}: {e}"
-                )
+                logger.debug(f"Raw data_sources request failed for {database_id}: {e}")
 
         # 3. Fallback to databases.query
         databases = getattr(self._client, "databases", None)
@@ -187,7 +176,7 @@ class NotionClient:
     # TYPED FETCH METHODS (one per database type)
     # =========================================================================
 
-    def fetch_flashcards(self) -> List[Dict[str, Any]]:
+    def fetch_flashcards(self) -> list[dict[str, Any]]:
         """Fetch all flashcards from the Flashcards database."""
         db_id = self._settings.flashcards_db_id
         if not db_id:
@@ -195,7 +184,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "flashcards")
 
-    def fetch_concepts(self) -> List[Dict[str, Any]]:
+    def fetch_concepts(self) -> list[dict[str, Any]]:
         """Fetch all concepts from the Concepts database."""
         db_id = self._settings.concepts_db_id
         if not db_id:
@@ -203,7 +192,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "concepts")
 
-    def fetch_concept_areas(self) -> List[Dict[str, Any]]:
+    def fetch_concept_areas(self) -> list[dict[str, Any]]:
         """Fetch all concept areas (L0) from the Concept Areas database."""
         db_id = self._settings.concept_areas_db_id
         if not db_id:
@@ -211,7 +200,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "concept_areas")
 
-    def fetch_concept_clusters(self) -> List[Dict[str, Any]]:
+    def fetch_concept_clusters(self) -> list[dict[str, Any]]:
         """Fetch all concept clusters (L1) from the Concept Clusters database."""
         db_id = self._settings.concept_clusters_db_id
         if not db_id:
@@ -219,7 +208,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "concept_clusters")
 
-    def fetch_modules(self) -> List[Dict[str, Any]]:
+    def fetch_modules(self) -> list[dict[str, Any]]:
         """Fetch all modules from the Modules database."""
         db_id = self._settings.modules_db_id
         if not db_id:
@@ -227,7 +216,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "modules")
 
-    def fetch_tracks(self) -> List[Dict[str, Any]]:
+    def fetch_tracks(self) -> list[dict[str, Any]]:
         """Fetch all tracks from the Tracks database."""
         db_id = self._settings.tracks_db_id
         if not db_id:
@@ -235,7 +224,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "tracks")
 
-    def fetch_programs(self) -> List[Dict[str, Any]]:
+    def fetch_programs(self) -> list[dict[str, Any]]:
         """Fetch all programs from the Programs database."""
         db_id = self._settings.programs_db_id
         if not db_id:
@@ -243,7 +232,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "programs")
 
-    def fetch_activities(self) -> List[Dict[str, Any]]:
+    def fetch_activities(self) -> list[dict[str, Any]]:
         """Fetch all activities from the Activities database."""
         db_id = self._settings.activities_db_id
         if not db_id:
@@ -251,7 +240,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "activities")
 
-    def fetch_sessions(self) -> List[Dict[str, Any]]:
+    def fetch_sessions(self) -> list[dict[str, Any]]:
         """Fetch all sessions from the Sessions database."""
         db_id = self._settings.sessions_db_id
         if not db_id:
@@ -259,7 +248,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "sessions")
 
-    def fetch_quizzes(self) -> List[Dict[str, Any]]:
+    def fetch_quizzes(self) -> list[dict[str, Any]]:
         """Fetch all quizzes from the Quizzes database."""
         db_id = self._settings.quizzes_db_id
         if not db_id:
@@ -267,7 +256,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "quizzes")
 
-    def fetch_critical_skills(self) -> List[Dict[str, Any]]:
+    def fetch_critical_skills(self) -> list[dict[str, Any]]:
         """Fetch all critical skills from the Critical Skills database."""
         db_id = self._settings.critical_skills_db_id
         if not db_id:
@@ -275,7 +264,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "critical_skills")
 
-    def fetch_resources(self) -> List[Dict[str, Any]]:
+    def fetch_resources(self) -> list[dict[str, Any]]:
         """Fetch all resources from the Resources database."""
         db_id = self._settings.resources_db_id
         if not db_id:
@@ -283,7 +272,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "resources")
 
-    def fetch_mental_models(self) -> List[Dict[str, Any]]:
+    def fetch_mental_models(self) -> list[dict[str, Any]]:
         """Fetch all mental models from the Mental Models database."""
         db_id = self._settings.mental_models_db_id
         if not db_id:
@@ -291,7 +280,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "mental_models")
 
-    def fetch_evidence(self) -> List[Dict[str, Any]]:
+    def fetch_evidence(self) -> list[dict[str, Any]]:
         """Fetch all evidence from the Evidence database."""
         db_id = self._settings.evidence_db_id
         if not db_id:
@@ -299,7 +288,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "evidence")
 
-    def fetch_brain_regions(self) -> List[Dict[str, Any]]:
+    def fetch_brain_regions(self) -> list[dict[str, Any]]:
         """Fetch all brain regions from the Brain Regions database."""
         db_id = self._settings.brain_regions_db_id
         if not db_id:
@@ -307,7 +296,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "brain_regions")
 
-    def fetch_training_protocols(self) -> List[Dict[str, Any]]:
+    def fetch_training_protocols(self) -> list[dict[str, Any]]:
         """Fetch all training protocols from the Training Protocols database."""
         db_id = self._settings.training_protocols_db_id
         if not db_id:
@@ -315,7 +304,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "training_protocols")
 
-    def fetch_practice_logs(self) -> List[Dict[str, Any]]:
+    def fetch_practice_logs(self) -> list[dict[str, Any]]:
         """Fetch all practice logs from the Practice Logs database."""
         db_id = self._settings.practice_logs_db_id
         if not db_id:
@@ -323,7 +312,7 @@ class NotionClient:
             return []
         return self.fetch_from_database(db_id, "practice_logs")
 
-    def fetch_assessments(self) -> List[Dict[str, Any]]:
+    def fetch_assessments(self) -> list[dict[str, Any]]:
         """Fetch all assessments from the Assessments database."""
         db_id = self._settings.assessments_db_id
         if not db_id:
@@ -335,7 +324,7 @@ class NotionClient:
     # BULK FETCH
     # =========================================================================
 
-    def fetch_all(self) -> Dict[str, List[Dict[str, Any]]]:
+    def fetch_all(self) -> dict[str, list[dict[str, Any]]]:
         """
         Fetch data from all configured Notion databases.
 
@@ -343,7 +332,7 @@ class NotionClient:
             Dictionary with entity type as key and list of raw pages as value.
             Only includes databases that are configured (have IDs set).
         """
-        results: Dict[str, List[Dict[str, Any]]] = {}
+        results: dict[str, list[dict[str, Any]]] = {}
         configured = self._settings.get_configured_notion_databases()
 
         logger.info(f"Starting fetch_all for {len(configured)} configured databases")
@@ -378,9 +367,9 @@ class NotionClient:
     def update_page(
         self,
         page_id: str,
-        properties: Dict[str, Any],
+        properties: dict[str, Any],
         dry_run: bool = False,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Update a Notion page with new properties.
 
@@ -399,9 +388,7 @@ class NotionClient:
             return None
 
         if self._settings.protect_notion:
-            logger.warning(
-                f"Skipping update to page {page_id}: PROTECT_NOTION=true"
-            )
+            logger.warning(f"Skipping update to page {page_id}: PROTECT_NOTION=true")
             return None
 
         if dry_run or self._settings.dry_run:
@@ -418,7 +405,7 @@ class NotionClient:
     # PAGE CONTENT BLOCK FETCHING (for AI enrichment)
     # =========================================================================
 
-    def fetch_page_content(self, page_id: str) -> Dict[str, Any]:
+    def fetch_page_content(self, page_id: str) -> dict[str, Any]:
         """
         Fetch all content blocks from a Notion page.
 
@@ -464,9 +451,7 @@ class NotionClient:
             "block_count": len(parsed_blocks),
         }
 
-    def _fetch_all_blocks(
-        self, block_id: str, depth: int = 0
-    ) -> List[Dict[str, Any]]:
+    def _fetch_all_blocks(self, block_id: str, depth: int = 0) -> list[dict[str, Any]]:
         """
         Recursively fetch all blocks from a page/block.
 
@@ -485,7 +470,7 @@ class NotionClient:
             return []
 
         all_blocks = []
-        start_cursor: Optional[str] = None
+        start_cursor: str | None = None
 
         try:
             while True:
@@ -515,9 +500,7 @@ class NotionClient:
                     all_blocks.append(block)
                     # Recursively fetch nested blocks
                     if block.get("has_children", False):
-                        child_blocks = self._fetch_all_blocks(
-                            block["id"], depth=depth + 1
-                        )
+                        child_blocks = self._fetch_all_blocks(block["id"], depth=depth + 1)
                         all_blocks.extend(child_blocks)
 
                 if not response.get("has_more"):
@@ -529,7 +512,7 @@ class NotionClient:
 
         return all_blocks
 
-    def _parse_block(self, block: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_block(self, block: dict[str, Any]) -> dict[str, Any]:
         """Parse a Notion block into a simplified structure."""
         block_type = block.get("type", "unknown")
         block_data = block.get(block_type, {})
@@ -549,25 +532,23 @@ class NotionClient:
 
         return result
 
-    def _extract_rich_text(self, rich_text_array: List[Dict[str, Any]]) -> str:
+    def _extract_rich_text(self, rich_text_array: list[dict[str, Any]]) -> str:
         """Extract plain text from Notion's rich_text array."""
         if not rich_text_array:
             return ""
 
         parts = []
         for item in rich_text_array:
-            text = item.get("plain_text", "") or item.get("text", {}).get(
-                "content", ""
-            )
+            text = item.get("plain_text", "") or item.get("text", {}).get("content", "")
             parts.append(text)
 
         return "".join(parts)
 
     def fetch_page_content_batch(
         self,
-        page_ids: List[str],
+        page_ids: list[str],
         rate_limit_delay: float = 0.35,
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> dict[str, dict[str, Any]]:
         """
         Fetch content for multiple pages with rate limiting.
 
@@ -578,14 +559,14 @@ class NotionClient:
         Returns:
             Dictionary mapping page_id to content dict
         """
-        results: Dict[str, Dict[str, Any]] = {}
+        results: dict[str, dict[str, Any]] = {}
         total = len(page_ids)
 
         for i, page_id in enumerate(page_ids):
             try:
                 content = self.fetch_page_content(page_id)
                 results[page_id] = content
-                logger.debug(f"Fetched content for page {i+1}/{total}: {page_id}")
+                logger.debug(f"Fetched content for page {i + 1}/{total}: {page_id}")
             except Exception as e:
                 logger.error(f"Failed to fetch content for {page_id}: {e}")
                 results[page_id] = {

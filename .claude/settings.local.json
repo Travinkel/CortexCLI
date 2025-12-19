@@ -29,9 +29,34 @@
       "Bash(tree:*)",
       "Bash(git reset:*)",
       "Bash(git add:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(ls:*)",
+      "Bash(pip install:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(mypy:*)",
+      "Bash(pytest:*)",
+      "Bash(move \"E:\\Repo\\project-astartes\\notion-learning-sync\\services\\sync\\db\\migrations\\017_neuromorphic_cortex.sql\" \"E:\\Repo\\project-astartes\\notion-learning-sync\\src\\db\\migrations\\014_neuromorphic_cortex.sql\")",
+      "Bash(wc:*)",
+      "Bash(python3:*)",
+      "Bash(for dir in src/*/)",
+      "Bash(sort:*)",
+      "Bash(cd:*)",
+      "Bash(set:*)",
+      "Bash(grep:*)",
+      "Bash(git checkout:*)",
+      "Bash(timeout 5 python:*)",
+      "Bash(^d)",
+      "Bash(git restore:*)",
+      "Bash(git -C \"E:/Repo/project-astartes/notion-learning-sync\" checkout -- docs/reference/configuration.md)",
+      "Bash(for f in explanation/*.md how-to/*.md reference/*.md tutorials/*.md)",
+      "Bash(do echo \"=== $f ===\")",
+      "Bash(set PYTHONPATH=.)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "outputStyle": "default"
 }

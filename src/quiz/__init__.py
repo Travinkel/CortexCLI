@@ -20,8 +20,8 @@ Knowledge Types:
 - metacognitive: Self-regulation strategies
 """
 
-from .quiz_quality_analyzer import QuizQuestionAnalyzer
 from .quiz_pool_manager import QuizPoolManager
+from .quiz_quality_analyzer import QuizQuestionAnalyzer
 
 __all__ = [
     "QuizQuestionAnalyzer",

@@ -18,18 +18,18 @@ Commands:
 Author: Cortex System
 Version: 2.0.0 (Notion-Centric Architecture)
 """
+
 from __future__ import annotations
 
-import time
+import contextlib
 from datetime import datetime
-from typing import Optional
 
 import typer
 from rich import box
 from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.style import Style
 from rich.table import Table
 from rich.text import Text
@@ -37,15 +37,14 @@ from rich.text import Text
 from config import get_settings
 
 # Import Cortex 2.0 components
-from src.graph.shadow_graph import get_shadow_graph, ShadowGraphService, NodeType
+from src.graph.shadow_graph import NodeType, get_shadow_graph
 from src.graph.zscore_engine import (
-    get_zscore_engine,
-    get_forcez_engine,
-    ZScoreEngine,
     AtomMetrics,
+    get_forcez_engine,
+    get_zscore_engine,
 )
 from src.sync.notion_client import NotionClient
-from src.sync.notion_cortex import get_notion_cortex, CortexPropertyUpdate
+from src.sync.notion_cortex import get_notion_cortex
 
 # Theme constants (consistent with cortex.py)
 CORTEX_THEME = {
@@ -94,16 +93,19 @@ forcez_app = typer.Typer(
 # SYNC COMMANDS
 # ============================================================================
 
+
 @sync_app.command("pull")
 def sync_pull(
     entity: str = typer.Option(
         "all",
-        "--entity", "-e",
+        "--entity",
+        "-e",
         help="Entity type to sync (flashcards, concepts, all)",
     ),
     dry_run: bool = typer.Option(
         False,
-        "--dry-run", "-n",
+        "--dry-run",
+        "-n",
         help="Show what would be synced without syncing",
     ),
 ):
@@ -117,25 +119,28 @@ def sync_pull(
         nls sync pull -e flashcards      # Sync only flashcards
         nls sync pull --dry-run          # Preview sync
     """
-    settings = get_settings()
+    get_settings()
     notion = NotionClient()
     graph = get_shadow_graph()
 
     if not notion.ready:
-        console.print(Panel(
-            "[bold red]Notion client not ready.[/bold red]\n"
-            "Check NOTION_API_KEY in .env",
-            border_style=Style(color=CORTEX_THEME["error"]),
-        ))
+        console.print(
+            Panel(
+                "[bold red]Notion client not ready.[/bold red]\nCheck NOTION_API_KEY in .env",
+                border_style=Style(color=CORTEX_THEME["error"]),
+            )
+        )
         raise typer.Exit(1)
 
     if not graph.is_available:
-        console.print(Panel(
-            "[bold red]Shadow Graph not available.[/bold red]\n"
-            "Start Neo4j with: neo4j start\n"
-            "Or install with: pip install neo4j",
-            border_style=Style(color=CORTEX_THEME["error"]),
-        ))
+        console.print(
+            Panel(
+                "[bold red]Shadow Graph not available.[/bold red]\n"
+                "Start Neo4j with: neo4j start\n"
+                "Or install with: pip install neo4j",
+                border_style=Style(color=CORTEX_THEME["error"]),
+            )
+        )
         raise typer.Exit(1)
 
     # Initialize schema
@@ -143,10 +148,7 @@ def sync_pull(
     graph.init_schema()
 
     entities_to_sync = []
-    if entity == "all":
-        entities_to_sync = ["flashcards", "concepts", "modules"]
-    else:
-        entities_to_sync = [entity]
+    entities_to_sync = ["flashcards", "concepts", "modules"] if entity == "all" else [entity]
 
     total_synced = 0
 
@@ -193,24 +195,29 @@ def sync_pull(
 
     # Summary
     summary = Text()
-    summary.append("[*] SYNC COMPLETE [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True))
-    summary.append(f"Nodes synced: ", style=Style(color=CORTEX_THEME["dim"]))
+    summary.append(
+        "[*] SYNC COMPLETE [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True)
+    )
+    summary.append("Nodes synced: ", style=Style(color=CORTEX_THEME["dim"]))
     summary.append(f"{total_synced}\n", style=Style(color=CORTEX_THEME["success"]))
-    summary.append(f"Entities: ", style=Style(color=CORTEX_THEME["dim"]))
+    summary.append("Entities: ", style=Style(color=CORTEX_THEME["dim"]))
     summary.append(f"{', '.join(entities_to_sync)}", style=Style(color=CORTEX_THEME["accent"]))
 
-    console.print(Panel(
-        Align.center(summary),
-        border_style=Style(color=CORTEX_THEME["success"]),
-        box=box.DOUBLE,
-    ))
+    console.print(
+        Panel(
+            Align.center(summary),
+            border_style=Style(color=CORTEX_THEME["success"]),
+            box=box.DOUBLE,
+        )
+    )
 
 
 @sync_app.command("push")
 def sync_push(
     dry_run: bool = typer.Option(
         False,
-        "--dry-run", "-n",
+        "--dry-run",
+        "-n",
         help="Show what would be pushed without pushing",
     ),
 ):
@@ -226,11 +233,13 @@ def sync_push(
     settings = get_settings()
 
     if settings.protect_notion:
-        console.print(Panel(
-            "[bold yellow]PROTECT_NOTION is enabled.[/bold yellow]\n"
-            "Set PROTECT_NOTION=false in .env to enable writes.",
-            border_style=Style(color=CORTEX_THEME["warning"]),
-        ))
+        console.print(
+            Panel(
+                "[bold yellow]PROTECT_NOTION is enabled.[/bold yellow]\n"
+                "Set PROTECT_NOTION=false in .env to enable writes.",
+                border_style=Style(color=CORTEX_THEME["warning"]),
+            )
+        )
         if not dry_run:
             raise typer.Exit(1)
 
@@ -238,10 +247,12 @@ def sync_push(
     notion = NotionClient()
 
     if not cortex.is_ready:
-        console.print(Panel(
-            "[bold red]Notion client not ready.[/bold red]",
-            border_style=Style(color=CORTEX_THEME["error"]),
-        ))
+        console.print(
+            Panel(
+                "[bold red]Notion client not ready.[/bold red]",
+                border_style=Style(color=CORTEX_THEME["error"]),
+            )
+        )
         raise typer.Exit(1)
 
     # Compute Z-Scores
@@ -259,10 +270,8 @@ def sync_push(
         last_edited = page.get("last_edited_time")
         last_touched = None
         if last_edited:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 last_touched = datetime.fromisoformat(last_edited.replace("Z", "+00:00"))
-            except (ValueError, TypeError):
-                pass
 
         # Extract review count (if available)
         review_count = 0
@@ -279,12 +288,14 @@ def sync_push(
         elif "select" in state_prop and state_prop["select"]:
             memory_state = state_prop["select"].get("name", "NEW")
 
-        metrics_list.append(AtomMetrics(
-            atom_id=page["id"],
-            last_touched=last_touched,
-            review_count=review_count,
-            memory_state=memory_state,
-        ))
+        metrics_list.append(
+            AtomMetrics(
+                atom_id=page["id"],
+                last_touched=last_touched,
+                review_count=review_count,
+                memory_state=memory_state,
+            )
+        )
 
     # Compute Z-Scores
     results = engine.compute_batch(metrics_list)
@@ -325,19 +336,23 @@ def sync_push(
 
     # Summary
     summary = Text()
-    summary.append("[*] PUSH COMPLETE [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True))
-    summary.append(f"Success: ", style=Style(color=CORTEX_THEME["dim"]))
+    summary.append(
+        "[*] PUSH COMPLETE [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True)
+    )
+    summary.append("Success: ", style=Style(color=CORTEX_THEME["dim"]))
     summary.append(f"{update_result.success}\n", style=Style(color=CORTEX_THEME["success"]))
-    summary.append(f"Failed: ", style=Style(color=CORTEX_THEME["dim"]))
+    summary.append("Failed: ", style=Style(color=CORTEX_THEME["dim"]))
     summary.append(f"{update_result.failed}\n", style=Style(color=CORTEX_THEME["error"]))
-    summary.append(f"Skipped: ", style=Style(color=CORTEX_THEME["dim"]))
+    summary.append("Skipped: ", style=Style(color=CORTEX_THEME["dim"]))
     summary.append(f"{update_result.skipped}", style=Style(color=CORTEX_THEME["warning"]))
 
-    console.print(Panel(
-        Align.center(summary),
-        border_style=Style(color=CORTEX_THEME["success"]),
-        box=box.DOUBLE,
-    ))
+    console.print(
+        Panel(
+            Align.center(summary),
+            border_style=Style(color=CORTEX_THEME["success"]),
+            box=box.DOUBLE,
+        )
+    )
 
 
 @sync_app.command("status")
@@ -359,8 +374,10 @@ def sync_status():
     content.append("NOTION: ", style=Style(color=CORTEX_THEME["dim"]))
     if notion.ready:
         content.append("Connected\n", style=Style(color=CORTEX_THEME["success"]))
-        content.append(f"  Databases configured: {notion.get_configured_database_count()}\n",
-                       style=Style(color=CORTEX_THEME["dim"]))
+        content.append(
+            f"  Databases configured: {notion.get_configured_database_count()}\n",
+            style=Style(color=CORTEX_THEME["dim"]),
+        )
     else:
         content.append("Not Connected\n", style=Style(color=CORTEX_THEME["error"]))
 
@@ -369,12 +386,22 @@ def sync_status():
     if graph.is_available:
         content.append("Connected\n", style=Style(color=CORTEX_THEME["success"]))
         stats = graph.get_stats()
-        content.append(f"  URI: {stats.get('uri', 'N/A')}\n", style=Style(color=CORTEX_THEME["dim"]))
-        content.append(f"  Total nodes: {stats.get('total_nodes', 0)}\n", style=Style(color=CORTEX_THEME["dim"]))
-        content.append(f"  Total edges: {stats.get('total_edges', 0)}\n", style=Style(color=CORTEX_THEME["dim"]))
+        content.append(
+            f"  URI: {stats.get('uri', 'N/A')}\n", style=Style(color=CORTEX_THEME["dim"])
+        )
+        content.append(
+            f"  Total nodes: {stats.get('total_nodes', 0)}\n",
+            style=Style(color=CORTEX_THEME["dim"]),
+        )
+        content.append(
+            f"  Total edges: {stats.get('total_edges', 0)}\n",
+            style=Style(color=CORTEX_THEME["dim"]),
+        )
     else:
         content.append("Not Connected\n", style=Style(color=CORTEX_THEME["error"]))
-        content.append("  Install with: pip install neo4j\n", style=Style(color=CORTEX_THEME["dim"]))
+        content.append(
+            "  Install with: pip install neo4j\n", style=Style(color=CORTEX_THEME["dim"])
+        )
         content.append("  Start with: neo4j start\n", style=Style(color=CORTEX_THEME["dim"]))
 
     # Protection status
@@ -384,16 +411,19 @@ def sync_status():
     else:
         content.append("DISABLED (writes allowed)\n", style=Style(color=CORTEX_THEME["success"]))
 
-    console.print(Panel(
-        content,
-        border_style=Style(color=CORTEX_THEME["primary"]),
-        box=box.HEAVY,
-    ))
+    console.print(
+        Panel(
+            content,
+            border_style=Style(color=CORTEX_THEME["primary"]),
+            box=box.HEAVY,
+        )
+    )
 
 
 # ============================================================================
 # GRAPH COMMANDS
 # ============================================================================
+
 
 @graph_app.command("stats")
 def graph_stats():
@@ -405,20 +435,26 @@ def graph_stats():
     graph = get_shadow_graph()
 
     if not graph.is_available:
-        console.print(Panel(
-            "[bold red]Shadow Graph not available.[/bold red]",
-            border_style=Style(color=CORTEX_THEME["error"]),
-        ))
+        console.print(
+            Panel(
+                "[bold red]Shadow Graph not available.[/bold red]",
+                border_style=Style(color=CORTEX_THEME["error"]),
+            )
+        )
         raise typer.Exit(1)
 
     stats = graph.get_stats()
 
     # Build display
     content = Text()
-    content.append("[*] SHADOW GRAPH STATS [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True))
+    content.append(
+        "[*] SHADOW GRAPH STATS [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True)
+    )
 
     content.append(f"URI: {stats.get('uri', 'N/A')}\n", style=Style(color=CORTEX_THEME["dim"]))
-    content.append(f"Database: {stats.get('database', 'N/A')}\n\n", style=Style(color=CORTEX_THEME["dim"]))
+    content.append(
+        f"Database: {stats.get('database', 'N/A')}\n\n", style=Style(color=CORTEX_THEME["dim"])
+    )
 
     # Nodes table
     content.append("NODES:\n", style=Style(color=CORTEX_THEME["secondary"]))
@@ -435,16 +471,18 @@ def graph_stats():
         content.append(f"{count:,}\n", style=Style(color=CORTEX_THEME["white"]))
 
     # Totals
-    content.append(f"\nTOTAL NODES: ", style=Style(color=CORTEX_THEME["dim"]))
+    content.append("\nTOTAL NODES: ", style=Style(color=CORTEX_THEME["dim"]))
     content.append(f"{stats.get('total_nodes', 0):,}\n", style=Style(color=CORTEX_THEME["accent"]))
-    content.append(f"TOTAL EDGES: ", style=Style(color=CORTEX_THEME["dim"]))
+    content.append("TOTAL EDGES: ", style=Style(color=CORTEX_THEME["dim"]))
     content.append(f"{stats.get('total_edges', 0):,}", style=Style(color=CORTEX_THEME["accent"]))
 
-    console.print(Panel(
-        content,
-        border_style=Style(color=CORTEX_THEME["secondary"]),
-        box=box.HEAVY,
-    ))
+    console.print(
+        Panel(
+            content,
+            border_style=Style(color=CORTEX_THEME["secondary"]),
+            box=box.HEAVY,
+        )
+    )
 
 
 @graph_app.command("centrality")
@@ -459,10 +497,12 @@ def graph_centrality(
     graph = get_shadow_graph()
 
     if not graph.is_available:
-        console.print(Panel(
-            "[bold red]Shadow Graph not available.[/bold red]",
-            border_style=Style(color=CORTEX_THEME["error"]),
-        ))
+        console.print(
+            Panel(
+                "[bold red]Shadow Graph not available.[/bold red]",
+                border_style=Style(color=CORTEX_THEME["error"]),
+            )
+        )
         raise typer.Exit(1)
 
     console.print("[cyan]Computing PageRank centrality...[/cyan]")
@@ -509,9 +549,10 @@ def graph_centrality(
 # Z-SCORE COMMANDS
 # ============================================================================
 
+
 @zscore_app.command("compute")
 def zscore_compute(
-    atom_id: Optional[str] = typer.Argument(
+    atom_id: str | None = typer.Argument(
         None,
         help="Specific atom ID to compute (or all if not provided)",
     ),
@@ -523,40 +564,54 @@ def zscore_compute(
     """
     engine = get_zscore_engine()
     notion = NotionClient()
-    settings = get_settings()
+    get_settings()
 
     if atom_id:
         # Single atom
         result = engine.compute(AtomMetrics(atom_id=atom_id))
 
         content = Text()
-        content.append("[*] Z-SCORE RESULT [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True))
+        content.append(
+            "[*] Z-SCORE RESULT [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True)
+        )
         content.append(f"Atom: {atom_id}\n\n", style=Style(color=CORTEX_THEME["dim"]))
 
         content.append("COMPONENTS:\n", style=Style(color=CORTEX_THEME["secondary"]))
-        content.append(f"  Decay (D):      {result.components.decay:.3f}\n",
-                       style=Style(color=CORTEX_THEME["white"]))
-        content.append(f"  Centrality (C): {result.components.centrality:.3f}\n",
-                       style=Style(color=CORTEX_THEME["white"]))
-        content.append(f"  Project (P):    {result.components.project:.3f}\n",
-                       style=Style(color=CORTEX_THEME["white"]))
-        content.append(f"  Novelty (N):    {result.components.novelty:.3f}\n",
-                       style=Style(color=CORTEX_THEME["white"]))
+        content.append(
+            f"  Decay (D):      {result.components.decay:.3f}\n",
+            style=Style(color=CORTEX_THEME["white"]),
+        )
+        content.append(
+            f"  Centrality (C): {result.components.centrality:.3f}\n",
+            style=Style(color=CORTEX_THEME["white"]),
+        )
+        content.append(
+            f"  Project (P):    {result.components.project:.3f}\n",
+            style=Style(color=CORTEX_THEME["white"]),
+        )
+        content.append(
+            f"  Novelty (N):    {result.components.novelty:.3f}\n",
+            style=Style(color=CORTEX_THEME["white"]),
+        )
 
-        content.append(f"\nTOTAL Z-SCORE: ", style=Style(color=CORTEX_THEME["dim"]))
-        content.append(f"{result.z_score:.3f}\n", style=Style(color=CORTEX_THEME["accent"], bold=True))
+        content.append("\nTOTAL Z-SCORE: ", style=Style(color=CORTEX_THEME["dim"]))
+        content.append(
+            f"{result.z_score:.3f}\n", style=Style(color=CORTEX_THEME["accent"], bold=True)
+        )
 
-        content.append(f"ACTIVATED: ", style=Style(color=CORTEX_THEME["dim"]))
+        content.append("ACTIVATED: ", style=Style(color=CORTEX_THEME["dim"]))
         if result.z_activation:
             content.append("Yes (Focus Stream)\n", style=Style(color=CORTEX_THEME["success"]))
         else:
             content.append("No\n", style=Style(color=CORTEX_THEME["warning"]))
 
-        console.print(Panel(
-            content,
-            border_style=Style(color=CORTEX_THEME["primary"]),
-            box=box.HEAVY,
-        ))
+        console.print(
+            Panel(
+                content,
+                border_style=Style(color=CORTEX_THEME["primary"]),
+                box=box.HEAVY,
+            )
+        )
     else:
         # All atoms
         console.print("[cyan]Fetching atoms from Notion...[/cyan]")
@@ -567,15 +622,15 @@ def zscore_compute(
             last_edited = page.get("last_edited_time")
             last_touched = None
             if last_edited:
-                try:
+                with contextlib.suppress(ValueError, TypeError):
                     last_touched = datetime.fromisoformat(last_edited.replace("Z", "+00:00"))
-                except (ValueError, TypeError):
-                    pass
 
-            metrics_list.append(AtomMetrics(
-                atom_id=page["id"],
-                last_touched=last_touched,
-            ))
+            metrics_list.append(
+                AtomMetrics(
+                    atom_id=page["id"],
+                    last_touched=last_touched,
+                )
+            )
 
         console.print(f"[cyan]Computing Z-Scores for {len(metrics_list)} atoms...[/cyan]")
         results = engine.compute_batch(metrics_list)
@@ -585,23 +640,31 @@ def zscore_compute(
         avg_score = sum(r.z_score for r in results) / len(results) if results else 0
 
         content = Text()
-        content.append("[*] Z-SCORE BATCH RESULTS [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True))
+        content.append(
+            "[*] Z-SCORE BATCH RESULTS [*]\n\n",
+            style=Style(color=CORTEX_THEME["primary"], bold=True),
+        )
         content.append(f"Total atoms: {len(results)}\n", style=Style(color=CORTEX_THEME["dim"]))
         content.append(f"Activated: {activated}\n", style=Style(color=CORTEX_THEME["success"]))
-        content.append(f"Average Z-Score: {avg_score:.3f}\n", style=Style(color=CORTEX_THEME["accent"]))
+        content.append(
+            f"Average Z-Score: {avg_score:.3f}\n", style=Style(color=CORTEX_THEME["accent"])
+        )
 
-        console.print(Panel(
-            content,
-            border_style=Style(color=CORTEX_THEME["success"]),
-            box=box.DOUBLE,
-        ))
+        console.print(
+            Panel(
+                content,
+                border_style=Style(color=CORTEX_THEME["success"]),
+                box=box.DOUBLE,
+            )
+        )
 
 
 @zscore_app.command("activate")
 def zscore_activate(
     dry_run: bool = typer.Option(
         False,
-        "--dry-run", "-n",
+        "--dry-run",
+        "-n",
         help="Preview without updating Notion",
     ),
 ):
@@ -618,6 +681,7 @@ def zscore_activate(
 # FORCE Z COMMANDS
 # ============================================================================
 
+
 @forcez_app.command("analyze")
 def forcez_analyze(
     atom_id: str = typer.Argument(..., help="Atom ID to analyze"),
@@ -631,32 +695,43 @@ def forcez_analyze(
     result = engine.analyze(atom_id)
 
     content = Text()
-    content.append("[*] FORCE Z ANALYSIS [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True))
+    content.append(
+        "[*] FORCE Z ANALYSIS [*]\n\n", style=Style(color=CORTEX_THEME["primary"], bold=True)
+    )
     content.append(f"Target: {atom_id[:12]}...\n\n", style=Style(color=CORTEX_THEME["dim"]))
 
     if result.should_backtrack:
         content.append("RECOMMENDATION: ", style=Style(color=CORTEX_THEME["dim"]))
         content.append("BACKTRACK NEEDED\n\n", style=Style(color=CORTEX_THEME["error"], bold=True))
 
-        content.append(f"Weak Prerequisites: {len(result.weak_prerequisites)}\n",
-                       style=Style(color=CORTEX_THEME["warning"]))
+        content.append(
+            f"Weak Prerequisites: {len(result.weak_prerequisites)}\n",
+            style=Style(color=CORTEX_THEME["warning"]),
+        )
 
         content.append("\nREMEDIATION PATH:\n", style=Style(color=CORTEX_THEME["secondary"]))
         for i, prereq_id in enumerate(result.recommended_path[:5], 1):
-            content.append(f"  {i}. {prereq_id[:12]}...\n",
-                           style=Style(color=CORTEX_THEME["white"]))
+            content.append(
+                f"  {i}. {prereq_id[:12]}...\n", style=Style(color=CORTEX_THEME["white"])
+            )
 
         content.append(f"\n{result.explanation}\n", style=Style(color=CORTEX_THEME["dim"]))
     else:
         content.append("RECOMMENDATION: ", style=Style(color=CORTEX_THEME["dim"]))
-        content.append("NO BACKTRACKING NEEDED\n\n", style=Style(color=CORTEX_THEME["success"], bold=True))
+        content.append(
+            "NO BACKTRACKING NEEDED\n\n", style=Style(color=CORTEX_THEME["success"], bold=True)
+        )
         content.append(f"{result.explanation}\n", style=Style(color=CORTEX_THEME["dim"]))
 
-    console.print(Panel(
-        content,
-        border_style=Style(color=CORTEX_THEME["error"] if result.should_backtrack else CORTEX_THEME["success"]),
-        box=box.HEAVY,
-    ))
+    console.print(
+        Panel(
+            content,
+            border_style=Style(
+                color=CORTEX_THEME["error"] if result.should_backtrack else CORTEX_THEME["success"]
+            ),
+            box=box.HEAVY,
+        )
+    )
 
 
 @forcez_app.command("queue")
@@ -673,11 +748,13 @@ def forcez_queue(
     queue = engine.get_remediation_queue(atom_id, limit=limit)
 
     if not queue:
-        console.print(Panel(
-            "[green]No remediation needed.[/green]\n"
-            "All prerequisites are sufficiently mastered.",
-            border_style=Style(color=CORTEX_THEME["success"]),
-        ))
+        console.print(
+            Panel(
+                "[green]No remediation needed.[/green]\n"
+                "All prerequisites are sufficiently mastered.",
+                border_style=Style(color=CORTEX_THEME["success"]),
+            )
+        )
         return
 
     table = Table(
@@ -692,7 +769,9 @@ def forcez_queue(
 
     for i, item in enumerate(queue, 1):
         state = item.get("memory_state", "NEW")
-        state_style = Style(color=CORTEX_THEME["warning"] if state == "LEARNING" else CORTEX_THEME["dim"])
+        state_style = Style(
+            color=CORTEX_THEME["warning"] if state == "LEARNING" else CORTEX_THEME["dim"]
+        )
 
         table.add_row(
             str(i),
@@ -708,6 +787,7 @@ def forcez_queue(
 # ============================================================================
 # MAIN REGISTRATION
 # ============================================================================
+
 
 def register_cortex_sync_commands(app: typer.Typer) -> None:
     """Register Cortex 2.0 sync commands with the main CLI app."""

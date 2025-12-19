@@ -109,6 +109,36 @@ Use `::` for nested decks (e.g., `CCNA::ITN::M01 Networking Today`).
 
 Options: `Basic`, `Basic (and reversed card)`, `Cloze`, custom types.
 
+### ANKI_QUERY
+
+| Property | Value |
+|----------|-------|
+| Type | string |
+| Default | Complex query filtering CCNA ITN sections |
+
+Anki search query for filtering cards during pull. Supports section tags (e.g., `tag:section:2.1.4`).
+
+### Anki Note Types (src/anki/config.py)
+
+| Constant | Value | Usage |
+|----------|-------|-------|
+| `FLASHCARD_NOTE_TYPE` | `LearningOS-v2` | Standard flashcards |
+| `CLOZE_NOTE_TYPE` | `LearningOS-v2 Cloze-NEW` | Cloze deletions |
+| `BASE_DECK` | `CCNA::ITN` | Parent deck |
+| `CURRICULUM_ID` | `ccna-itn` | Tag prefix |
+| `SOURCE_TAG` | `cortex` | System identifier |
+
+### Anki Deck Structure
+
+Module decks follow pattern: `CCNA::ITN::M{NN} {Module Name}`
+
+| Module | Deck Name |
+|--------|-----------|
+| 1 | `CCNA::ITN::M01 Networking Today` |
+| 5 | `CCNA::ITN::M05 Number Systems` |
+| 11 | `CCNA::ITN::M11 IPv4 Addressing` |
+| 17 | `CCNA::ITN::M17 Build a Small Network` |
+
 ---
 
 ## AI Integration
@@ -377,6 +407,89 @@ Cortex 2.0 prioritization weights.
 | `ZSCORE_WEIGHT_PROJECT` | 0.25 | Project relevance |
 | `ZSCORE_WEIGHT_NOVELTY` | 0.20 | Novelty |
 | `ZSCORE_ACTIVATION_THRESHOLD` | 0.5 | Focus Stream activation |
+
+---
+
+## CCNA Content Generation
+
+### CCNA_MODULES_PATH
+
+| Property | Value |
+|----------|-------|
+| Type | string |
+| Default | `docs/source-materials/CCNA` |
+
+Path to CCNA module TXT files.
+
+### CCNA_MIN_QUALITY_GRADE
+
+| Property | Value |
+|----------|-------|
+| Type | string |
+| Default | `B` |
+| Options | `A`, `B`, `C`, `D` |
+
+Minimum grade to accept without flagging.
+
+### CCNA Atom Type Distribution
+
+Target percentages for generated content:
+
+| Type | Default | Description |
+|------|---------|-------------|
+| `CCNA_FLASHCARD_PERCENTAGE` | 0.50 | Basic Q&A (50%) |
+| `CCNA_MCQ_PERCENTAGE` | 0.20 | Multiple choice (20%) |
+| `CCNA_CLOZE_PERCENTAGE` | 0.10 | Fill-in-blank (10%) |
+| `CCNA_PARSONS_PERCENTAGE` | 0.10 | Code ordering (10%) |
+| `CCNA_OTHER_PERCENTAGE` | 0.10 | Matching, etc. (10%) |
+
+---
+
+## Socratic Tutoring
+
+The Socratic dialogue system uses the Gemini API for LLM-powered tutoring.
+
+### Configuration (src/cortex/socratic.py)
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| Model | `gemini-2.0-flash` | Fast responses for interactive dialogue |
+| Stuck Threshold | 3 | Consecutive "don't know" before escalating |
+| Max Scaffold | 4 | Levels before full reveal |
+
+### Scaffold Level Progression
+
+Learner confusion/stuck signals trigger automatic scaffold escalation:
+
+1. Pure Socratic (questions only)
+2. Conceptual nudge
+3. Partial reveal
+4. Worked example
+5. Full answer with explanation
+
+---
+
+## Struggle Weights
+
+### Default Struggle Areas (015_struggle_weights.sql)
+
+Pre-configured struggles based on common CCNA weak areas:
+
+| Module | Severity | Failure Modes | Notes |
+|--------|----------|---------------|-------|
+| 5 | Critical | FM3 | Binary/Decimal/Hex conversions |
+| 11 | Critical | FM3, FM4 | Subnetting, VLSM calculations |
+| 12 | Critical | FM1, FM3 | IPv6 addressing, EUI-64 |
+| 3 | High | FM1, FM6 | OSI vs TCP-IP mapping |
+
+### Severity Weights
+
+| Severity | Weight |
+|----------|--------|
+| `critical` | 1.0 |
+| `high` | 0.75 |
+| `medium` | 0.5 |
+| `low` | 0.25 |
 
 ---
 

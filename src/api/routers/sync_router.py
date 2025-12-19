@@ -1,13 +1,16 @@
 """
 Sync operations router.
 
-Endpoints for triggering Notion sync, Anki push/pull, and checking sync status.
+Endpoints for triggering Notion sync and checking sync status.
+
+Note: Anki push/pull operations are available via CLI (`nls sync anki-push`, `nls sync anki-pull`).
+The API endpoints were removed as they duplicated CLI functionality with no consumers.
 """
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -37,7 +40,7 @@ class SyncResponse(BaseModel):
 
     success: bool
     message: str
-    stats: Dict[str, Any]
+    stats: dict[str, Any]
     timestamp: str = datetime.utcnow().isoformat()
 
 
@@ -80,8 +83,8 @@ def sync_notion(request: SyncRequest = SyncRequest()) -> SyncResponse:
     )
 
     try:
-        from src.sync.sync_service import SyncService
         from src.sync.notion_client import NotionClient
+        from src.sync.sync_service import SyncService
 
         # Create service
         sync_service = SyncService(notion_client=NotionClient())
@@ -130,72 +133,6 @@ def sync_notion(request: SyncRequest = SyncRequest()) -> SyncResponse:
         )
 
 
-@router.post("/anki/push", response_model=SyncResponse, summary="Push clean atoms to Anki")
-def sync_anki_push(
-    dry_run: bool = False,
-    min_quality: str = "B",
-) -> SyncResponse:
-    """
-    Push clean atoms from PostgreSQL to Anki.
-
-    Only pushes cards with quality grade >= min_quality.
-    Creates new cards and updates existing ones via AnkiConnect.
-
-    **Phase 4 Implementation Required**
-    """
-    logger.info(f"Anki push requested (min_quality={min_quality})")
-
-    # TODO: Phase 4 - Implement with AnkiClient
-    raise HTTPException(
-        status_code=501,
-        detail="Anki push not yet implemented (Phase 4: Anki Integration)",
-    )
-
-
-@router.post("/anki/pull", response_model=SyncResponse, summary="Pull FSRS stats from Anki")
-def sync_anki_pull(
-    dry_run: bool = False,
-    deck: str | None = None,
-) -> SyncResponse:
-    """
-    Pull FSRS stats from Anki to PostgreSQL.
-
-    Fetches ease_factor, interval, stability, retrievability, etc.
-    Updates learning_atoms table with latest Anki metadata.
-
-    **Phase 4 Implementation Required**
-    """
-    logger.info(f"Anki pull requested (deck={deck or 'default'})")
-
-    # TODO: Phase 4 - Implement with AnkiClient
-    raise HTTPException(
-        status_code=501,
-        detail="Anki pull not yet implemented (Phase 4: Anki Integration)",
-    )
-
-
-@router.post("/all", response_model=SyncResponse, summary="Full sync pipeline")
-def sync_all(request: SyncRequest = SyncRequest()) -> SyncResponse:
-    """
-    Run full sync pipeline: Notion → PostgreSQL → Clean → Anki.
-
-    Orchestrates:
-    1. Notion → PostgreSQL (staging)
-    2. Cleaning pipeline (staging → canonical)
-    3. Push to Anki (canonical → AnkiConnect)
-    4. Pull FSRS stats (Anki → canonical)
-
-    **Phase 2-4 Implementation Required**
-    """
-    logger.info("Full sync pipeline requested")
-
-    # TODO: Phase 2-4 - Implement full pipeline
-    raise HTTPException(
-        status_code=501,
-        detail="Full sync pipeline not yet implemented (Phases 2-4)",
-    )
-
-
 @router.get("/status", response_model=SyncStatusResponse, summary="Get sync status")
 def get_sync_status() -> SyncStatusResponse:
     """
@@ -236,8 +173,6 @@ def get_sync_status() -> SyncStatusResponse:
     # Calculate next sync if auto-sync enabled
     next_sync_timestamp: str | None = None
     if settings.sync_interval_minutes > 0 and last_sync_timestamp:
-        from datetime import datetime, timedelta
-
         last_sync_dt = datetime.fromisoformat(last_sync_timestamp)
         next_sync_dt = last_sync_dt + timedelta(minutes=settings.sync_interval_minutes)
         next_sync_timestamp = next_sync_dt.isoformat()

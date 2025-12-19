@@ -26,21 +26,21 @@ Based on research from:
 Author: Cortex System
 Version: 2.0.0 (Neuromorphic Architecture)
 """
+
 from __future__ import annotations
 
-import json
-import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
-from uuid import UUID, uuid4
+from typing import Any
 
 from loguru import logger
 
 try:
     from sqlalchemy import text
+
     from src.db.database import engine
+
     HAS_DATABASE = True
 except ImportError:
     HAS_DATABASE = False
@@ -51,34 +51,39 @@ except ImportError:
 # ENUMERATIONS
 # =============================================================================
 
+
 class ProcessingSpeed(str, Enum):
     """Classification of learner's processing speed."""
-    FAST_ACCURATE = "fast_accurate"       # <3s, >80% accuracy
-    FAST_INACCURATE = "fast_inaccurate"   # <3s, ≤80% accuracy
-    SLOW_ACCURATE = "slow_accurate"       # ≥3s, >80% accuracy
-    SLOW_INACCURATE = "slow_inaccurate"   # ≥3s, ≤80% accuracy
-    MODERATE = "moderate"                  # Default/balanced
+
+    FAST_ACCURATE = "fast_accurate"  # <3s, >80% accuracy
+    FAST_INACCURATE = "fast_inaccurate"  # <3s, ≤80% accuracy
+    SLOW_ACCURATE = "slow_accurate"  # ≥3s, >80% accuracy
+    SLOW_INACCURATE = "slow_inaccurate"  # ≥3s, ≤80% accuracy
+    MODERATE = "moderate"  # Default/balanced
 
 
 class Chronotype(str, Enum):
     """Learner's chronotype (biological clock preference)."""
-    MORNING_LARK = "morning_lark"   # Peak 6-10am
-    NEUTRAL = "neutral"              # Peak 10am-2pm
-    NIGHT_OWL = "night_owl"          # Peak 8pm-12am
+
+    MORNING_LARK = "morning_lark"  # Peak 6-10am
+    NEUTRAL = "neutral"  # Peak 10am-2pm
+    NIGHT_OWL = "night_owl"  # Peak 8pm-12am
 
 
 class PreferredModality(str, Enum):
     """Learning modality preference."""
-    VISUAL = "visual"               # Diagrams, graphs, spatial
-    SYMBOLIC = "symbolic"           # Formulas, equations, proofs
-    PROCEDURAL = "procedural"       # Step-by-step, algorithms
-    NARRATIVE = "narrative"         # Stories, analogies, context
-    MIXED = "mixed"                 # No strong preference
+
+    VISUAL = "visual"  # Diagrams, graphs, spatial
+    SYMBOLIC = "symbolic"  # Formulas, equations, proofs
+    PROCEDURAL = "procedural"  # Step-by-step, algorithms
+    NARRATIVE = "narrative"  # Stories, analogies, context
+    MIXED = "mixed"  # No strong preference
 
 
 # =============================================================================
 # LEARNER PERSONA DATACLASS
 # =============================================================================
+
 
 @dataclass
 class LearnerPersona:
@@ -106,6 +111,7 @@ class LearnerPersona:
         total_study_hours: Cumulative study time
         current_streak_days: Consecutive days studied
     """
+
     user_id: str = "default"
 
     # Processing characteristics
@@ -119,17 +125,17 @@ class LearnerPersona:
     low_energy_hours: list[int] = field(default_factory=lambda: [14, 15, 16])
 
     # Knowledge type strengths (0-1)
-    strength_factual: float = 0.5       # Memorizing facts, definitions
-    strength_conceptual: float = 0.5    # Understanding relationships
-    strength_procedural: float = 0.5    # Following multi-step processes
-    strength_strategic: float = 0.5     # Problem-solving, metacognition
+    strength_factual: float = 0.5  # Memorizing facts, definitions
+    strength_conceptual: float = 0.5  # Understanding relationships
+    strength_procedural: float = 0.5  # Following multi-step processes
+    strength_strategic: float = 0.5  # Problem-solving, metacognition
 
     # Mechanism effectiveness (0-1)
-    effectiveness_retrieval: float = 0.5      # Free recall
-    effectiveness_generation: float = 0.5     # Producing answers
-    effectiveness_elaboration: float = 0.5    # Connecting to prior knowledge
-    effectiveness_application: float = 0.5    # Using in new contexts
-    effectiveness_discrimination: float = 0.5 # Distinguishing similar items
+    effectiveness_retrieval: float = 0.5  # Free recall
+    effectiveness_generation: float = 0.5  # Producing answers
+    effectiveness_elaboration: float = 0.5  # Connecting to prior knowledge
+    effectiveness_application: float = 0.5  # Using in new contexts
+    effectiveness_discrimination: float = 0.5  # Distinguishing similar items
 
     # Struggle patterns
     interference_prone_topics: list[str] = field(default_factory=list)
@@ -143,9 +149,9 @@ class LearnerPersona:
     preferred_modality: PreferredModality = PreferredModality.MIXED
 
     # Acceleration metrics
-    acceleration_rate: float = 0.0       # Atoms mastered per hour
-    current_velocity: float = 0.0        # Recent learning rate
-    velocity_trend: str = "stable"       # "improving", "stable", "declining"
+    acceleration_rate: float = 0.0  # Atoms mastered per hour
+    current_velocity: float = 0.0  # Recent learning rate
+    velocity_trend: str = "stable"  # "improving", "stable", "declining"
 
     # Cumulative metrics
     total_study_hours: float = 0.0
@@ -155,13 +161,13 @@ class LearnerPersona:
     longest_streak_days: int = 0
 
     # P-FIT and Hippocampal indices (derived from performance)
-    pfit_efficiency: float = 0.5         # Integration ability
+    pfit_efficiency: float = 0.5  # Integration ability
     hippocampal_efficiency: float = 0.5  # Pattern separation ability
 
     # Timestamps
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    last_session_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    last_session_at: datetime | None = None
 
     def to_prompt_context(self) -> str:
         """
@@ -221,23 +227,23 @@ class LearnerPersona:
 
         context = f"""
 LEARNER PROFILE:
-- Processing Style: {processing_guide.get(self.processing_speed, 'Unknown')}
+- Processing Style: {processing_guide.get(self.processing_speed, "Unknown")}
 - Attention Span: ~{self.attention_span_minutes} minutes before fatigue
 - Peak Performance: {self.peak_performance_hour}:00 (chronotype: {self.chronotype.value})
-- Strengths: {', '.join(strengths) if strengths else 'Balanced across domains'}
-- Areas for Growth: {', '.join(weaknesses) if weaknesses else 'None identified'}
-- Topics Often Confused: {', '.join(self.interference_prone_topics[:3]) if self.interference_prone_topics else 'None tracked'}
-- Preferred Explanation Style: {modality_guide.get(self.preferred_modality, 'Mixed')}
+- Strengths: {", ".join(strengths) if strengths else "Balanced across domains"}
+- Areas for Growth: {", ".join(weaknesses) if weaknesses else "None identified"}
+- Topics Often Confused: {", ".join(self.interference_prone_topics[:3]) if self.interference_prone_topics else "None tracked"}
+- Preferred Explanation Style: {modality_guide.get(self.preferred_modality, "Mixed")}
 - Calibration: {calibration_note}
 - Learning Velocity: {self.current_velocity:.1f} atoms/hour ({self.velocity_trend})
 - Study Streak: {self.current_streak_days} days
 
 COMMUNICATION GUIDELINES:
-- {'Use concrete examples and analogies' if self.strength_conceptual < 0.5 else 'Can handle abstract explanations'}
-- {'Break down into small numbered steps' if self.strength_procedural < 0.5 else 'Can follow complex procedures'}
-- {'Include visual representations when possible' if self.preferred_modality == PreferredModality.VISUAL else 'Text-based explanations work well'}
-- {'Challenge overconfidence with Socratic questions' if self.calibration_score > 0.6 else 'Build confidence with positive reinforcement' if self.calibration_score < 0.4 else 'Balance challenge and support'}
-- {'Suggest slowing down before answering' if self.processing_speed == ProcessingSpeed.FAST_INACCURATE else 'Maintain current pacing'}
+- {"Use concrete examples and analogies" if self.strength_conceptual < 0.5 else "Can handle abstract explanations"}
+- {"Break down into small numbered steps" if self.strength_procedural < 0.5 else "Can follow complex procedures"}
+- {"Include visual representations when possible" if self.preferred_modality == PreferredModality.VISUAL else "Text-based explanations work well"}
+- {"Challenge overconfidence with Socratic questions" if self.calibration_score > 0.6 else "Build confidence with positive reinforcement" if self.calibration_score < 0.4 else "Balance challenge and support"}
+- {"Suggest slowing down before answering" if self.processing_speed == ProcessingSpeed.FAST_INACCURATE else "Maintain current pacing"}
 
 P-FIT EFFICIENCY: {self.pfit_efficiency:.2f} (integration ability)
 HIPPOCAMPAL EFFICIENCY: {self.hippocampal_efficiency:.2f} (pattern separation ability)
@@ -280,7 +286,7 @@ HIPPOCAMPAL EFFICIENCY: {self.hippocampal_efficiency:.2f} (pattern separation ab
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "LearnerPersona":
+    def from_dict(cls, data: dict[str, Any]) -> LearnerPersona:
         """Create persona from dictionary."""
         return cls(
             user_id=data.get("user_id", "default"),
@@ -320,6 +326,7 @@ HIPPOCAMPAL EFFICIENCY: {self.hippocampal_efficiency:.2f} (pattern separation ab
 # SESSION STATISTICS
 # =============================================================================
 
+
 @dataclass
 class SessionStatistics:
     """
@@ -327,6 +334,7 @@ class SessionStatistics:
 
     Collected during a study session and passed to PersonaService.update_from_session().
     """
+
     # By knowledge type
     correct_by_type: dict[str, int] = field(default_factory=dict)
     incorrect_by_type: dict[str, int] = field(default_factory=dict)
@@ -354,7 +362,7 @@ class SessionStatistics:
 
     # Timestamps
     session_hour: int = 10  # Hour of day (0-23)
-    session_date: Optional[datetime] = None
+    session_date: datetime | None = None
 
     @property
     def overall_accuracy(self) -> float:
@@ -589,14 +597,12 @@ class PersonaService:
         # Calculate miscalibration
         # Overconfidence: high confidence but wrong
         overconfidence_rate = (
-            stats.high_confidence_incorrect / total_high_conf
-            if total_high_conf > 0 else 0
+            stats.high_confidence_incorrect / total_high_conf if total_high_conf > 0 else 0
         )
 
         # Underconfidence: low confidence but right
         underconfidence_rate = (
-            stats.low_confidence_correct / total_low_conf
-            if total_low_conf > 0 else 0
+            stats.low_confidence_correct / total_low_conf if total_low_conf > 0 else 0
         )
 
         # Calibration score: 0.5 + (overconfidence - underconfidence) / 2
@@ -604,8 +610,8 @@ class PersonaService:
 
         # Update with slow learning rate (calibration is stable)
         persona.calibration_score = (
-            persona.calibration_score * (1 - self.ALPHA_SLOW) +
-            session_calibration * self.ALPHA_SLOW
+            persona.calibration_score * (1 - self.ALPHA_SLOW)
+            + session_calibration * self.ALPHA_SLOW
         )
 
     def _update_chronotype(self, persona: LearnerPersona, stats: SessionStatistics) -> None:
@@ -666,15 +672,13 @@ class PersonaService:
         # Update velocity with EMA
         prev_velocity = persona.current_velocity
         persona.current_velocity = (
-            prev_velocity * (1 - self.ALPHA_FAST) +
-            session_velocity * self.ALPHA_FAST
+            prev_velocity * (1 - self.ALPHA_FAST) + session_velocity * self.ALPHA_FAST
         )
 
         # Update acceleration rate (weighted by mastery gain)
         mastery_rate = stats.total_correct / session_hours if session_hours > 0 else 0
         persona.acceleration_rate = (
-            persona.acceleration_rate * (1 - self.ALPHA) +
-            mastery_rate * self.ALPHA
+            persona.acceleration_rate * (1 - self.ALPHA) + mastery_rate * self.ALPHA
         )
 
         # Determine trend
@@ -689,7 +693,8 @@ class PersonaService:
     def _load_from_db(self) -> LearnerPersona:
         """Load persona from database."""
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT
                     strength_factual,
                     strength_conceptual,
@@ -708,7 +713,9 @@ class PersonaService:
                     longest_streak_days
                 FROM learner_profiles
                 WHERE user_id = :user_id
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
 
             row = result.fetchone()
 
@@ -743,7 +750,8 @@ class PersonaService:
     def _save_to_db(self, persona: LearnerPersona) -> None:
         """Save persona to database."""
         with engine.connect() as conn:
-            conn.execute(text("""
+            conn.execute(
+                text("""
                 INSERT INTO learner_profiles (
                     id, user_id,
                     strength_factual, strength_conceptual,
@@ -783,30 +791,33 @@ class PersonaService:
                     current_streak_days = :streak,
                     longest_streak_days = :longest_streak,
                     updated_at = NOW()
-            """), {
-                "user_id": persona.user_id,
-                "sf": persona.strength_factual,
-                "sc": persona.strength_conceptual,
-                "sp": persona.strength_procedural,
-                "ss": persona.strength_strategic,
-                "er": persona.effectiveness_retrieval,
-                "eg": persona.effectiveness_generation,
-                "ee": persona.effectiveness_elaboration,
-                "ea": persona.effectiveness_application,
-                "ed": persona.effectiveness_discrimination,
-                "cal": persona.calibration_score,
-                "session_dur": persona.preferred_session_length,
-                "peak_hour": persona.peak_performance_hour,
-                "total_hours": persona.total_study_hours,
-                "streak": persona.current_streak_days,
-                "longest_streak": persona.longest_streak_days,
-            })
+            """),
+                {
+                    "user_id": persona.user_id,
+                    "sf": persona.strength_factual,
+                    "sc": persona.strength_conceptual,
+                    "sp": persona.strength_procedural,
+                    "ss": persona.strength_strategic,
+                    "er": persona.effectiveness_retrieval,
+                    "eg": persona.effectiveness_generation,
+                    "ee": persona.effectiveness_elaboration,
+                    "ea": persona.effectiveness_application,
+                    "ed": persona.effectiveness_discrimination,
+                    "cal": persona.calibration_score,
+                    "session_dur": persona.preferred_session_length,
+                    "peak_hour": persona.peak_performance_hour,
+                    "total_hours": persona.total_study_hours,
+                    "streak": persona.current_streak_days,
+                    "longest_streak": persona.longest_streak_days,
+                },
+            )
             conn.commit()
 
 
 # =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
+
 
 def get_default_persona() -> LearnerPersona:
     """Get the default user's persona."""
@@ -820,8 +831,8 @@ def update_persona_from_interaction(
     response_time_ms: int,
     atom_type: str,
     knowledge_type: str,
-    confidence: Optional[str] = None,  # "high" or "low"
-    confused_with: Optional[str] = None,
+    confidence: str | None = None,  # "high" or "low"
+    confused_with: str | None = None,
 ) -> None:
     """
     Quick update for a single interaction.

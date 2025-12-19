@@ -11,10 +11,10 @@ References:
 - all-MiniLM-L6-v2 embeddings: 384 dimensions
 - Cosine similarity: measures angle between vectors (higher = more similar)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Tuple
 from uuid import UUID
 
 import numpy as np
@@ -23,7 +23,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from config import get_settings
-from src.semantic.embedding_service import EmbeddingService, EmbeddingResult
+from src.semantic.embedding_service import EmbeddingService
 
 
 @dataclass
@@ -62,7 +62,7 @@ class SemanticSimilarityService:
     def __init__(
         self,
         db_session: Session,
-        embedding_service: Optional[EmbeddingService] = None,
+        embedding_service: EmbeddingService | None = None,
     ):
         """
         Initialize the similarity service.
@@ -92,8 +92,8 @@ class SemanticSimilarityService:
 
     def _load_embeddings(
         self,
-        concept_id: Optional[UUID] = None,
-    ) -> Dict[UUID, Tuple[str, np.ndarray]]:
+        concept_id: UUID | None = None,
+    ) -> dict[UUID, tuple[str, np.ndarray]]:
         """
         Load all embeddings from database.
 
@@ -130,10 +130,10 @@ class SemanticSimilarityService:
 
     def find_semantic_duplicates(
         self,
-        threshold: Optional[float] = None,
+        threshold: float | None = None,
         limit: int = 100,
-        concept_id: Optional[UUID] = None,
-    ) -> List[SimilarityMatch]:
+        concept_id: UUID | None = None,
+    ) -> list[SimilarityMatch]:
         """
         Find semantically similar cards above threshold.
 
@@ -165,19 +165,21 @@ class SemanticSimilarityService:
         for i, id1 in enumerate(atom_ids):
             front1, emb1 = embeddings[id1]
 
-            for id2 in atom_ids[i + 1:]:  # Only compare with atoms after this one
+            for id2 in atom_ids[i + 1 :]:  # Only compare with atoms after this one
                 front2, emb2 = embeddings[id2]
 
                 similarity = self._cosine_similarity(emb1, emb2)
 
                 if similarity > threshold:
-                    matches.append(SimilarityMatch(
-                        atom_id_1=id1,
-                        atom_id_2=id2,
-                        front_1=front1,
-                        front_2=front2,
-                        similarity_score=similarity,
-                    ))
+                    matches.append(
+                        SimilarityMatch(
+                            atom_id_1=id1,
+                            atom_id_2=id2,
+                            front_1=front1,
+                            front_2=front2,
+                            similarity_score=similarity,
+                        )
+                    )
 
         # Sort by similarity descending and limit
         matches.sort(key=lambda m: m.similarity_score, reverse=True)
@@ -191,7 +193,7 @@ class SemanticSimilarityService:
         atom_id: UUID,
         threshold: float = 0.7,
         limit: int = 10,
-    ) -> List[SimilarityMatch]:
+    ) -> list[SimilarityMatch]:
         """
         Find atoms similar to a specific atom.
 
@@ -232,13 +234,15 @@ class SemanticSimilarityService:
             similarity = self._cosine_similarity(source_emb, other_emb)
 
             if similarity > threshold:
-                matches.append(SimilarityMatch(
-                    atom_id_1=atom_id,
-                    atom_id_2=other_id,
-                    front_1=source_front,
-                    front_2=other_front,
-                    similarity_score=similarity,
-                ))
+                matches.append(
+                    SimilarityMatch(
+                        atom_id_1=atom_id,
+                        atom_id_2=other_id,
+                        front_1=source_front,
+                        front_2=other_front,
+                        similarity_score=similarity,
+                    )
+                )
 
         # Sort by similarity descending and limit
         matches.sort(key=lambda m: m.similarity_score, reverse=True)
@@ -249,7 +253,7 @@ class SemanticSimilarityService:
         text: str,
         threshold: float = 0.7,
         limit: int = 10,
-    ) -> List[SimilarityMatch]:
+    ) -> list[SimilarityMatch]:
         """
         Find atoms similar to arbitrary text (not in database).
 
@@ -277,13 +281,15 @@ class SemanticSimilarityService:
             similarity = self._cosine_similarity(query_emb, emb)
 
             if similarity > threshold:
-                matches.append(SimilarityMatch(
-                    atom_id_1=placeholder_id,
-                    atom_id_2=atom_id,
-                    front_1=text,
-                    front_2=front,
-                    similarity_score=similarity,
-                ))
+                matches.append(
+                    SimilarityMatch(
+                        atom_id_1=placeholder_id,
+                        atom_id_2=atom_id,
+                        front_1=text,
+                        front_2=front,
+                        similarity_score=similarity,
+                    )
+                )
 
         # Sort by similarity descending and limit
         matches.sort(key=lambda m: m.similarity_score, reverse=True)
@@ -291,7 +297,7 @@ class SemanticSimilarityService:
 
     def store_duplicate_pairs(
         self,
-        matches: List[SimilarityMatch],
+        matches: list[SimilarityMatch],
         detection_method: str = "embedding",
     ) -> int:
         """
@@ -370,7 +376,7 @@ class SemanticSimilarityService:
 
         return stats
 
-    def dismiss_duplicate(self, duplicate_id: UUID, notes: Optional[str] = None) -> bool:
+    def dismiss_duplicate(self, duplicate_id: UUID, notes: str | None = None) -> bool:
         """
         Mark a duplicate pair as dismissed (not actually duplicates).
 
@@ -396,3 +402,109 @@ class SemanticSimilarityService:
         self.db.commit()
 
         return result.rowcount > 0
+
+
+# =============================================================
+# Lightweight Helper API for Sequencer Remediation
+# =============================================================
+def get_easier_neighbors(
+    db_session: Session,
+    concept_id: UUID,
+    *,
+    limit: int = 1,
+    difficulty_band: int = 2,
+    target_difficulty: int | None = None,
+) -> list[UUID]:
+    """Return up to N atom IDs that are similar but easier than the target concept.
+
+    Strategy (defensive against missing columns/tables):
+    - Find the cluster of the target concept (concepts.cluster_id)
+    - Select atoms within the same cluster with difficulty slightly below the
+      target concept's typical difficulty (banded to avoid trivial picks).
+    - Order by difficulty ascending, prefer MCQ/true_false over harder types.
+
+    On any error or missing schema, returns an empty list to avoid hard failures.
+    """
+    try:
+        # 1) Get cluster of the concept
+        cluster_q = text("""
+            SELECT cluster_id
+            FROM concepts
+            WHERE id = :cid
+        """)
+        cluster_row = db_session.execute(cluster_q, {"cid": str(concept_id)}).fetchone()
+        if not cluster_row or not getattr(cluster_row, "cluster_id", None):
+            return []
+        cluster_id = str(cluster_row.cluster_id)
+
+        # 2) Compute a reference difficulty from target concept atoms (median-ish)
+        # If difficulty not available, fallback to 3
+        try:
+            if target_difficulty is not None:
+                ref_diff = int(target_difficulty)
+            else:
+                diff_q = text(
+                    """
+                    SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY COALESCE(difficulty, 3)) AS med
+                    FROM learning_atoms
+                    WHERE concept_id = :cid
+                """
+                )
+                diff_row = db_session.execute(diff_q, {"cid": str(concept_id)}).fetchone()
+                ref_diff = int(round(float(diff_row.med))) if diff_row and diff_row.med is not None else 3
+        except Exception:
+            ref_diff = 3
+
+        band = max(0, int(difficulty_band))
+        max_easier = max(1, ref_diff - 1)
+        lower_bound = max(1, max_easier - band + 1) if band else 1
+
+        def _fetch(require_band: bool) -> list:
+            difficulty_clause = (
+                "AND COALESCE(la.difficulty, 3) BETWEEN :lower AND :upper" if require_band else ""
+            )
+            neighbor_q = text(
+                f"""
+                SELECT la.id
+                FROM learning_atoms la
+                JOIN concepts c ON la.concept_id = c.id
+                WHERE c.cluster_id = :cluster_id
+                  AND la.concept_id <> :cid
+                  {difficulty_clause}
+                ORDER BY
+                  COALESCE(la.difficulty, 3) ASC,
+                  CASE la.atom_type
+                    WHEN 'true_false' THEN 1
+                    WHEN 'mcq' THEN 2
+                    WHEN 'flashcard' THEN 3
+                    WHEN 'cloze' THEN 4
+                    WHEN 'matching' THEN 5
+                    WHEN 'parsons' THEN 6
+                    ELSE 7
+                  END,
+                  la.created_at DESC
+                LIMIT :limit
+            """
+            )
+            return db_session.execute(
+                neighbor_q,
+                {
+                    "cluster_id": cluster_id,
+                    "cid": str(concept_id),
+                    "limit": int(limit),
+                    "lower": lower_bound,
+                    "upper": max_easier,
+                },
+            ).fetchall()
+
+        # Prefer banded easier picks; fall back to any easier/equal if empty
+        rows = _fetch(require_band=band > 0)
+        if not rows and band > 0:
+            rows = _fetch(require_band=False)
+
+        from uuid import UUID as _UUID
+
+        return [_UUID(str(r.id)) for r in rows if getattr(r, "id", None)]
+    except Exception as e:
+        logger.debug(f"get_easier_neighbors fallback (no-op) due to: {e}")
+        return []

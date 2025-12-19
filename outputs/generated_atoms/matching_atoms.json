@@ -1,0 +1,766 @@
+[
+  {
+    "card_id": "3.5-MAT-001",
+    "atom_type": "matching",
+    "front": "Match each OSI layer to its PRIMARY function:",
+    "pairs": [
+      {
+        "left": "Layer 7 (Application)",
+        "right": "Process-to-process communications, user interfaces"
+      },
+      {
+        "left": "Layer 6 (Presentation)",
+        "right": "Data encryption, compression, format translation"
+      },
+      {
+        "left": "Layer 5 (Session)",
+        "right": "Dialog control, session management"
+      },
+      {
+        "left": "Layer 4 (Transport)",
+        "right": "Segmentation, flow control, error recovery"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.5-MAT-002",
+    "atom_type": "matching",
+    "front": "Match each OSI layer to its Protocol Data Unit (PDU) name:",
+    "pairs": [
+      {
+        "left": "Application/Presentation/Session",
+        "right": "Data"
+      },
+      {
+        "left": "Transport",
+        "right": "Segment (TCP) / Datagram (UDP)"
+      },
+      {
+        "left": "Network",
+        "right": "Packet"
+      },
+      {
+        "left": "Data Link",
+        "right": "Frame"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.5-MAT-003",
+    "atom_type": "matching",
+    "front": "Match each protocol to the OSI layer it operates on:",
+    "pairs": [
+      {
+        "left": "HTTP, FTP, DNS",
+        "right": "Application (Layer 7)"
+      },
+      {
+        "left": "TCP, UDP",
+        "right": "Transport (Layer 4)"
+      },
+      {
+        "left": "IP, ICMP",
+        "right": "Network (Layer 3)"
+      },
+      {
+        "left": "Ethernet",
+        "right": "Data Link (Layer 2)"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.5-MAT-004",
+    "atom_type": "matching",
+    "front": "Match each networking device to the OSI layer it primarily operates on:",
+    "pairs": [
+      {
+        "left": "Hub, Repeater",
+        "right": "Physical (Layer 1)"
+      },
+      {
+        "left": "Switch, Bridge",
+        "right": "Data Link (Layer 2)"
+      },
+      {
+        "left": "Router",
+        "right": "Network (Layer 3)"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.5-MAT-005",
+    "atom_type": "matching",
+    "front": "Match each OSI layer to the type of address it uses:",
+    "pairs": [
+      {
+        "left": "Layer 2",
+        "right": "MAC Address"
+      },
+      {
+        "left": "Layer 3",
+        "right": "IP Address"
+      },
+      {
+        "left": "Layer 4",
+        "right": "Port Number"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.6-MAT-001",
+    "atom_type": "matching",
+    "front": "Match each PDU name to its corresponding OSI layer:",
+    "pairs": [
+      {
+        "left": "Data",
+        "right": "Application Layer"
+      },
+      {
+        "left": "Segment",
+        "right": "Transport Layer"
+      },
+      {
+        "left": "Packet",
+        "right": "Network Layer"
+      },
+      {
+        "left": "Frame",
+        "right": "Data Link Layer"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.6-MAT-002",
+    "atom_type": "matching",
+    "front": "Match the header information added at each layer:",
+    "pairs": [
+      {
+        "left": "Application",
+        "right": "Application protocol header (e.g., HTTP)"
+      },
+      {
+        "left": "Transport",
+        "right": "Source/Destination Port, Sequence Numbers"
+      },
+      {
+        "left": "Network",
+        "right": "Source/Destination IP Addresses"
+      },
+      {
+        "left": "Data Link",
+        "right": "Source/Destination MAC Addresses"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.6-MAT-003",
+    "atom_type": "matching",
+    "front": "Match the correct order of encapsulation (top to bottom):",
+    "pairs": [
+      {
+        "left": "Step 1",
+        "right": "Application creates data"
+      },
+      {
+        "left": "Step 2",
+        "right": "Transport adds segment header"
+      },
+      {
+        "left": "Step 3",
+        "right": "Network adds IP header (packet)"
+      },
+      {
+        "left": "Step 4",
+        "right": "Data Link adds MAC header + FCS trailer (frame)"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "3.6-MAT-004",
+    "atom_type": "matching",
+    "front": "Match the correct order of de-encapsulation (bottom to top):",
+    "pairs": [
+      {
+        "left": "Step 1",
+        "right": "Physical receives bits"
+      },
+      {
+        "left": "Step 2",
+        "right": "Data Link removes Ethernet header/trailer"
+      },
+      {
+        "left": "Step 3",
+        "right": "Network removes IP header"
+      },
+      {
+        "left": "Step 4",
+        "right": "Transport removes TCP/UDP header"
+      }
+    ],
+    "module": 3
+  },
+  {
+    "card_id": "4.2-MAT-001",
+    "atom_type": "matching",
+    "front": "Match each cable type to its characteristics:",
+    "pairs": [
+      {
+        "term": "UTP (Unshielded Twisted Pair)",
+        "definition": "Most common LAN cable, RJ-45 connector, susceptible to EMI"
+      },
+      {
+        "term": "STP (Shielded Twisted Pair)",
+        "definition": "Better EMI protection, more expensive, requires grounding"
+      },
+      {
+        "term": "Coaxial",
+        "definition": "Used for cable TV/internet, BNC/F-type connectors, single conductor"
+      },
+      {
+        "term": "Fiber Optic",
+        "definition": "Uses light, immune to EMI, longest distances"
+      }
+    ],
+    "module": 4
+  },
+  {
+    "card_id": "4.2-MAT-002",
+    "atom_type": "matching",
+    "front": "Match each fiber type to its characteristics:",
+    "pairs": [
+      {
+        "term": "Single-mode (SMF)",
+        "definition": "Laser light source, small core (9 micron), longest distance (100+ km)"
+      },
+      {
+        "term": "Multimode (MMF)",
+        "definition": "LED light source, larger core (50/62.5 micron), shorter distance (< 2 km)"
+      }
+    ],
+    "module": 4
+  },
+  {
+    "card_id": "4.2-MAT-003",
+    "atom_type": "matching",
+    "front": "Match each cable wiring to its usage:",
+    "pairs": [
+      {
+        "term": "Straight-through",
+        "definition": "Unlike devices (PC to Switch, Router to Switch)"
+      },
+      {
+        "term": "Crossover",
+        "definition": "Like devices (Switch to Switch, PC to PC, Router to Router)"
+      },
+      {
+        "term": "Rollover (Console)",
+        "definition": "PC to Router/Switch console port"
+      }
+    ],
+    "module": 4
+  },
+  {
+    "card_id": "4.2-MAT-004",
+    "atom_type": "matching",
+    "front": "Match each wiring standard to its pin configuration:",
+    "pairs": [
+      {
+        "term": "T568A",
+        "definition": "Green pair on pins 1-2"
+      },
+      {
+        "term": "T568B",
+        "definition": "Orange pair on pins 1-2 (most common)"
+      },
+      {
+        "term": "Straight-through",
+        "definition": "Same standard on both ends"
+      },
+      {
+        "term": "Crossover",
+        "definition": "T568A on one end, T568B on other"
+      }
+    ],
+    "module": 4
+  },
+  {
+    "card_id": "5.1-MAT-001",
+    "atom_type": "matching",
+    "front": "Match each MAC address type to its description:",
+    "pairs": [
+      {
+        "term": "Unicast",
+        "definition": "Single specific destination (first octet bit 0 = 0)"
+      },
+      {
+        "term": "Broadcast",
+        "definition": "All devices (FF:FF:FF:FF:FF:FF)"
+      },
+      {
+        "term": "Multicast IPv4",
+        "definition": "Group address (01:00:5E:xx:xx:xx)"
+      },
+      {
+        "term": "Multicast IPv6",
+        "definition": "Group address (33:33:xx:xx:xx:xx)"
+      }
+    ],
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MAT-002",
+    "atom_type": "matching",
+    "front": "Match each Ethernet frame field to its function:",
+    "pairs": [
+      {
+        "term": "Preamble (7 bytes)",
+        "definition": "Synchronization pattern (10101010...)"
+      },
+      {
+        "term": "SFD (1 byte)",
+        "definition": "Start Frame Delimiter (10101011)"
+      },
+      {
+        "term": "Destination MAC (6 bytes)",
+        "definition": "Where the frame is going"
+      },
+      {
+        "term": "Source MAC (6 bytes)",
+        "definition": "Where the frame came from"
+      },
+      {
+        "term": "Type/Length (2 bytes)",
+        "definition": "Identifies upper layer protocol (0x0800=IPv4)"
+      },
+      {
+        "term": "FCS (4 bytes)",
+        "definition": "Error detection using CRC"
+      }
+    ],
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MAT-003",
+    "atom_type": "matching",
+    "front": "Match each switching method to its characteristic:",
+    "pairs": [
+      {
+        "term": "Store-and-Forward",
+        "definition": "Receives entire frame, checks FCS, highest latency, most reliable"
+      },
+      {
+        "term": "Cut-Through",
+        "definition": "Forwards after reading destination MAC, lowest latency, may forward errors"
+      },
+      {
+        "term": "Fragment-Free",
+        "definition": "Reads first 64 bytes (collision window), compromise approach"
+      }
+    ],
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MAT-004",
+    "atom_type": "matching",
+    "front": "Match each EtherType value to its protocol:",
+    "pairs": [
+      {
+        "term": "0x0800",
+        "definition": "IPv4"
+      },
+      {
+        "term": "0x86DD",
+        "definition": "IPv6"
+      },
+      {
+        "term": "0x0806",
+        "definition": "ARP"
+      },
+      {
+        "term": "0x8100",
+        "definition": "802.1Q VLAN tag"
+      }
+    ],
+    "module": 5
+  },
+  {
+    "card_id": "14.1-MAT-001",
+    "atom_type": "matching",
+    "front": "Match TCP vs UDP to their characteristics:",
+    "pairs": [
+      {
+        "term": "TCP",
+        "definition": "Connection-oriented, reliable, sequenced, flow control, 3-way handshake"
+      },
+      {
+        "term": "UDP",
+        "definition": "Connectionless, unreliable, best-effort, no handshake, lower overhead"
+      }
+    ],
+    "module": 14
+  },
+  {
+    "card_id": "14.1-MAT-002",
+    "atom_type": "matching",
+    "front": "Match TCP Header Field to Function:",
+    "pairs": [
+      {
+        "term": "Source Port",
+        "definition": "Identifies sending application"
+      },
+      {
+        "term": "Destination Port",
+        "definition": "Identifies receiving application"
+      },
+      {
+        "term": "Sequence Number",
+        "definition": "Tracks byte position in stream"
+      },
+      {
+        "term": "Acknowledgment Number",
+        "definition": "Confirms received bytes"
+      },
+      {
+        "term": "Window Size",
+        "definition": "Flow control (how much data can be sent)"
+      },
+      {
+        "term": "Checksum",
+        "definition": "Error detection"
+      }
+    ],
+    "module": 14
+  },
+  {
+    "card_id": "14.1-MAT-003",
+    "atom_type": "matching",
+    "front": "Match Port Range to Category:",
+    "pairs": [
+      {
+        "term": "0-1023",
+        "definition": "Well-known ports (system services)"
+      },
+      {
+        "term": "1024-49151",
+        "definition": "Registered ports (user applications)"
+      },
+      {
+        "term": "49152-65535",
+        "definition": "Dynamic/Ephemeral ports (client-side)"
+      }
+    ],
+    "module": 14
+  },
+  {
+    "card_id": "14.1-MAT-004",
+    "atom_type": "matching",
+    "front": "Match Application to Port Number:",
+    "pairs": [
+      {
+        "term": "HTTP",
+        "definition": "Port 80"
+      },
+      {
+        "term": "HTTPS",
+        "definition": "Port 443"
+      },
+      {
+        "term": "FTP Data",
+        "definition": "Port 20"
+      },
+      {
+        "term": "FTP Control",
+        "definition": "Port 21"
+      },
+      {
+        "term": "SSH",
+        "definition": "Port 22"
+      },
+      {
+        "term": "Telnet",
+        "definition": "Port 23"
+      },
+      {
+        "term": "DNS",
+        "definition": "Port 53"
+      },
+      {
+        "term": "DHCP Server",
+        "definition": "Port 67"
+      },
+      {
+        "term": "DHCP Client",
+        "definition": "Port 68"
+      }
+    ],
+    "module": 14
+  },
+  {
+    "card_id": "9.1-MAT-001",
+    "atom_type": "matching",
+    "front": "Match each ARP operation to its description:",
+    "pairs": [
+      {
+        "term": "ARP Request",
+        "definition": "Broadcast to FF:FF:FF:FF:FF:FF asking \"Who has this IP?\""
+      },
+      {
+        "term": "ARP Reply",
+        "definition": "Unicast response with MAC address"
+      },
+      {
+        "term": "Gratuitous ARP",
+        "definition": "Device announces its own IP-to-MAC mapping"
+      },
+      {
+        "term": "ARP Cache",
+        "definition": "Table storing IP-to-MAC mappings"
+      }
+    ],
+    "module": 9
+  },
+  {
+    "card_id": "9.1-MAT-002",
+    "atom_type": "matching",
+    "front": "Match each IPv6 Neighbor Discovery element to its IPv4 ARP equivalent:",
+    "pairs": [
+      {
+        "term": "Neighbor Solicitation (NS)",
+        "definition": "Similar to ARP Request"
+      },
+      {
+        "term": "Neighbor Advertisement (NA)",
+        "definition": "Similar to ARP Reply"
+      },
+      {
+        "term": "Router Solicitation (RS)",
+        "definition": "Host asking for routers"
+      },
+      {
+        "term": "Router Advertisement (RA)",
+        "definition": "Router announcing itself"
+      }
+    ],
+    "module": 9
+  },
+  {
+    "card_id": "9.1-MAT-003",
+    "atom_type": "matching",
+    "front": "Match each address type to its scope:",
+    "pairs": [
+      {
+        "term": "MAC Address",
+        "definition": "Local network only, changes at each hop"
+      },
+      {
+        "term": "IP Address",
+        "definition": "End-to-end, stays same through routing"
+      },
+      {
+        "term": "Port Number",
+        "definition": "Identifies application/process"
+      }
+    ],
+    "module": 9
+  },
+  {
+    "card_id": "8.2-MAT-001",
+    "atom_type": "matching",
+    "front": "Match each CIDR prefix to its subnet mask:",
+    "pairs": [
+      {
+        "left": "/8",
+        "right": "255.0.0.0"
+      },
+      {
+        "left": "/16",
+        "right": "255.255.0.0"
+      },
+      {
+        "left": "/24",
+        "right": "255.255.255.0"
+      },
+      {
+        "left": "/26",
+        "right": "255.255.255.192"
+      }
+    ],
+    "module": 8
+  },
+  {
+    "card_id": "8.2-MAT-002",
+    "atom_type": "matching",
+    "front": "Match the address type with the correct host portion description:",
+    "pairs": [
+      {
+        "left": "Network Address",
+        "right": "All host bits set to 0"
+      },
+      {
+        "left": "Broadcast Address",
+        "right": "All host bits set to 1"
+      },
+      {
+        "left": "First Usable Host",
+        "right": "Network address + 1"
+      },
+      {
+        "left": "Last Usable Host",
+        "right": "Broadcast address - 1"
+      }
+    ],
+    "module": 8
+  },
+  {
+    "card_id": "8.2-MAT-003",
+    "atom_type": "matching",
+    "front": "Match the private IP range to its class:",
+    "pairs": [
+      {
+        "left": "10.0.0.0/8",
+        "right": "Class A private (1 network, 16M hosts)"
+      },
+      {
+        "left": "172.16.0.0/12",
+        "right": "Class B private (16 networks)"
+      },
+      {
+        "left": "192.168.0.0/16",
+        "right": "Class C private (256 networks)"
+      },
+      {
+        "left": "169.254.0.0/16",
+        "right": "APIPA (link-local)"
+      }
+    ],
+    "module": 8
+  },
+  {
+    "card_id": "8.2-MAT-004",
+    "atom_type": "matching",
+    "front": "Match the prefix length to the number of usable hosts:",
+    "pairs": [
+      {
+        "left": "/24",
+        "right": "254 hosts (256-2)"
+      },
+      {
+        "left": "/26",
+        "right": "62 hosts (64-2)"
+      },
+      {
+        "left": "/28",
+        "right": "14 hosts (16-2)"
+      },
+      {
+        "left": "/30",
+        "right": "2 hosts (point-to-point)"
+      }
+    ],
+    "module": 8
+  },
+  {
+    "card_id": "2.2-MAT-001",
+    "atom_type": "matching",
+    "front": "Match each CLI prompt to its mode:",
+    "pairs": [
+      {
+        "term": "Router>",
+        "definition": "User EXEC mode"
+      },
+      {
+        "term": "Router#",
+        "definition": "Privileged EXEC mode"
+      },
+      {
+        "term": "Router(config)#",
+        "definition": "Global configuration mode"
+      },
+      {
+        "term": "Router(config-if)#",
+        "definition": "Interface configuration mode"
+      },
+      {
+        "term": "Router(config-line)#",
+        "definition": "Line configuration mode"
+      },
+      {
+        "term": "Router(config-router)#",
+        "definition": "Router configuration mode"
+      }
+    ],
+    "module": 2
+  },
+  {
+    "card_id": "2.2-MAT-002",
+    "atom_type": "matching",
+    "front": "Match each command to the mode where it's entered:",
+    "pairs": [
+      {
+        "term": "show running-config",
+        "definition": "Privileged EXEC (Router#)"
+      },
+      {
+        "term": "hostname",
+        "definition": "Global config (Router(config)#)"
+      },
+      {
+        "term": "ip address",
+        "definition": "Interface config (Router(config-if)#)"
+      },
+      {
+        "term": "password",
+        "definition": "Line config (Router(config-line)#)"
+      },
+      {
+        "term": "enable secret",
+        "definition": "Global config (Router(config)#)"
+      },
+      {
+        "term": "no shutdown",
+        "definition": "Interface config (Router(config-if)#)"
+      }
+    ],
+    "module": 2
+  },
+  {
+    "card_id": "2.2-MAT-003",
+    "atom_type": "matching",
+    "front": "Match each navigation command to its action:",
+    "pairs": [
+      {
+        "term": "enable",
+        "definition": "User EXEC to Privileged EXEC"
+      },
+      {
+        "term": "configure terminal",
+        "definition": "Privileged EXEC to Global config"
+      },
+      {
+        "term": "interface g0/0",
+        "definition": "Global config to Interface config"
+      },
+      {
+        "term": "line console 0",
+        "definition": "Global config to Line config"
+      },
+      {
+        "term": "exit",
+        "definition": "Go back one level"
+      },
+      {
+        "term": "end (Ctrl+Z)",
+        "definition": "Return to Privileged EXEC from any config mode"
+      }
+    ],
+    "module": 2
+  }
+]

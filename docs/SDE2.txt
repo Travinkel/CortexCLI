@@ -1,0 +1,94 @@
+# Systems Development II (SDE2)
+# EASV AP Computer Science - Semester 4
+
+## W35 - Introduction to Git K1, S1
+Before Class:
+- Read: Git Basics chapter
+- Install Git on your machine
+During Class:
+- Git: Version control system for tracking changes in source code
+- Repository: A storage location for project files and history
+- Commit: A snapshot of changes saved to the repository
+Workshop:
+- Initialize a new repository
+- Make your first commit
+
+## W36 - Branching and Merging K1, S2
+Before Class:
+- Read: Git branching documentation
+During Class:
+- Branch: An independent line of development
+- Merge: Combining changes from different branches
+- Conflict: When Git cannot automatically merge changes
+Workshop:
+- Create feature branches
+- Practice merge conflicts
+
+## W37 - GitHub Collaboration K2, S2, C1
+Before Class:
+- Create a GitHub account
+- Read: GitHub Flow documentation
+During Class:
+- Pull Request: A request to merge changes into a branch
+- Code Review: Process of examining code changes
+- Fork: A personal copy of someone else's repository
+Workshop:
+- Create your first pull request
+- Review a teammate's code
+
+## W38 - CI/CD Fundamentals K2, S3
+Before Class:
+- Read: Introduction to CI/CD
+During Class:
+- Continuous Integration: Automatically testing code changes
+- Continuous Deployment: Automatically releasing to production
+- Pipeline: A series of automated steps
+- Workflow: Defines when and how pipelines run
+Workshop:
+- Set up GitHub Actions
+- Create a basic build workflow
+
+## W39 - Testing Strategies K2, S3, C2
+Before Class:
+- Read: Test Pyramid concept
+During Class:
+- Unit Test: Testing individual components in isolation
+- Integration Test: Testing how components work together
+- E2E Test: Testing the entire application flow
+Workshop:
+- Write unit tests for your project
+- Configure test automation
+
+## W40 - Docker Basics K2, S3
+Before Class:
+- Install Docker Desktop
+- Read: Docker overview
+During Class:
+- Container: A lightweight, standalone executable package
+- Image: A template for creating containers
+- Dockerfile: Instructions for building an image
+Workshop:
+- Create your first Dockerfile
+- Run your application in a container
+
+## W41 - Agile Development K3, C2
+Before Class:
+- Read: Agile Manifesto
+During Class:
+- Scrum: Agile framework with sprints
+- Sprint: Time-boxed iteration (usually 2 weeks)
+- User Story: Description of a feature from user perspective
+Workshop:
+- Create a product backlog
+- Plan your first sprint
+
+## W42 - Code Quality K2, S4, C3
+Before Class:
+- Read: Clean Code principles
+During Class:
+- Refactoring: Improving code without changing behavior
+- Technical Debt: Cost of choosing quick solutions
+- Code Smell: Indicator of potential problems
+Workshop:
+- Identify code smells in existing code
+- Practice refactoring techniques

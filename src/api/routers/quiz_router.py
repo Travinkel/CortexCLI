@@ -10,20 +10,20 @@ Endpoints for:
 
 Phase 3 implementation for quiz quality assurance.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
 from pydantic import BaseModel, Field
-
-from src.db.database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.db.database import get_async_session
 
 router = APIRouter()
 
@@ -39,18 +39,14 @@ class QuestionCreateRequest(BaseModel):
     atom_id: str = Field(..., description="Associated learning atom ID")
     question_type: str = Field(
         ...,
-        description="Question type: mcq, true_false, short_answer, matching, ranking, sequence, parsons, cloze, explain, compare, problem, prediction, passage_based"
+        description="Question type: mcq, true_false, short_answer, matching, ranking, sequence, parsons, cloze, explain, compare, problem, prediction, passage_based",
     )
-    question_content: Dict[str, Any] = Field(
-        ...,
-        description="Type-specific question content JSON"
-    )
+    question_content: dict[str, Any] = Field(..., description="Type-specific question content JSON")
     knowledge_type: str = Field(
-        "factual",
-        description="Knowledge type: factual, conceptual, procedural, metacognitive"
+        "factual", description="Knowledge type: factual, conceptual, procedural, metacognitive"
     )
-    difficulty: Optional[float] = Field(None, ge=0, le=1, description="Difficulty score (0-1)")
-    pool_id: Optional[str] = Field(None, description="Question pool ID")
+    difficulty: float | None = Field(None, ge=0, le=1, description="Difficulty score (0-1)")
+    pool_id: str | None = Field(None, description="Question pool ID")
 
 
 class QuestionResponse(BaseModel):
@@ -59,13 +55,13 @@ class QuestionResponse(BaseModel):
     id: str
     atom_id: str
     question_type: str
-    question_content: Dict[str, Any]
-    knowledge_type: Optional[str]
-    difficulty: Optional[float]
-    distractor_quality_score: Optional[float]
-    answer_clarity_score: Optional[float]
-    quality_grade: Optional[str]
-    pool_id: Optional[str]
+    question_content: dict[str, Any]
+    knowledge_type: str | None
+    difficulty: float | None
+    distractor_quality_score: float | None
+    answer_clarity_score: float | None
+    quality_grade: str | None
+    pool_id: str | None
     is_active: bool
     created_at: datetime
 
@@ -73,11 +69,11 @@ class QuestionResponse(BaseModel):
 class QuestionUpdateRequest(BaseModel):
     """Request model for updating a question."""
 
-    question_content: Optional[Dict[str, Any]] = None
-    knowledge_type: Optional[str] = None
-    difficulty: Optional[float] = Field(None, ge=0, le=1)
-    pool_id: Optional[str] = None
-    is_active: Optional[bool] = None
+    question_content: dict[str, Any] | None = None
+    knowledge_type: str | None = None
+    difficulty: float | None = Field(None, ge=0, le=1)
+    pool_id: str | None = None
+    is_active: bool | None = None
 
 
 class QualityAnalysisResponse(BaseModel):
@@ -86,43 +82,43 @@ class QualityAnalysisResponse(BaseModel):
     question_id: str
     overall_score: float
     grade: str  # A, B, C, D, F
-    distractor_quality_score: Optional[float]
-    answer_clarity_score: Optional[float]
-    issues: List[str]
-    recommendations: List[str]
-    details: Dict[str, Any]
+    distractor_quality_score: float | None
+    answer_clarity_score: float | None
+    issues: list[str]
+    recommendations: list[str]
+    details: dict[str, Any]
 
 
 class BatchAnalysisResponse(BaseModel):
     """Response model for batch quality analysis."""
 
     total_analyzed: int
-    grade_distribution: Dict[str, int]
+    grade_distribution: dict[str, int]
     avg_quality_score: float
     improvement_needed: int
-    results: List[QualityAnalysisResponse]
+    results: list[QualityAnalysisResponse]
 
 
 class QualitySummaryResponse(BaseModel):
     """Response model for quality summary."""
 
     total_questions: int
-    by_grade: Dict[str, int]
-    by_type: Dict[str, int]
-    by_knowledge_type: Dict[str, int]
+    by_grade: dict[str, int]
+    by_type: dict[str, int]
+    by_knowledge_type: dict[str, int]
     avg_quality: float
-    improvement_queue: List[Dict[str, Any]]
+    improvement_queue: list[dict[str, Any]]
 
 
 class PoolCreateRequest(BaseModel):
     """Request model for creating a question pool."""
 
     name: str = Field(..., description="Pool name")
-    concept_id: Optional[str] = Field(None, description="Associated concept ID")
-    concept_cluster_id: Optional[str] = Field(None, description="Associated cluster ID")
-    target_difficulty: Optional[float] = Field(None, ge=0, le=1)
+    concept_id: str | None = Field(None, description="Associated concept ID")
+    concept_cluster_id: str | None = Field(None, description="Associated cluster ID")
+    target_difficulty: float | None = Field(None, ge=0, le=1)
     min_questions: int = Field(5, ge=1, description="Minimum questions for quiz generation")
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class PoolResponse(BaseModel):
@@ -130,11 +126,11 @@ class PoolResponse(BaseModel):
 
     id: str
     name: str
-    concept_id: Optional[str]
-    concept_cluster_id: Optional[str]
-    target_difficulty: Optional[float]
+    concept_id: str | None
+    concept_cluster_id: str | None
+    target_difficulty: float | None
     min_questions: int
-    description: Optional[str]
+    description: str | None
     is_active: bool
     created_at: datetime
 
@@ -146,11 +142,11 @@ class PoolStatisticsResponse(BaseModel):
     pool_name: str
     total_questions: int
     active_questions: int
-    avg_difficulty: Optional[float]
-    difficulty_distribution: Dict[str, int]
-    type_distribution: Dict[str, int]
-    knowledge_type_distribution: Dict[str, int]
-    quality_distribution: Dict[str, int]
+    avg_difficulty: float | None
+    difficulty_distribution: dict[str, int]
+    type_distribution: dict[str, int]
+    knowledge_type_distribution: dict[str, int]
+    quality_distribution: dict[str, int]
     has_sufficient_questions: bool
     min_questions_required: int
 
@@ -159,11 +155,11 @@ class SelectQuestionsRequest(BaseModel):
     """Request model for selecting questions from a pool."""
 
     count: int = Field(10, ge=1, le=100, description="Number of questions to select")
-    seed: Optional[str] = Field(None, description="Seed for reproducible selection")
-    exclude_ids: List[str] = Field(default_factory=list, description="Question IDs to exclude")
-    difficulty_range: Optional[List[float]] = Field(None, description="[min, max] difficulty")
-    question_types: Optional[List[str]] = Field(None, description="Filter by question types")
-    diversity_weights: Optional[Dict[str, float]] = Field(None, description="Weights for diversity")
+    seed: str | None = Field(None, description="Seed for reproducible selection")
+    exclude_ids: list[str] = Field(default_factory=list, description="Question IDs to exclude")
+    difficulty_range: list[float] | None = Field(None, description="[min, max] difficulty")
+    question_types: list[str] | None = Field(None, description="Filter by question types")
+    diversity_weights: dict[str, float] | None = Field(None, description="Weights for diversity")
 
 
 class SelectedQuestionResponse(BaseModel):
@@ -172,24 +168,24 @@ class SelectedQuestionResponse(BaseModel):
     question_id: str
     atom_id: str
     question_type: str
-    difficulty: Optional[float]
+    difficulty: float | None
     front: str
-    question_content: Dict[str, Any]
+    question_content: dict[str, Any]
 
 
 class QuizDefinitionCreateRequest(BaseModel):
     """Request model for creating a quiz definition."""
 
     name: str = Field(..., description="Quiz name")
-    concept_id: Optional[str] = Field(None, description="Associated concept ID")
-    concept_cluster_id: Optional[str] = Field(None, description="Associated cluster ID")
-    question_pool_ids: List[str] = Field(default_factory=list, description="Question pool IDs")
+    concept_id: str | None = Field(None, description="Associated concept ID")
+    concept_cluster_id: str | None = Field(None, description="Associated cluster ID")
+    question_pool_ids: list[str] = Field(default_factory=list, description="Question pool IDs")
     question_count: int = Field(10, ge=1, le=100)
-    time_limit_seconds: Optional[int] = Field(None, description="Time limit in seconds")
+    time_limit_seconds: int | None = Field(None, description="Time limit in seconds")
     passing_score: float = Field(0.70, ge=0, le=1)
     quiz_weight: float = Field(0.375, ge=0, le=1, description="Weight for mastery calculation")
     review_weight: float = Field(0.625, ge=0, le=1, description="Weight for review score")
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class QuizDefinitionResponse(BaseModel):
@@ -197,15 +193,15 @@ class QuizDefinitionResponse(BaseModel):
 
     id: str
     name: str
-    concept_id: Optional[str]
-    concept_cluster_id: Optional[str]
-    question_pool_ids: List[str]
+    concept_id: str | None
+    concept_cluster_id: str | None
+    question_pool_ids: list[str]
     question_count: int
-    time_limit_seconds: Optional[int]
+    time_limit_seconds: int | None
     passing_score: float
     quiz_weight: float
     review_weight: float
-    description: Optional[str]
+    description: str | None
     is_active: bool
     created_at: datetime
 
@@ -214,8 +210,8 @@ class ValidationResultResponse(BaseModel):
     """Response model for structure validation."""
 
     is_valid: bool
-    errors: List[str]
-    warnings: List[str]
+    errors: list[str]
+    warnings: list[str]
 
 
 # ========================================
@@ -254,12 +250,11 @@ async def create_question(
 
     try:
         from sqlalchemy import select
-        from src.db.models import QuizQuestion, CleanAtom
+
+        from src.db.models import CleanAtom, QuizQuestion
 
         # Verify atom exists
-        result = await db.execute(
-            select(CleanAtom).where(CleanAtom.id == UUID(request.atom_id))
-        )
+        result = await db.execute(select(CleanAtom).where(CleanAtom.id == UUID(request.atom_id)))
         atom = result.scalar_one_or_none()
         if not atom:
             raise HTTPException(status_code=404, detail="Atom not found")
@@ -279,6 +274,7 @@ async def create_question(
 
         # Run quality analysis
         from src.quiz import QuizQuestionAnalyzer
+
         analyzer = QuizQuestionAnalyzer()
         analysis = analyzer.analyze_question(
             question_type=request.question_type,
@@ -288,8 +284,14 @@ async def create_question(
         )
 
         # Update with quality scores
-        question.distractor_quality_score = Decimal(str(analysis.distractor_quality_score)) if analysis.distractor_quality_score else None
-        question.answer_clarity_score = Decimal(str(analysis.answer_clarity_score)) if analysis.answer_clarity_score else None
+        question.distractor_quality_score = (
+            Decimal(str(analysis.distractor_quality_score))
+            if analysis.distractor_quality_score
+            else None
+        )
+        question.answer_clarity_score = (
+            Decimal(str(analysis.answer_clarity_score)) if analysis.answer_clarity_score else None
+        )
         question.quality_grade = analysis.grade
         question.quality_issues = analysis.issues
 
@@ -302,8 +304,12 @@ async def create_question(
             question_content=question.question_content,
             knowledge_type=question.knowledge_type,
             difficulty=float(question.difficulty) if question.difficulty else None,
-            distractor_quality_score=float(question.distractor_quality_score) if question.distractor_quality_score else None,
-            answer_clarity_score=float(question.answer_clarity_score) if question.answer_clarity_score else None,
+            distractor_quality_score=float(question.distractor_quality_score)
+            if question.distractor_quality_score
+            else None,
+            answer_clarity_score=float(question.answer_clarity_score)
+            if question.answer_clarity_score
+            else None,
             quality_grade=question.quality_grade,
             pool_id=str(question.pool_id) if question.pool_id else None,
             is_active=question.is_active,
@@ -319,23 +325,24 @@ async def create_question(
 
 @router.get(
     "/questions",
-    response_model=List[QuestionResponse],
+    response_model=list[QuestionResponse],
     summary="List questions",
 )
 async def list_questions(
-    atom_id: Optional[str] = Query(None),
-    question_type: Optional[str] = Query(None),
-    knowledge_type: Optional[str] = Query(None),
-    pool_id: Optional[str] = Query(None),
-    min_quality: Optional[str] = Query(None, description="Minimum quality grade (A, B, C, D)"),
+    atom_id: str | None = Query(None),
+    question_type: str | None = Query(None),
+    knowledge_type: str | None = Query(None),
+    pool_id: str | None = Query(None),
+    min_quality: str | None = Query(None, description="Minimum quality grade (A, B, C, D)"),
     is_active: bool = Query(True),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_async_session),
-) -> List[QuestionResponse]:
+) -> list[QuestionResponse]:
     """List quiz questions with filters."""
     try:
-        from sqlalchemy import select, and_
+        from sqlalchemy import and_, select
+
         from src.db.models import QuizQuestion
 
         conditions = [QuizQuestion.is_active == is_active]
@@ -375,8 +382,12 @@ async def list_questions(
                 question_content=q.question_content,
                 knowledge_type=q.knowledge_type,
                 difficulty=float(q.difficulty) if q.difficulty else None,
-                distractor_quality_score=float(q.distractor_quality_score) if q.distractor_quality_score else None,
-                answer_clarity_score=float(q.answer_clarity_score) if q.answer_clarity_score else None,
+                distractor_quality_score=float(q.distractor_quality_score)
+                if q.distractor_quality_score
+                else None,
+                answer_clarity_score=float(q.answer_clarity_score)
+                if q.answer_clarity_score
+                else None,
                 quality_grade=q.quality_grade,
                 pool_id=str(q.pool_id) if q.pool_id else None,
                 is_active=q.is_active,
@@ -402,11 +413,10 @@ async def get_question(
     """Get a specific question by ID."""
     try:
         from sqlalchemy import select
+
         from src.db.models import QuizQuestion
 
-        result = await db.execute(
-            select(QuizQuestion).where(QuizQuestion.id == UUID(question_id))
-        )
+        result = await db.execute(select(QuizQuestion).where(QuizQuestion.id == UUID(question_id)))
         question = result.scalar_one_or_none()
 
         if not question:
@@ -419,8 +429,12 @@ async def get_question(
             question_content=question.question_content,
             knowledge_type=question.knowledge_type,
             difficulty=float(question.difficulty) if question.difficulty else None,
-            distractor_quality_score=float(question.distractor_quality_score) if question.distractor_quality_score else None,
-            answer_clarity_score=float(question.answer_clarity_score) if question.answer_clarity_score else None,
+            distractor_quality_score=float(question.distractor_quality_score)
+            if question.distractor_quality_score
+            else None,
+            answer_clarity_score=float(question.answer_clarity_score)
+            if question.answer_clarity_score
+            else None,
             quality_grade=question.quality_grade,
             pool_id=str(question.pool_id) if question.pool_id else None,
             is_active=question.is_active,
@@ -447,11 +461,10 @@ async def update_question(
     """Update a question."""
     try:
         from sqlalchemy import select
+
         from src.db.models import QuizQuestion
 
-        result = await db.execute(
-            select(QuizQuestion).where(QuizQuestion.id == UUID(question_id))
-        )
+        result = await db.execute(select(QuizQuestion).where(QuizQuestion.id == UUID(question_id)))
         question = result.scalar_one_or_none()
 
         if not question:
@@ -471,8 +484,9 @@ async def update_question(
 
         # Re-run quality analysis if content changed
         if request.question_content is not None:
-            from src.quiz import QuizQuestionAnalyzer
             from sqlalchemy.orm import selectinload
+
+            from src.quiz import QuizQuestionAnalyzer
 
             # Get atom for analysis
             result = await db.execute(
@@ -490,8 +504,16 @@ async def update_question(
                 back=question.atom.back if question.atom else "",
             )
 
-            question.distractor_quality_score = Decimal(str(analysis.distractor_quality_score)) if analysis.distractor_quality_score else None
-            question.answer_clarity_score = Decimal(str(analysis.answer_clarity_score)) if analysis.answer_clarity_score else None
+            question.distractor_quality_score = (
+                Decimal(str(analysis.distractor_quality_score))
+                if analysis.distractor_quality_score
+                else None
+            )
+            question.answer_clarity_score = (
+                Decimal(str(analysis.answer_clarity_score))
+                if analysis.answer_clarity_score
+                else None
+            )
             question.quality_grade = analysis.grade
             question.quality_issues = analysis.issues
 
@@ -504,8 +526,12 @@ async def update_question(
             question_content=question.question_content,
             knowledge_type=question.knowledge_type,
             difficulty=float(question.difficulty) if question.difficulty else None,
-            distractor_quality_score=float(question.distractor_quality_score) if question.distractor_quality_score else None,
-            answer_clarity_score=float(question.answer_clarity_score) if question.answer_clarity_score else None,
+            distractor_quality_score=float(question.distractor_quality_score)
+            if question.distractor_quality_score
+            else None,
+            answer_clarity_score=float(question.answer_clarity_score)
+            if question.answer_clarity_score
+            else None,
             quality_grade=question.quality_grade,
             pool_id=str(question.pool_id) if question.pool_id else None,
             is_active=question.is_active,
@@ -526,15 +552,14 @@ async def update_question(
 async def delete_question(
     question_id: str,
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Soft delete a question."""
     try:
         from sqlalchemy import select
+
         from src.db.models import QuizQuestion
 
-        result = await db.execute(
-            select(QuizQuestion).where(QuizQuestion.id == UUID(question_id))
-        )
+        result = await db.execute(select(QuizQuestion).where(QuizQuestion.id == UUID(question_id)))
         question = result.scalar_one_or_none()
 
         if not question:
@@ -578,6 +603,7 @@ async def analyze_question_quality(
     try:
         from sqlalchemy import select
         from sqlalchemy.orm import selectinload
+
         from src.db.models import QuizQuestion
         from src.quiz import QuizQuestionAnalyzer
 
@@ -600,8 +626,14 @@ async def analyze_question_quality(
         )
 
         # Update question with scores
-        question.distractor_quality_score = Decimal(str(analysis.distractor_quality_score)) if analysis.distractor_quality_score else None
-        question.answer_clarity_score = Decimal(str(analysis.answer_clarity_score)) if analysis.answer_clarity_score else None
+        question.distractor_quality_score = (
+            Decimal(str(analysis.distractor_quality_score))
+            if analysis.distractor_quality_score
+            else None
+        )
+        question.answer_clarity_score = (
+            Decimal(str(analysis.answer_clarity_score)) if analysis.answer_clarity_score else None
+        )
         question.quality_grade = analysis.grade
         question.quality_issues = analysis.issues
 
@@ -631,8 +663,8 @@ async def analyze_question_quality(
     summary="Batch analyze questions",
 )
 async def batch_analyze_questions(
-    question_ids: Optional[List[str]] = None,
-    pool_id: Optional[str] = Query(None),
+    question_ids: list[str] | None = None,
+    pool_id: str | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_async_session),
 ) -> BatchAnalysisResponse:
@@ -642,12 +674,13 @@ async def batch_analyze_questions(
     Either provide question_ids or pool_id to filter.
     """
     try:
-        from sqlalchemy import select, and_
+        from sqlalchemy import and_, select
         from sqlalchemy.orm import selectinload
+
         from src.db.models import QuizQuestion
         from src.quiz import QuizQuestionAnalyzer
 
-        conditions = [QuizQuestion.is_active == True]
+        conditions = [QuizQuestion.is_active]
 
         if question_ids:
             conditions.append(QuizQuestion.id.in_([UUID(qid) for qid in question_ids]))
@@ -676,24 +709,34 @@ async def batch_analyze_questions(
             )
 
             # Update question
-            question.distractor_quality_score = Decimal(str(analysis.distractor_quality_score)) if analysis.distractor_quality_score else None
-            question.answer_clarity_score = Decimal(str(analysis.answer_clarity_score)) if analysis.answer_clarity_score else None
+            question.distractor_quality_score = (
+                Decimal(str(analysis.distractor_quality_score))
+                if analysis.distractor_quality_score
+                else None
+            )
+            question.answer_clarity_score = (
+                Decimal(str(analysis.answer_clarity_score))
+                if analysis.answer_clarity_score
+                else None
+            )
             question.quality_grade = analysis.grade
             question.quality_issues = analysis.issues
 
             grade_dist[analysis.grade] = grade_dist.get(analysis.grade, 0) + 1
             total_score += analysis.overall_score
 
-            results.append(QualityAnalysisResponse(
-                question_id=str(question.id),
-                overall_score=analysis.overall_score,
-                grade=analysis.grade,
-                distractor_quality_score=analysis.distractor_quality_score,
-                answer_clarity_score=analysis.answer_clarity_score,
-                issues=analysis.issues,
-                recommendations=analysis.recommendations,
-                details=analysis.details,
-            ))
+            results.append(
+                QualityAnalysisResponse(
+                    question_id=str(question.id),
+                    overall_score=analysis.overall_score,
+                    grade=analysis.grade,
+                    distractor_quality_score=analysis.distractor_quality_score,
+                    answer_clarity_score=analysis.answer_clarity_score,
+                    issues=analysis.issues,
+                    recommendations=analysis.recommendations,
+                    details=analysis.details,
+                )
+            )
 
         await db.commit()
 
@@ -724,19 +767,20 @@ async def get_quality_summary(
     Designed for right-learning dashboard integration.
     """
     try:
-        from sqlalchemy import select, func
+        from sqlalchemy import func, select
+
         from src.db.models import QuizQuestion
 
         # Total count
         total_result = await db.execute(
-            select(func.count(QuizQuestion.id)).where(QuizQuestion.is_active == True)
+            select(func.count(QuizQuestion.id)).where(QuizQuestion.is_active)
         )
         total = total_result.scalar() or 0
 
         # By grade
         grade_result = await db.execute(
             select(QuizQuestion.quality_grade, func.count(QuizQuestion.id))
-            .where(QuizQuestion.is_active == True)
+            .where(QuizQuestion.is_active)
             .group_by(QuizQuestion.quality_grade)
         )
         by_grade = {row[0] or "ungraded": row[1] for row in grade_result}
@@ -744,7 +788,7 @@ async def get_quality_summary(
         # By type
         type_result = await db.execute(
             select(QuizQuestion.question_type, func.count(QuizQuestion.id))
-            .where(QuizQuestion.is_active == True)
+            .where(QuizQuestion.is_active)
             .group_by(QuizQuestion.question_type)
         )
         by_type = {row[0]: row[1] for row in type_result}
@@ -752,25 +796,23 @@ async def get_quality_summary(
         # By knowledge type
         knowledge_result = await db.execute(
             select(QuizQuestion.knowledge_type, func.count(QuizQuestion.id))
-            .where(QuizQuestion.is_active == True)
+            .where(QuizQuestion.is_active)
             .group_by(QuizQuestion.knowledge_type)
         )
         by_knowledge = {row[0] or "unclassified": row[1] for row in knowledge_result}
 
         # Average quality
         avg_result = await db.execute(
-            select(func.avg(QuizQuestion.answer_clarity_score))
-            .where(QuizQuestion.is_active == True)
+            select(func.avg(QuizQuestion.answer_clarity_score)).where(
+                QuizQuestion.is_active
+            )
         )
         avg_quality = float(avg_result.scalar() or 0)
 
         # Improvement queue (D and F grades)
         improvement_result = await db.execute(
             select(QuizQuestion)
-            .where(
-                QuizQuestion.is_active == True,
-                QuizQuestion.quality_grade.in_(["D", "F"])
-            )
+            .where(QuizQuestion.is_active, QuizQuestion.quality_grade.in_(["D", "F"]))
             .order_by(QuizQuestion.answer_clarity_score.asc())
             .limit(20)
         )
@@ -810,7 +852,7 @@ async def get_quality_summary(
 )
 async def validate_question_structure(
     question_type: str = Query(...),
-    question_content: Dict[str, Any] = None,
+    question_content: dict[str, Any] = None,
     db: AsyncSession = Depends(get_async_session),
 ) -> ValidationResultResponse:
     """
@@ -858,7 +900,9 @@ async def create_pool(
         pool = await manager.create_pool(
             name=request.name,
             concept_id=UUID(request.concept_id) if request.concept_id else None,
-            concept_cluster_id=UUID(request.concept_cluster_id) if request.concept_cluster_id else None,
+            concept_cluster_id=UUID(request.concept_cluster_id)
+            if request.concept_cluster_id
+            else None,
             target_difficulty=request.target_difficulty,
             min_questions=request.min_questions,
             description=request.description,
@@ -885,14 +929,14 @@ async def create_pool(
 
 @router.get(
     "/pools",
-    response_model=List[PoolResponse],
+    response_model=list[PoolResponse],
     summary="List pools",
 )
 async def list_pools(
-    concept_id: Optional[str] = Query(None),
+    concept_id: str | None = Query(None),
     is_active: bool = Query(True),
     db: AsyncSession = Depends(get_async_session),
-) -> List[PoolResponse]:
+) -> list[PoolResponse]:
     """List question pools."""
     try:
         from src.quiz import QuizPoolManager
@@ -965,14 +1009,14 @@ async def get_pool_statistics(
 
 @router.post(
     "/pools/{pool_id}/select",
-    response_model=List[SelectedQuestionResponse],
+    response_model=list[SelectedQuestionResponse],
     summary="Select questions from pool",
 )
 async def select_questions_from_pool(
     pool_id: str,
     request: SelectQuestionsRequest,
     db: AsyncSession = Depends(get_async_session),
-) -> List[SelectedQuestionResponse]:
+) -> list[SelectedQuestionResponse]:
     """
     Select random questions from a pool.
 
@@ -1027,9 +1071,9 @@ async def select_questions_from_pool(
 )
 async def add_questions_to_pool(
     pool_id: str,
-    question_ids: List[str],
+    question_ids: list[str],
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Add questions to a pool."""
     try:
         from src.quiz import QuizPoolManager
@@ -1075,7 +1119,9 @@ async def create_quiz_definition(
         definition = QuizDefinition(
             name=request.name,
             concept_id=UUID(request.concept_id) if request.concept_id else None,
-            concept_cluster_id=UUID(request.concept_cluster_id) if request.concept_cluster_id else None,
+            concept_cluster_id=UUID(request.concept_cluster_id)
+            if request.concept_cluster_id
+            else None,
             question_pool_ids=[UUID(pid) for pid in request.question_pool_ids],
             question_count=request.question_count,
             time_limit_seconds=request.time_limit_seconds,
@@ -1093,7 +1139,9 @@ async def create_quiz_definition(
             id=str(definition.id),
             name=definition.name,
             concept_id=str(definition.concept_id) if definition.concept_id else None,
-            concept_cluster_id=str(definition.concept_cluster_id) if definition.concept_cluster_id else None,
+            concept_cluster_id=str(definition.concept_cluster_id)
+            if definition.concept_cluster_id
+            else None,
             question_pool_ids=[str(pid) for pid in definition.question_pool_ids],
             question_count=definition.question_count,
             time_limit_seconds=definition.time_limit_seconds,
@@ -1112,26 +1160,25 @@ async def create_quiz_definition(
 
 @router.get(
     "/definitions",
-    response_model=List[QuizDefinitionResponse],
+    response_model=list[QuizDefinitionResponse],
     summary="List quiz definitions",
 )
 async def list_quiz_definitions(
-    concept_id: Optional[str] = Query(None),
+    concept_id: str | None = Query(None),
     is_active: bool = Query(True),
     db: AsyncSession = Depends(get_async_session),
-) -> List[QuizDefinitionResponse]:
+) -> list[QuizDefinitionResponse]:
     """List quiz definitions."""
     try:
-        from sqlalchemy import select, and_
+        from sqlalchemy import and_, select
+
         from src.db.models import QuizDefinition
 
         conditions = [QuizDefinition.is_active == is_active]
         if concept_id:
             conditions.append(QuizDefinition.concept_id == UUID(concept_id))
 
-        result = await db.execute(
-            select(QuizDefinition).where(and_(*conditions))
-        )
+        result = await db.execute(select(QuizDefinition).where(and_(*conditions)))
         definitions = result.scalars().all()
 
         return [
@@ -1170,6 +1217,7 @@ async def get_quiz_definition(
     """Get a quiz definition by ID."""
     try:
         from sqlalchemy import select
+
         from src.db.models import QuizDefinition
 
         result = await db.execute(
@@ -1184,7 +1232,9 @@ async def get_quiz_definition(
             id=str(definition.id),
             name=definition.name,
             concept_id=str(definition.concept_id) if definition.concept_id else None,
-            concept_cluster_id=str(definition.concept_cluster_id) if definition.concept_cluster_id else None,
+            concept_cluster_id=str(definition.concept_cluster_id)
+            if definition.concept_cluster_id
+            else None,
             question_pool_ids=[str(pid) for pid in (definition.question_pool_ids or [])],
             question_count=definition.question_count,
             time_limit_seconds=definition.time_limit_seconds,
@@ -1214,7 +1264,7 @@ async def get_quiz_definition(
 )
 async def export_definitions(
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Export all quiz definitions for right-learning integration.
 
@@ -1222,11 +1272,10 @@ async def export_definitions(
     """
     try:
         from sqlalchemy import select
+
         from src.db.models import QuizDefinition
 
-        result = await db.execute(
-            select(QuizDefinition).where(QuizDefinition.is_active == True)
-        )
+        result = await db.execute(select(QuizDefinition).where(QuizDefinition.is_active))
         definitions = result.scalars().all()
 
         return {
@@ -1243,7 +1292,7 @@ async def export_definitions(
                     "mastery_formula": {
                         "quiz_weight": float(d.quiz_weight),
                         "review_weight": float(d.review_weight),
-                        "formula": "mastery = (review_score * review_weight) + (quiz_score * quiz_weight)"
+                        "formula": "mastery = (review_score * review_weight) + (quiz_score * quiz_weight)",
                     },
                     "pool_ids": [str(pid) for pid in (d.question_pool_ids or [])],
                 }
@@ -1262,10 +1311,10 @@ async def export_definitions(
 )
 async def export_quiz_questions(
     quiz_id: str,
-    user_id: Optional[str] = Query(None),
+    user_id: str | None = Query(None),
     attempt: int = Query(1, ge=1),
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Export questions for a specific quiz attempt.
 

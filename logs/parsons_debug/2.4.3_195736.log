@@ -1,0 +1,98 @@
+```json
+[
+  {
+    "card_id": "2.4.3-PAR-001",
+    "scenario": "Configure a console password on a Cisco switch. The password should be 'cisco' and require login.",
+    "correct_sequence": [
+      "configure terminal",
+      "line console 0",
+      "password cisco",
+      "login",
+      "end"
+    ],
+    "distractors": [
+      "enable secret password",
+      "interface GigabitEthernet 0/1"
+    ],
+    "starting_mode": "privileged EXEC",
+    "tags": [
+      "commands",
+      "configuration",
+      "console password"
+    ],
+    "source_refs": [
+      {
+        "section_id": "2.4.3",
+        "section_title": "Commands and Context",
+        "source_text_excerpt": "Console access will now require a password before allowing access to the user EXEC mode."
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "procedural"
+    }
+  },
+  {
+    "card_id": "2.4.3-PAR-002",
+    "scenario": "Configure an encrypted privileged EXEC mode password on a Cisco switch. The password should be 'class'.",
+    "correct_sequence": [
+      "configure terminal",
+      "enable secret class",
+      "exit"
+    ],
+    "distractors": [
+      "line console 0",
+      "enable password cisco"
+    ],
+    "starting_mode": "privileged EXEC",
+    "tags": [
+      "commands",
+      "configuration",
+      "enable secret"
+    ],
+    "source_refs": [
+      {
+        "section_id": "2.4.3",
+        "section_title": "Commands and Context",
+        "source_text_excerpt": "Privileged EXEC password configuration:\n\n```\nSw-Floor-1# configure terminal\nSw-Floor-1(config)# enable secret class"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "procedural"
+    }
+  },
+  {
+    "card_id": "2.4.3-PAR-003",
+    "scenario": "Configure a VTY password on a Cisco switch to allow remote access. The password should be 'cisco' and require login.",
+    "correct_sequence": [
+      "configure terminal",
+      "line vty 0 15",
+      "password cisco",
+      "login",
+      "end"
+    ],
+    "distractors": [
+      "interface vlan 1",
+      "enable secret password"
+    ],
+    "starting_mode": "privileged EXEC",
+    "tags": [
+      "commands",
+      "configuration",
+      "vty password"
+    ],
+    "source_refs": [
+      {
+        "section_id": "2.4.3",
+        "section_title": "Commands and Context",
+        "source_text_excerpt": "Virtual terminal (VTY) lines enable remote access using Telnet or SSH to the device."
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "procedural"
+    }
+  }
+]
+```

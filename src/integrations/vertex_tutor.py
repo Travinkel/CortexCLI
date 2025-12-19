@@ -27,16 +27,16 @@ Based on research from:
 Author: Cortex System
 Version: 2.0.0 (Neuromorphic Architecture)
 """
+
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, AsyncIterator
+from typing import Any
 
 from loguru import logger
 
@@ -44,16 +44,14 @@ from loguru import logger
 from src.adaptive.neuro_model import (
     CognitiveDiagnosis,
     FailMode,
-    SuccessMode,
-    RemediationType,
-    generate_remediation_prompt,
 )
 from src.adaptive.persona_service import LearnerPersona, PersonaService
 
 # Try to import Vertex AI
 try:
     import vertexai
-    from vertexai.generative_models import GenerativeModel, Part, Content
+    from vertexai.generative_models import GenerativeModel
+
     HAS_VERTEX = True
 except ImportError:
     HAS_VERTEX = False
@@ -62,6 +60,7 @@ except ImportError:
 # Try to import Google Generative AI (alternative)
 try:
     import google.generativeai as genai
+
     HAS_GENAI = True
 except ImportError:
     HAS_GENAI = False
@@ -92,38 +91,43 @@ MIN_STRUGGLE_TIME_SEC = 30  # Minimum time before hint (prevents offloading)
 # ENUMERATIONS
 # =============================================================================
 
+
 class TutorMode(str, Enum):
     """Tutoring mode based on diagnosis."""
-    SOCRATIC = "socratic"           # Guide with questions
-    ELABORATIVE = "elaborative"     # Explain differently
-    CONTRASTIVE = "contrastive"     # Compare/contrast
-    PROCEDURAL = "procedural"       # Step-by-step walkthrough
-    MOTIVATIONAL = "motivational"   # Encouragement/break suggestion
+
+    SOCRATIC = "socratic"  # Guide with questions
+    ELABORATIVE = "elaborative"  # Explain differently
+    CONTRASTIVE = "contrastive"  # Compare/contrast
+    PROCEDURAL = "procedural"  # Step-by-step walkthrough
+    MOTIVATIONAL = "motivational"  # Encouragement/break suggestion
 
 
 class ScaffoldLevel(str, Enum):
     """Level of scaffolding support."""
-    NONE = "none"           # No hints, raw challenge
-    MINIMAL = "minimal"     # Subtle nudge
-    MODERATE = "moderate"   # Clear hint
-    HEAVY = "heavy"         # Detailed guidance
-    FULL = "full"           # Complete explanation
+
+    NONE = "none"  # No hints, raw challenge
+    MINIMAL = "minimal"  # Subtle nudge
+    MODERATE = "moderate"  # Clear hint
+    HEAVY = "heavy"  # Detailed guidance
+    FULL = "full"  # Complete explanation
 
 
 # =============================================================================
 # DATA CLASSES
 # =============================================================================
 
+
 @dataclass
 class TutorResponse:
     """Response from the AI tutor."""
+
     content: str
     mode: TutorMode
     scaffold_level: ScaffoldLevel
-    follow_up_question: Optional[str] = None
-    latex_content: Optional[str] = None
-    visual_description: Optional[str] = None
-    suggested_action: Optional[str] = None
+    follow_up_question: str | None = None
+    latex_content: str | None = None
+    visual_description: str | None = None
+    suggested_action: str | None = None
     hint_depth: int = 0
     tokens_used: int = 0
     latency_ms: int = 0
@@ -147,6 +151,7 @@ class TutorResponse:
 @dataclass
 class TutorSession:
     """Tracks state for a tutoring session on a single atom."""
+
     atom_id: str
     atom_content: dict[str, Any]
     diagnosis: CognitiveDiagnosis
@@ -160,7 +165,7 @@ class TutorSession:
     conversation_history: list[dict] = field(default_factory=list)
 
     # Metrics
-    started_at: Optional[datetime] = None
+    started_at: datetime | None = None
     resolved: bool = False
     resolution_type: str = ""  # "self_solved", "hint_solved", "gave_up", "answer_shown"
 
@@ -197,6 +202,7 @@ RESPONSE FORMAT:
 2. {mode_specific_instruction}
 3. End with a question or action prompt (unless FULL scaffolding)
 4. If mathematical content, include LaTeX in $...$ or $$...$$
+5. If you detect the user has solved the problem, start your response with "BREAKTHROUGH:"
 
 Keep responses concise but complete. Under 200 words unless explaining a complex proof."""
 
@@ -220,7 +226,6 @@ create multiple retrieval pathways.
 Key question to guide them: "What does this remind you of?" or "Can you explain
 this in your own words?"
 """,
-
     FailMode.RETRIEVAL_ERROR: """
 The learner knows this but couldn't retrieve it (normal forgetting).
 The memory exists but the retrieval pathway is weak.
@@ -230,7 +235,6 @@ activate related knowledge.
 
 Key question: "What do you remember about the context when you learned this?"
 """,
-
     FailMode.DISCRIMINATION_ERROR: """
 The learner is confusing this with a similar concept (pattern separation failure).
 The hippocampal dentate gyrus isn't distinguishing between overlapping representations.
@@ -240,7 +244,6 @@ Create a "discrimination matrix" showing key differences.
 
 Key question: "What makes this DIFFERENT from [confused concept]?"
 """,
-
     FailMode.INTEGRATION_ERROR: """
 The learner knows the pieces but can't connect them (P-FIT integration failure).
 Facts exist in isolation, not as a connected network.
@@ -250,7 +253,6 @@ not just THAT they connect.
 
 Key question: "Given that X is true, what must follow?"
 """,
-
     FailMode.EXECUTIVE_ERROR: """
 The learner answered impulsively without careful reading (PFC executive failure).
 They likely KNOW the answer but didn't engage System 2 thinking.
@@ -260,7 +262,6 @@ before answering.
 
 Key action: "Read the question again. What is the KEY word that changes everything?"
 """,
-
     FailMode.FATIGUE_ERROR: """
 The learner is cognitively exhausted (resource depletion).
 No amount of explanation will help right now.
@@ -276,6 +277,7 @@ Key message: "Your brain needs rest. Take a 10-minute break. You've earned it."
 # =============================================================================
 # VERTEX AI TUTOR
 # =============================================================================
+
 
 class VertexTutor:
     """
@@ -295,7 +297,7 @@ class VertexTutor:
         self.model_name = model_name
         self.project = project
         self.location = location
-        self.model: Optional[GenerativeModel] = None
+        self.model: GenerativeModel | None = None
         self._initialized = False
 
         # Track offloading
@@ -364,8 +366,7 @@ class VertexTutor:
         if time_since_last_hint < MIN_STRUGGLE_TIME_SEC and session.hint_depth > 0:
             self._offloading_penalty += 0.1
             logger.warning(
-                f"Potential cognitive offloading detected. "
-                f"Penalty: {self._offloading_penalty:.1f}"
+                f"Potential cognitive offloading detected. Penalty: {self._offloading_penalty:.1f}"
             )
             # Don't increase scaffolding - make them struggle
             return ScaffoldLevel.MINIMAL
@@ -394,15 +395,14 @@ class VertexTutor:
         # Get fail mode specific guidance
         fail_mode_guidance = ""
         if session.diagnosis.fail_mode:
-            fail_mode_guidance = FAIL_MODE_PROMPTS.get(
-                session.diagnosis.fail_mode,
-                ""
-            )
+            fail_mode_guidance = FAIL_MODE_PROMPTS.get(session.diagnosis.fail_mode, "")
 
         # Build system prompt
         system = SYSTEM_PROMPT.format(
             learner_context=learner_context,
-            diagnosis=session.diagnosis.fail_mode.value if session.diagnosis.fail_mode else "unknown",
+            diagnosis=session.diagnosis.fail_mode.value
+            if session.diagnosis.fail_mode
+            else "unknown",
             remediation_type=session.diagnosis.remediation_type.value,
             scaffold_level=scaffold_level.value,
             mode_specific_instruction=MODE_INSTRUCTIONS.get(mode, "Guide the learner"),
@@ -414,10 +414,10 @@ class VertexTutor:
 {fail_mode_guidance}
 
 CONTENT:
-Question: {atom.get('front', 'Unknown question')}
-Correct Answer: {atom.get('back', 'Unknown answer')}
-Concept: {atom.get('concept_name', 'Unknown concept')}
-Source: {atom.get('source_fact_basis', 'Unknown source')}
+Question: {atom.get("front", "Unknown question")}
+Correct Answer: {atom.get("back", "Unknown answer")}
+Concept: {atom.get("concept_name", "Unknown concept")}
+Source: {atom.get("source_fact_basis", "Unknown source")}
 
 CONVERSATION HISTORY:
 {self._format_history(session.conversation_history)}
@@ -481,6 +481,12 @@ Provide your response following the scaffolding level and mode guidelines.
         else:
             response_text = self._get_mock_response(session, mode, scaffold_level)
 
+        # Check for breakthrough
+        if response_text.strip().startswith("BREAKTHROUGH:"):
+            session.resolved = True
+            session.resolution_type = "self_solved"
+            response_text = response_text.replace("BREAKTHROUGH:", "").strip()
+
         # Parse response for LaTeX and follow-up questions
         latex_content = self._extract_latex(response_text)
         follow_up = self._extract_follow_up(response_text)
@@ -488,14 +494,18 @@ Provide your response following the scaffolding level and mode guidelines.
         # Update session
         session.hint_depth += 1
         session.hints_given.append(response_text[:100])
-        session.conversation_history.append({
-            "role": "learner",
-            "content": user_message,
-        })
-        session.conversation_history.append({
-            "role": "tutor",
-            "content": response_text,
-        })
+        session.conversation_history.append(
+            {
+                "role": "learner",
+                "content": user_message,
+            }
+        )
+        session.conversation_history.append(
+            {
+                "role": "tutor",
+                "content": response_text,
+            }
+        )
 
         latency = int((time.time() - start_time) * 1000)
 
@@ -511,18 +521,8 @@ Provide your response following the scaffolding level and mode guidelines.
 
     async def _call_model(self, prompt: str) -> str:
         """Call the AI model and get response."""
-        if HAS_VERTEX and isinstance(self.model, GenerativeModel):
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt
-            )
-            return response.text
-
-        elif HAS_GENAI:
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt
-            )
+        if HAS_VERTEX and isinstance(self.model, GenerativeModel) or HAS_GENAI:
+            response = await asyncio.to_thread(self.model.generate_content, prompt)
             return response.text
 
         return "I'm having trouble connecting to the AI service."
@@ -554,9 +554,9 @@ Provide your response following the scaffolding level and mode guidelines.
 
         if mode == TutorMode.PROCEDURAL:
             return (
-                f"Let's break this down step by step. What's the FIRST thing "
-                f"you need to identify before you can solve this? "
-                f"Don't think about the whole problem - just the first step."
+                "Let's break this down step by step. What's the FIRST thing "
+                "you need to identify before you can solve this? "
+                "Don't think about the whole problem - just the first step."
             )
 
         if mode == TutorMode.ELABORATIVE:
@@ -573,11 +573,12 @@ Provide your response following the scaffolding level and mode guidelines.
             f"What's the part that's confusing you most?"
         )
 
-    def _extract_latex(self, text: str) -> Optional[str]:
+    def _extract_latex(self, text: str) -> str | None:
         """Extract LaTeX content from response."""
         import re
+
         # Find $...$ or $$...$$ patterns
-        patterns = re.findall(r'\$\$([^$]+)\$\$|\$([^$]+)\$', text)
+        patterns = re.findall(r"\$\$([^$]+)\$\$|\$([^$]+)\$", text)
         if patterns:
             # Return first substantial match
             for match in patterns:
@@ -586,11 +587,12 @@ Provide your response following the scaffolding level and mode guidelines.
                     return content
         return None
 
-    def _extract_follow_up(self, text: str) -> Optional[str]:
+    def _extract_follow_up(self, text: str) -> str | None:
         """Extract follow-up question from response."""
         # Look for sentences ending with ?
         import re
-        questions = re.findall(r'[^.!?]*\?', text)
+
+        questions = re.findall(r"[^.!?]*\?", text)
         if questions:
             return questions[-1].strip()  # Return last question
         return None
@@ -599,7 +601,7 @@ Provide your response following the scaffolding level and mode guidelines.
         self,
         atom: dict[str, Any],
         diagnosis: CognitiveDiagnosis,
-        persona: Optional[LearnerPersona] = None,
+        persona: LearnerPersona | None = None,
     ) -> TutorSession:
         """Create a new tutoring session for an atom."""
         if persona is None:
@@ -626,6 +628,7 @@ Provide your response following the scaffolding level and mode guidelines.
 # =============================================================================
 # MULTI-AGENT ARCHITECTURE
 # =============================================================================
+
 
 class TutorStrategist:
     """
@@ -720,7 +723,7 @@ class TutorCoach:
 # =============================================================================
 
 # Global tutor instance
-_tutor: Optional[VertexTutor] = None
+_tutor: VertexTutor | None = None
 
 
 def get_tutor() -> VertexTutor:
@@ -736,7 +739,7 @@ async def get_help(
     atom: dict[str, Any],
     diagnosis: CognitiveDiagnosis,
     user_message: str = "I don't understand this.",
-    persona: Optional[LearnerPersona] = None,
+    persona: LearnerPersona | None = None,
 ) -> TutorResponse:
     """
     Quick helper to get tutoring help for an atom.
@@ -765,7 +768,7 @@ def get_quick_hint(
     Useful for synchronous contexts or when AI is unavailable.
     """
     concept = atom.get("concept_name", "this concept")
-    question = atom.get("front", "")
+    atom.get("front", "")
 
     hints = {
         FailMode.ENCODING_ERROR: (
@@ -773,24 +776,23 @@ def get_quick_hint(
             f"in your own words, without looking at the answer?"
         ),
         FailMode.RETRIEVAL_ERROR: (
-            f"The memory is there, but the pathway is weak. "
-            f"What context do you remember learning this in?"
+            "The memory is there, but the pathway is weak. "
+            "What context do you remember learning this in?"
         ),
         FailMode.DISCRIMINATION_ERROR: (
             f"You might be confusing this with something similar. "
             f"What makes {concept} UNIQUE compared to related concepts?"
         ),
         FailMode.INTEGRATION_ERROR: (
-            f"The pieces aren't connecting. What's the FIRST fact you need "
-            f"to know before you can figure out the rest?"
+            "The pieces aren't connecting. What's the FIRST fact you need "
+            "to know before you can figure out the rest?"
         ),
         FailMode.EXECUTIVE_ERROR: (
-            f"Take a breath. Re-read the question slowly. "
-            f"What's the KEY word that tells you what to do?"
+            "Take a breath. Re-read the question slowly. "
+            "What's the KEY word that tells you what to do?"
         ),
         FailMode.FATIGUE_ERROR: (
-            f"Your brain is tired. Take a 10-minute break. "
-            f"You'll come back sharper."
+            "Your brain is tired. Take a 10-minute break. You'll come back sharper."
         ),
     }
 

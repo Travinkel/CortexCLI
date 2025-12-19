@@ -1,0 +1,627 @@
+# CCNA Struggle Map Configuration
+# This file defines your known weak areas for prioritized study
+# Severity levels: critical (3.0x), high (2.0x), medium (1.5x), low (1.0x)
+# Failure modes map to NCDE cognitive diagnosis types
+
+# =============================================================================
+# PREREQUISITE CHAINS - Study in this order within each chain
+# =============================================================================
+# Chain 1 (Layer 2): Module 4 -> Module 5 -> Module 7
+# Chain 2 (Layer 3): Module 8 -> Module 10 -> Module 9
+# Chain 3 (Upper):   Module 11 -> Module 12 -> Module 13
+# Foundation:        Module 2 -> Module 3 (parallel to chains)
+# =============================================================================
+
+chains:
+  layer2_foundations:
+    name: "Layer 2 Foundations (Start Here)"
+    description: "Physical -> Ethernet/Switching -> MAC/Frames"
+    priority: 1
+    sequence: [4, 5, 7]
+
+  layer3_addressing:
+    name: "Layer 3 Addressing"
+    description: "IPv4 Subnetting -> IPv6 -> ARP/ND"
+    priority: 2
+    sequence: [8, 10, 9]
+
+  upper_layers:
+    name: "Upper Layer Protocols"
+    description: "ICMP -> TCP/UDP -> Application Layer"
+    priority: 3
+    sequence: [11, 12, 13]
+
+  cli_foundations:
+    name: "CLI & OSI Foundations"
+    description: "IOS Navigation -> OSI Model"
+    priority: 0  # Can study in parallel
+    sequence: [2, 3]
+
+  lab_skills:
+    name: "Packet Tracer Lab Skills"
+    description: "Procedural skills for hands-on PT assessments and Wireshark analysis"
+    priority: 1  # High priority - required for PT skills assessment
+    parallel: true  # Can study alongside theory chains
+    topics:
+      - "Initial router configuration sequence"
+      - "SSH configuration sequence"
+      - "Interface IPv4/IPv6 configuration"
+      - "Switch SVI configuration"
+      - "VTY line security"
+      - "VLSM design for specific host requirements"
+      - "Wireshark display filter syntax"
+      - "Wireshark field interpretation"
+
+struggles:
+  # ==========================================================================
+  # CHAIN 1: LAYER 2 FOUNDATIONS
+  # ==========================================================================
+
+  # --- Module 4: Physical Layer (Chain 1, Position 1) --- UPGRADED: 30% Connectivity score
+  - module: 4
+    chain: layer2_foundations
+    chain_position: 1
+    sections:
+      - "4.1.1"  # Physical Layer Purpose
+      - "4.1.2"
+      - "4.2.1"  # Copper cabling
+      - "4.2.2"  # Fiber optic
+      - "4.2.3"  # Wireless
+      - "4.3.1"  # Bandwidth
+      - "4.3.2"  # Throughput
+      - "4.3.3"  # Duplex concepts
+      - "4.3.5"  # Coaxial Cable (correctly identified on exam)
+      - "4.4.3"  # Straight-through vs Crossover
+      - "4.5.2"  # Fiber types (Single-mode vs Multimode)
+    severity: high  # UPGRADED from medium - 30% Connectivity score
+    failure_modes: ["ENCODING", "DISCRIMINATION"]
+    notes: "UPGRADED: 30% Connectivity on practice exam. Physical Layer - prerequisite for understanding duplex/collisions in M5/M7"
+    topics:
+      - "Physical Layer Purpose"
+      - "Copper cabling (UTP, STP, connectors)"
+      - "Coaxial cable (TV/internet cable)"
+      - "Fiber optic cabling (SMF, MMF)"
+      - "Single-mode fiber (lasers, long distance)"
+      - "Multimode fiber (LEDs, short distance)"
+      - "Wireless media characteristics"
+      - "Bandwidth vs Throughput distinction"
+      - "Full-duplex vs Half-duplex"
+      - "Collision domains"
+      - "T568A vs T568B wiring standards"
+      - "Straight-through cables (unlike devices: PC-Switch)"
+      - "Crossover cables (like devices: Switch-Switch)"
+
+  # --- Module 5: Ethernet & Switching (Chain 1, Position 2) - CRITICAL ---
+  - module: 5
+    chain: layer2_foundations
+    chain_position: 2
+    prerequisite_modules: [4]
+    sections:
+      - "5.1.1"  # LAN Protocols
+      - "5.1.2"  # MAC Address
+      - "5.1.4"  # Frame Fields
+      - "5.1.5"  # FCS & CRC
+      - "5.2.1"  # CAM Table
+      - "5.2.2"  # MAC Learning
+      - "5.2.3"  # Flooding Behavior
+      - "5.3.1"  # Store-and-Forward
+      - "5.3.2"  # Cut-through
+      - "5.3.3"  # Fragment-free
+      - "5.4.1"  # Duplex Mismatch
+      - "5.4.2"  # Auto-MDIX
+    severity: critical
+    failure_modes: ["DISCRIMINATION", "INTEGRATION"]
+    notes: "40+ failed cards trace here - YOUR WEAKEST AREA"
+    topics:
+      - "LAN Protocols"
+      - "MAC Address structure (OUI + Device ID)"
+      - "Frame Fields (Preamble, SFD, DA, SA, Type/Length, Data, FCS)"
+      - "FCS & CRC error detection"
+      - "CAM Table / MAC Address Table"
+      - "MAC Learning process"
+      - "Flooding Behavior (unknown unicast)"
+      - "Store-and-Forward switching"
+      - "Cut-through switching"
+      - "Fragment-free switching"
+      - "Duplex Mismatch symptoms"
+      - "Auto-MDIX operation"
+
+  # --- Module 7: Ethernet Switching Logic (Chain 1, Position 3) ---
+  - module: 7
+    chain: layer2_foundations
+    chain_position: 3
+    prerequisite_modules: [4, 5]
+    sections:
+      - "7.1.2"  # MAC vs LLC Sublayers
+      - "7.1.3"  # CSMA/CD
+      - "7.1.4"  # Frame Fields
+      - "7.2.1"  # Hexadecimal & OUI
+      - "7.2.2"  # MAC structure
+      - "7.2.3"  # Frame processing
+      - "7.2.4"  # Unicast forwarding
+      - "7.2.5"  # Broadcast handling
+      - "7.2.6"  # Multicast (IPv4 & IPv6)
+    severity: high
+    failure_modes: ["DISCRIMINATION", "ENCODING"]
+    notes: "Builds on Module 5 - frame processing and addressing"
+    topics:
+      - "MAC vs LLC Sublayers"
+      - "CSMA/CD operation and collision handling"
+      - "Ethernet Frame Fields (detailed)"
+      - "Hexadecimal notation and OUI"
+      - "MAC address structure"
+      - "Frame processing on switches"
+      - "Unicast forwarding decisions"
+      - "Broadcast handling"
+      - "Multicast (IPv4 01:00:5e and IPv6 33:33)"
+
+  # ==========================================================================
+  # CHAIN 2: LAYER 3 ADDRESSING
+  # ==========================================================================
+
+  # --- Module 8: IPv4 Subnetting (Chain 2, Position 1) - CRITICAL ---
+  - module: 8
+    chain: layer3_addressing
+    chain_position: 1
+    sections:
+      - "8.1.1"
+      - "8.1.2"  # IPv4 Structure
+      - "8.1.3"  # Network vs Host portions
+      - "8.2.1"  # Masks & Prefix Lengths
+      - "8.2.2"  # Calculating Subnets
+      - "8.2.3"  # Hosts per subnet
+      - "8.3.1"  # Broadcast address
+      - "8.3.2"  # Network address
+      - "8.3.3"  # APIPA
+    severity: critical
+    failure_modes: ["INTEGRATION"]
+    notes: "Subnet math must be solid before ARP/ND"
+    topics:
+      - "IPv4 Structure (network vs host portions)"
+      - "Subnet Masks & Prefix Lengths"
+      - "Calculating Subnets (2^n)"
+      - "Hosts per subnet formula (2^h - 2)"
+      - "Broadcast address calculation"
+      - "Network address calculation"
+      - "APIPA (169.254.x.x)"
+      - "Binary to decimal conversion"
+
+  # --- Module 10: IPv6 Addressing (Chain 2, Position 2) ---
+  - module: 10
+    chain: layer3_addressing
+    chain_position: 2
+    prerequisite_modules: [8]
+    sections:
+      - "10.1.1"  # Link-local
+      - "10.1.2"  # Global unicast
+      - "10.1.3"  # Unique-local
+      - "10.1.4"  # Anycast
+      - "10.2.1"  # Prefix + Interface ID
+      - "10.2.2"  # EUI-64
+      - "10.3.1"  # SLAAC
+      - "10.3.2"  # RA/RS messages
+      - "10.4.1"  # IPv6 configuration
+    severity: high
+    failure_modes: ["DISCRIMINATION", "INTEGRATION"]
+    notes: "IPv6 addressing builds on IPv4 concepts"
+    topics:
+      - "Link-local addresses (FE80::/10)"
+      - "Global unicast addresses (2000::/3)"
+      - "Unique-local addresses (FC00::/7)"
+      - "Anycast addressing"
+      - "IPv6 Prefix + Interface ID structure"
+      - "EUI-64 process (flip 7th bit + FFFE)"
+      - "SLAAC operation"
+      - "Router Advertisement (RA) / Router Solicitation (RS)"
+
+  # --- Module 9: ARP & Neighbor Discovery (Chain 2, Position 3) - CRITICAL ---
+  - module: 9
+    chain: layer3_addressing
+    chain_position: 3
+    prerequisite_modules: [8, 10]
+    sections:
+      - "9.1.1"  # ARP Requests
+      - "9.1.2"  # ARP Replies
+      - "9.1.3"  # ARP Cache
+      - "9.2.1"  # NS/NA behavior
+      - "9.2.2"  # Solicited-node multicast
+      - "9.3.1"  # ICMPv6 types
+      - "9.3.2"  # Hop Limit
+      - "9.3.3"  # Router Discovery
+    severity: critical
+    failure_modes: ["ENCODING", "DISCRIMINATION"]
+    notes: "Requires understanding of both IPv4 and IPv6 addressing first"
+    topics:
+      - "ARP Requests (broadcast to FF:FF:FF:FF:FF:FF)"
+      - "ARP Replies (unicast)"
+      - "ARP Cache behavior and timing"
+      - "IPv6 Neighbor Solicitation (NS)"
+      - "IPv6 Neighbor Advertisement (NA)"
+      - "Solicited-node multicast addresses (FF02::1:FFxx:xxxx)"
+      - "ICMPv6 Hop Limit and Router Discovery"
+
+  # ==========================================================================
+  # CHAIN 3: UPPER LAYER PROTOCOLS
+  # ==========================================================================
+
+  # --- Module 11: ICMP (Chain 3, Position 1) - CRITICAL ---
+  - module: 11
+    chain: upper_layers
+    chain_position: 1
+    prerequisite_modules: [8, 9]  # Needs IP addressing knowledge
+    sections:
+      - "11.1.1"  # ICMPv4 Type 0/8
+      - "11.1.2"  # ICMPv6 types
+      - "11.2.1"  # Windows traceroute
+      - "11.2.2"  # Linux traceroute
+      - "11.2.3"  # TTL behavior
+    severity: critical
+    failure_modes: ["DISCRIMINATION", "RETRIEVAL"]
+    notes: "ICMP diagnostics - builds on Layer 3"
+    topics:
+      - "ICMPv4 Type 0 (Echo Reply)"
+      - "ICMPv4 Type 8 (Echo Request)"
+      - "ICMPv6 hop limit behavior"
+      - "Windows traceroute (uses ICMP)"
+      - "Linux traceroute (uses UDP)"
+      - "TTL behavior and decrements"
+
+  # --- Module 12: TCP/UDP (Chain 3, Position 2) ---
+  - module: 12
+    chain: upper_layers
+    chain_position: 2
+    prerequisite_modules: [11]
+    sections:
+      - "12.1.1"  # TCP overview
+      - "12.1.2"  # 3-way handshake
+      - "12.1.3"  # Sequence numbers
+      - "12.1.4"  # Windowing
+      - "12.1.5"  # Retransmissions
+      - "12.2.1"  # UDP overview
+      - "12.2.2"  # No reliability
+    severity: medium
+    failure_modes: ["ENCODING", "INTEGRATION"]
+    notes: "Transport layer - reliability mechanisms"
+    topics:
+      - "TCP 3-way handshake (SYN, SYN-ACK, ACK)"
+      - "Sequence and ACK numbers"
+      - "TCP Windowing"
+      - "Retransmission behavior"
+      - "UDP characteristics (no reliability)"
+      - "Port numbers (well-known, registered, dynamic)"
+
+  # --- Module 13: Application Layer (Chain 3, Position 3) ---
+  - module: 13
+    chain: upper_layers
+    chain_position: 3
+    prerequisite_modules: [12]
+    sections:
+      - "13.1.1"  # DNS overview
+      - "13.1.2"  # DNS records
+      - "13.1.3"  # DNS ports
+      - "13.2.1"  # DHCP overview
+      - "13.2.2"  # DORA process
+      - "13.2.3"  # Broadcast behavior
+      - "13.3.1"  # HTTP/HTTPS
+    severity: medium
+    failure_modes: ["ENCODING"]
+    notes: "Application protocols - builds on TCP/UDP"
+    topics:
+      - "DNS record types (A, AAAA, MX, CNAME, TXT, PTR)"
+      - "DNS Port 53 (UDP for queries, TCP for zone transfers)"
+      - "DHCP DORA process (Discover, Offer, Request, Acknowledge)"
+      - "DHCP broadcast behavior"
+      - "HTTP Port 80"
+      - "HTTPS Port 443"
+
+  # ==========================================================================
+  # CLI & OSI FOUNDATIONS (Parallel Track)
+  # ==========================================================================
+
+  # --- Module 2: IOS Navigation --- UPGRADED: Q27 Command/Mode matching missed
+  - module: 2
+    chain: cli_foundations
+    chain_position: 1
+    sections:
+      - "2.1.4"  # Access Methods
+      - "2.1.5"  # Terminal Emulation
+      - "2.2.1"  # Primary Command Modes (Q27 weakness)
+      - "2.2.2"  # Config/Subconfig Modes (Q27 weakness)
+      - "2.2.4"  # Navigate Between Modes (Q27 weakness)
+      - "2.3.1"  # Basic Command Structure
+      - "2.3.2"  # Syntax Check
+      - "2.3.3"  # IOS Help
+      - "2.3.4"  # Command shortcuts
+      - "2.3.5"  # Hotkeys/Shortcuts
+      - "2.4.2"  # Password Guidelines
+      - "2.4.3"  # Configure Passwords
+      - "2.4.5"  # Banner Messages
+      - "2.6.2"  # Interfaces and Ports
+      - "2.7.1"  # Manual IP config
+      - "2.7.4"  # Switch Virtual Interface
+      - "2.8.1"  # show ip interface brief
+      - "2.8.2"  # ping command
+    severity: critical  # UPGRADED from high - Q27 command/mode matching missed
+    failure_modes: ["ENCODING", "EXECUTIVE", "DISCRIMINATION"]
+    notes: "CRITICAL: Q27 command/mode matching missed. CLI foundations - must know which prompt for each command"
+    topics:
+      - "Access Methods (Console, SSH, Telnet)"
+      - "Terminal Emulation Programs (PuTTY, Tera Term)"
+      - "User EXEC vs Privileged EXEC modes"
+      - "Global Config & Subconfiguration Modes"
+      - "Mode navigation (enable, configure terminal, exit, end)"
+      - "Command-to-mode mapping (login→line config, enable→user EXEC)"
+      - "Mode transition commands"
+      - "Basic Command Structure"
+      - "IOS Help (? and Tab completion)"
+      - "Hotkeys and Shortcuts (Ctrl+C, Ctrl+Z)"
+      - "Password configuration (enable secret, line console)"
+      - "Banner Messages (MOTD)"
+      - "Interfaces and Ports identification"
+      - "Manual IP configuration"
+      - "Switch Virtual Interface (SVI) for management"
+      - "show ip interface brief interpretation"
+      - "ping command usage"
+
+  # --- Module 3: OSI Model --- UPGRADED: 0% Communications score on practice exam
+  - module: 3
+    chain: cli_foundations
+    chain_position: 2
+    prerequisite_modules: [2]
+    sections:
+      - "3.1.2"  # Data Encapsulation
+      - "3.1.3"  # Data Decapsulation (Q16 - de-encapsulation missed)
+      - "3.2.1"  # OSI Layer 7
+      - "3.2.2"  # OSI Layer 6
+      - "3.2.3"  # OSI Layer 5
+      - "3.2.4"  # OSI Layer 4
+      - "3.2.5"  # OSI Layer 3
+      - "3.2.6"  # OSI Layer 2
+      - "3.2.7"  # OSI Layer 1
+      - "3.3.1"  # PDU names
+      - "3.6.1"  # Packet trailers (router frame processing)
+      - "3.6.3"  # Protocol Data Units (PDU names) - Gemini identified
+      - "3.7.6"  # Data Access - MAC vs IP changes
+      - "3.7.7"  # Packet Walk
+      - "3.7.8"  # IP stays same, MAC changes at routers
+    severity: critical  # UPGRADED from high - 0% Communications score
+    failure_modes: ["DISCRIMINATION", "ENCODING", "INTEGRATION"]
+    notes: "CRITICAL: 0% Communications on practice exam. Missed Q16 (de-encapsulation). OSI fundamentals - enables understanding all other modules"
+    topics:
+      - "Data Encapsulation process"
+      - "Data Decapsulation process"
+      - "Router de-encapsulation (FIRST action when frame arrives)"
+      - "Frame arrival processing at Layer 3 devices"
+      - "PDU transformation: Frame -> Packet -> Frame"
+      - "MAC address changes during routing (changes at every hop)"
+      - "IP address preservation during routing (stays same end-to-end)"
+      - "OSI Layer 7 (Application)"
+      - "OSI Layer 6 (Presentation)"
+      - "OSI Layer 5 (Session)"
+      - "OSI Layer 4 (Transport)"
+      - "OSI Layer 3 (Network)"
+      - "OSI Layer 2 (Data Link)"
+      - "OSI Layer 1 (Physical)"
+      - "PDU Names: Data, Segments, Packets, Frames, Bits"
+      - "TCP/IP model vs OSI model mapping"
+
+  # ==========================================================================
+  # LATER MODULES (Procedural/Troubleshooting) - Low Priority for Now
+  # ==========================================================================
+
+  # --- Module 14: Transport Layer --- UPGRADED: Q38 TCP Window Size, Q41 Port Ranges missed
+  - module: 14
+    chain: upper_layers
+    sections:
+      - "14.1.3"  # TCP Header - Window Size (Q38 missed)
+      - "14.1.4"  # Port Numbers (Q41 missed)
+      - "14.2.3"  # TCP Header Fields
+      - "14.4.1"  # Port Numbers
+      - "14.4.2"  # Port Ranges (well-known, registered, dynamic)
+      - "14.5.1"  # TCP Windowing / Flow Control
+    severity: high  # UPGRADED from low - Q38, Q41 missed
+    failure_modes: ["ENCODING", "INTEGRATION"]
+    notes: "UPGRADED: Missed Q38 (TCP Window Size) and Q41 (Port 414 = registered range). Transport layer fundamentals"
+    prerequisite_modules: [8, 9, 10, 11]
+    topics:
+      - "TCP Window Size mechanism (flow control)"
+      - "Port number ranges: Well-known (0-1023), Registered (1024-49151), Dynamic (49152-65535)"
+      - "TCP 3-way handshake (SYN, SYN-ACK, ACK)"
+      - "Sequence and ACK numbers"
+      - "TCP Windowing / Sliding window"
+      - "Retransmission behavior"
+      - "UDP characteristics (no reliability)"
+
+  - module: 15
+    chain: routing
+    sections: ["15.x"]
+    severity: low
+    failure_modes: ["EXECUTIVE"]
+    notes: "IP Static Routing - will drill when reached"
+    prerequisite_modules: [14]
+
+  - module: 16
+    chain: routing
+    sections: ["16.x"]
+    severity: low
+    failure_modes: ["EXECUTIVE"]
+    notes: "Troubleshooting Static Routes - will drill when reached"
+    prerequisite_modules: [15]
+
+  - module: 17
+    chain: review
+    sections: ["17.x"]
+    severity: low
+    failure_modes: ["EXECUTIVE"]
+    notes: "Final Review - will drill when reached"
+    prerequisite_modules: [14, 15, 16]
+
+# ==========================================================================
+  # LAB SKILLS - Packet Tracer & Wireshark (Procedural Knowledge)
+  # ==========================================================================
+
+  # --- Lab: Router Initial Configuration (PARSONS) ---
+  - module: 2
+    chain: lab_skills
+    chain_position: 1
+    sections:
+      - "2.4.2"  # Password Guidelines
+      - "2.4.3"  # Configure Passwords
+      - "2.4.5"  # Banner Messages
+    severity: critical
+    failure_modes: ["EXECUTIVE", "ENCODING", "CLI_SEQUENCE_ORDERING"]
+    notes: |
+      PT Assessment: hostname, enable secret, service password-encryption sequence.
+      KEY INSIGHT: service password-encryption is applied AFTER setting passwords!
+      Sequence: enable -> conf t -> line console 0 -> password -> login -> THEN service password-encryption
+    atom_types: ["parsons"]
+    topics:
+      - "Router initial configuration command sequence"
+      - "enable secret vs enable password"
+      - "service password-encryption placement (AFTER password commands)"
+      - "security passwords min-length command"
+      - "banner motd syntax with delimiters"
+      - "Configuration save (copy running-config startup-config)"
+      - "Line configuration BEFORE global encryption command"
+
+  # --- Lab: SSH Configuration (PARSONS) ---
+  - module: 2
+    chain: lab_skills
+    chain_position: 2
+    sections:
+      - "2.5.1"  # SSH Overview
+      - "2.5.2"  # SSH Configuration
+    severity: critical
+    failure_modes: ["EXECUTIVE", "ENCODING"]
+    notes: "PT Assessment: ip domain-name, crypto key generate rsa, username, line vty transport input ssh"
+    atom_types: ["parsons"]
+    topics:
+      - "SSH configuration command sequence"
+      - "ip domain-name requirement for RSA keys"
+      - "crypto key generate rsa modulus 1024"
+      - "username with secret (not password)"
+      - "line vty 0 4 configuration"
+      - "transport input ssh (disable telnet)"
+      - "login local vs login"
+
+  # --- Lab: Interface Configuration (PARSONS) ---
+  - module: 2
+    chain: lab_skills
+    chain_position: 3
+    sections:
+      - "2.6.2"  # Interfaces and Ports
+      - "2.7.1"  # Manual IP config
+    severity: critical
+    failure_modes: ["EXECUTIVE", "ENCODING"]
+    notes: "PT Assessment: interface g0/0, ip address, ipv6 address, description, no shutdown sequence"
+    atom_types: ["parsons"]
+    topics:
+      - "Interface configuration command sequence"
+      - "ip address with subnet mask (not prefix)"
+      - "ipv6 address with prefix length"
+      - "ipv6 address link-local syntax"
+      - "description command for documentation"
+      - "no shutdown requirement"
+      - "Order: interface -> description -> addresses -> no shutdown"
+
+  # --- Lab: Switch SVI Configuration (PARSONS) ---
+  - module: 2
+    chain: lab_skills
+    chain_position: 4
+    sections:
+      - "2.7.4"  # Switch Virtual Interface
+    severity: high
+    failure_modes: ["EXECUTIVE", "ENCODING"]
+    notes: "PT Assessment: interface vlan 1, ip address, no shutdown, ip default-gateway"
+    atom_types: ["parsons"]
+    topics:
+      - "Switch SVI configuration sequence"
+      - "interface vlan 1 for management"
+      - "ip address on SVI"
+      - "no shutdown on SVI"
+      - "ip default-gateway (global config, not interface)"
+
+  # --- Lab: VTY Line Security (PARSONS) ---
+  - module: 2
+    chain: lab_skills
+    chain_position: 5
+    sections:
+      - "2.4.3"  # Configure Passwords
+    severity: high
+    failure_modes: ["EXECUTIVE", "ENCODING"]
+    notes: "PT Assessment: line console 0, line vty 0 4, password, login"
+    atom_types: ["parsons"]
+    topics:
+      - "Console line configuration sequence"
+      - "VTY line configuration sequence"
+      - "password command placement"
+      - "login command requirement"
+      - "exec-timeout for security"
+
+  # --- Lab: VLSM Design (NUMERIC) ---
+  - module: 8
+    chain: lab_skills
+    chain_position: 6
+    sections:
+      - "8.2.1"  # Masks & Prefix Lengths
+      - "8.2.2"  # Calculating Subnets
+      - "8.2.3"  # Hosts per subnet
+    severity: critical
+    failure_modes: ["INTEGRATION", "DISCRIMINATION"]
+    notes: "PT Assessment: Design subnets for specific host counts, then subdivide remaining space"
+    atom_types: ["numeric"]
+    topics:
+      - "VLSM subnet design for specific host requirements"
+      - "Prefix selection for minimum waste (30 hosts → /27)"
+      - "Sequential subnet allocation"
+      - "Remaining address space calculation"
+      - "Re-subnetting for smaller requirements"
+      - "Highest usable host address calculation"
+      - "2nd highest usable host (for SVI)"
+
+  # --- Lab: Wireshark Analysis (MATCHING) ---
+  - module: 3
+    chain: lab_skills
+    chain_position: 7
+    sections:
+      - "3.7.6"  # Data Access
+      - "3.7.7"  # Packet Walk
+    severity: high
+    failure_modes: ["ENCODING", "DISCRIMINATION"]
+    notes: "Lab Analysis: Interpret Wireshark captures, understand display filters"
+    atom_types: ["matching", "flashcard"]
+    topics:
+      - "Wireshark display filter syntax"
+      - "ip.addr filter usage"
+      - "tcp.port filter usage"
+      - "icmp, arp, eth.addr filters"
+      - "tcp.flags.syn for connection attempts"
+      - "Ethernet frame fields (eth.src, eth.dst, eth.type)"
+      - "IP header fields (ip.src, ip.dst, ip.ttl)"
+      - "TCP header fields (tcp.srcport, tcp.dstport)"
+      - "EtherType values (0x0800=IPv4, 0x86dd=IPv6, 0x0806=ARP)"
+
+# =============================================================================
+# RECOMMENDED STUDY ORDER (respects prerequisites)
+# =============================================================================
+#
+# PHASE 1 - Layer 2 Foundation (Start with your weakest area):
+#   1. Module 4 (Physical) - 1 session
+#   2. Module 5 (Ethernet/Switching) - 2-3 sessions (CRITICAL)
+#   3. Module 7 (MAC/Frames) - 1-2 sessions
+#
+# PHASE 2 - Layer 3 Addressing (parallel with CLI if needed):
+#   4. Module 8 (IPv4 Subnetting) - 2-3 sessions (CRITICAL)
+#   5. Module 10 (IPv6) - 1-2 sessions
+#   6. Module 9 (ARP/ND) - 2 sessions (CRITICAL)
+#
+# PHASE 3 - Upper Layers:
+#   7. Module 11 (ICMP) - 1-2 sessions (CRITICAL)
+#   8. Module 12 (TCP/UDP) - 1 session
+#   9. Module 13 (DNS/DHCP/HTTP) - 1 session
+#
+# PARALLEL TRACK (study alongside Phases 1-3):
+#   - Module 2 (IOS Navigation) - as needed
+#   - Module 3 (OSI Model) - reference frequently
+#
+# =============================================================================

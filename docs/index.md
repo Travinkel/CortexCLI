@@ -6,6 +6,14 @@ Cortex is an adaptive learning system that synchronizes learning content from No
 
 ## What's New
 
+**Subdivided Adaptive Mode**: Filter study sessions by module ranges, ITN assessments, or topic themes using 21 source presets. New CLI arguments: `--modules`, `--sections`, `--source`, `--list-sources`. See [CLI Commands](reference/cli-commands.md#subdivided-adaptive-mode).
+
+**AI-Powered Remediation Flow**: Automatic remediation cycle (Read Note -> Practice Exercises) with pre/post accuracy tracking. New methods in `CortexSession`: `_run_remediation_cycle()`, `_get_or_generate_note()`, `_run_mini_session()`. See [Session Remediation](explanation/session-remediation.md#automatic-ai-remediation-cycle).
+
+**NCDE Fail Mode Strategies**: Maps 6 cognitive failure modes to targeted remediation strategies with note types, atom types, and exercise counts. See [Session Remediation](explanation/session-remediation.md#ncde-fail-mode-strategies).
+
+**Code Refactoring**: New `src/db/queries.py` module centralizes SQL queries. Extracted `src/cli/cortex_stats.py` for statistics functions. Regex patterns in `src/cortex/socratic.py` refactored with `re.VERBOSE`.
+
 **Visual Engine**: 3D ASCII art animation system using asciimatics. Volumetric depth shading with gradient characters for terminal-based cyberbrain boot sequences.
 
 **Socratic Tutoring**: LLM-powered interactive dialogue system that guides learners through questions instead of revealing answers directly. Progressive scaffolding from pure Socratic to worked examples.
@@ -85,6 +93,8 @@ Technical specifications for precise lookup.
 | [CLI Commands](reference/cli-commands.md) | Complete command reference for `nls` |
 | [Configuration](reference/configuration.md) | Environment variables and settings |
 | [Database Schema](reference/database-schema.md) | PostgreSQL tables and relationships |
+| [Atom Handlers](reference/atom-handlers.md) | Question type handler system (MCQ, Parsons, T/F, etc.) |
+| [Anki Sync](reference/anki-sync.md) | Bidirectional Anki synchronization |
 | [API Endpoints](reference/api-endpoints.md) | REST API specification |
 | [JIT Generation](reference/jit-generation.md) | On-demand content generation |
 | [ML Personalization](reference/ml-personalization.md) | Signals and models for adaptive learning |
@@ -273,9 +283,10 @@ Cortex uses FSRS-4 for spaced repetition scheduling:
 When learners indicate "I don't know", instead of revealing the answer immediately:
 
 - **Progressive scaffolding**: Five levels from pure Socratic questions to full reveal
-- **Dialogue tracking**: All sessions recorded in `socratic_dialogues` table
+- **Dialogue tracking**: All sessions recorded in `socratic_dialogues` table via `DialogueRecorder`
 - **Gap detection**: Identifies prerequisite knowledge gaps during dialogue
 - **Resolution outcomes**: Tracks whether learner self-solved, needed guidance, or gave up
+- **LLM-powered**: Uses Gemini 2.0 Flash for natural dialogue generation
 
 | Scaffold Level | Behavior |
 |----------------|----------|
@@ -284,6 +295,21 @@ When learners indicate "I don't know", instead of revealing the answer immediate
 | 2 | Partial reveal |
 | 3 | Worked example with gaps |
 | 4 | Full answer reveal |
+
+### User Flagging System
+
+Users can flag problematic questions during study for later review:
+
+| Flag Type | Description |
+|-----------|-------------|
+| `wrong_answer` | Marked answer is incorrect |
+| `ambiguous` | Question is unclear |
+| `typo` | Spelling or formatting error |
+| `outdated` | Information is no longer accurate |
+| `too_easy` | Not challenging enough |
+| `too_hard` | Requires knowledge not covered |
+
+Flags stored in `user_flags` table with view `v_flagged_atoms` for prioritized review.
 
 ### 3D Visual Engine
 

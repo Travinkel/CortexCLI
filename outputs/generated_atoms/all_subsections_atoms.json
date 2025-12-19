@@ -1,0 +1,773 @@
+[
+  {
+    "card_id": "4.3-FC-001",
+    "atom_type": "flashcard",
+    "front": "What are three main types of copper cabling used in networking?",
+    "back": "1. Unshielded Twisted-Pair (UTP)\n2. Shielded Twisted-Pair (STP)\n3. Coaxial",
+    "module": 4
+  },
+  {
+    "card_id": "4.3-FC-002",
+    "atom_type": "flashcard",
+    "front": "What is the primary advantage of using copper cabling in networks?",
+    "back": "Copper cabling is inexpensive, easy to install, and has low resistance to electrical current.",
+    "module": 4
+  },
+  {
+    "card_id": "4.3-FC-003",
+    "atom_type": "flashcard",
+    "front": "What are the two main sources of signal interference in copper cabling?",
+    "back": "1. Electromagnetic Interference (EMI) or Radio Frequency Interference (RFI)\n2. Crosstalk",
+    "module": 4
+  },
+  {
+    "card_id": "4.3-FC-004",
+    "atom_type": "flashcard",
+    "front": "What is crosstalk in copper cabling?",
+    "back": "Crosstalk is a disturbance caused by the electric or magnetic fields of a signal on one wire to the signal in an adjacent wire.",
+    "module": 4
+  },
+  {
+    "card_id": "4.5-FC-005",
+    "atom_type": "flashcard",
+    "front": "What are the two types of fiber optic cabling?",
+    "back": "1. Single-mode fiber (SMF)\n2. Multimode fiber (MMF)",
+    "module": 4
+  },
+  {
+    "card_id": "4.3-FC-006",
+    "atom_type": "flashcard",
+    "front": "What is signal attenuation?",
+    "back": "Signal attenuation is the degradation of a signal as it travels farther along a medium.",
+    "module": 4
+  },
+  {
+    "card_id": "4.4-FC-007",
+    "atom_type": "flashcard",
+    "front": "What are the two common wiring standards for UTP cables?",
+    "back": "1. T568A\n2. T568B",
+    "module": 4
+  },
+  {
+    "card_id": "4.4-FC-008",
+    "atom_type": "flashcard",
+    "front": "When would you use a crossover cable?",
+    "back": "To connect two devices of the same type directly, such as a switch to a switch or a computer to a computer.",
+    "module": 4
+  },
+  {
+    "card_id": "4.3-MCQ-001",
+    "atom_type": "mcq",
+    "front": "Which of the following is a characteristic of copper cabling?",
+    "correct_answer": "Susceptible to EMI and RFI",
+    "distractors": [
+      "Immune to signal attenuation",
+      "Extremely expensive to install",
+      "Unlimited distance capabilities"
+    ],
+    "explanation": "Copper cabling is susceptible to EMI and RFI, signal attenuation, and has distance limitations.",
+    "module": 4
+  },
+  {
+    "card_id": "4.5-MCQ-002",
+    "atom_type": "mcq",
+    "front": "Which type of fiber optic cable is used for long distance communication?",
+    "correct_answer": "Single-mode fiber",
+    "distractors": [
+      "Multimode fiber",
+      "Coaxial cable",
+      "UTP cable"
+    ],
+    "explanation": "Single-mode fiber is used for long-distance communication due to its lower modal dispersion and higher bandwidth.",
+    "module": 4
+  },
+  {
+    "card_id": "4.4-MCQ-003",
+    "atom_type": "mcq",
+    "front": "What is the main difference between T568A and T568B wiring standards?",
+    "correct_answer": "The arrangement of the green and orange wire pairs.",
+    "distractors": [
+      "The cable length supported",
+      "The connector type used",
+      "The data transfer speed"
+    ],
+    "explanation": "T568A and T568B differ in the arrangement of the orange and green wire pairs within the RJ45 connector.",
+    "module": 4
+  },
+  {
+    "card_id": "4.4-MCQ-004",
+    "atom_type": "mcq",
+    "front": "Which type of cable is typically used to connect a computer directly to a router?",
+    "correct_answer": "Straight-through cable",
+    "distractors": [
+      "Crossover cable",
+      "Rollover cable",
+      "Coaxial cable"
+    ],
+    "explanation": "A straight-through cable is used to connect dissimilar devices, such as a computer to a router or a switch to a router.",
+    "module": 4
+  },
+  {
+    "card_id": "5.1-FC-001",
+    "atom_type": "flashcard",
+    "front": "What are the two parts of a MAC address and what do they represent?",
+    "back": "OUI (Organizationally Unique Identifier): Identifies the manufacturer.\nDevice ID: A unique serial number assigned by the manufacturer.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-002",
+    "atom_type": "flashcard",
+    "front": "List the fields in an Ethernet frame.",
+    "back": "Preamble, SFD, Destination Address (DA), Source Address (SA), Type/Length, Data, FCS",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-003",
+    "atom_type": "flashcard",
+    "front": "What is the purpose of the FCS field in an Ethernet frame?",
+    "back": "Frame Check Sequence (FCS): Contains a CRC value used for error detection.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-004",
+    "atom_type": "flashcard",
+    "front": "What is a MAC address table, and what is it also known as?",
+    "back": "A table stored on a switch that maps MAC addresses to switch ports. Also known as a CAM (Content Addressable Memory) table.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-005",
+    "atom_type": "flashcard",
+    "front": "Briefly describe the MAC address learning process on a switch.",
+    "back": "1. Switch receives a frame.\n2. Switch examines the source MAC address and associates it with the port on which the frame was received.\n3. Switch enters this information into the MAC address table.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-006",
+    "atom_type": "flashcard",
+    "front": "What is unknown unicast flooding?",
+    "back": "When a switch receives a unicast frame with a destination MAC address that is not in its MAC address table, it floods the frame out all ports (except the receiving port).",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-007",
+    "atom_type": "flashcard",
+    "front": "What are the key differences between store-and-forward and cut-through switching?",
+    "back": "Store-and-Forward: Receives the entire frame before forwarding; performs error checking.\nCut-Through: Begins forwarding the frame as soon as the destination MAC address is read; faster but no error checking.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-008",
+    "atom_type": "flashcard",
+    "front": "What are some symptoms of a duplex mismatch?",
+    "back": "High collision rates, slow network performance, errors in application performance, inability to connect to network resources",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-009",
+    "atom_type": "flashcard",
+    "front": "How long is the Preamble field in an Ethernet frame?",
+    "back": "7 bytes (56 bits)",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-FC-010",
+    "atom_type": "flashcard",
+    "front": "How long is the SFD field in an Ethernet frame?",
+    "back": "1 byte (8 bits)",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MCQ-001",
+    "atom_type": "mcq",
+    "front": "Which part of a MAC address identifies the manufacturer of the network interface card?",
+    "correct_answer": "OUI",
+    "distractors": [
+      "Device ID",
+      "FCS",
+      "CAM"
+    ],
+    "explanation": "The Organizationally Unique Identifier (OUI) is the first three bytes of a MAC address and identifies the manufacturer.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MCQ-002",
+    "atom_type": "mcq",
+    "front": "Which field in the Ethernet frame is used for error detection?",
+    "correct_answer": "FCS",
+    "distractors": [
+      "SA",
+      "DA",
+      "Type/Length"
+    ],
+    "explanation": "The Frame Check Sequence (FCS) field contains a CRC value that is used to detect errors in the frame.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MCQ-003",
+    "atom_type": "mcq",
+    "front": "What happens when a switch receives a frame with a destination MAC address it doesn't know?",
+    "correct_answer": "It floods the frame out all ports except the receiving port.",
+    "distractors": [
+      "It drops the frame.",
+      "It sends the frame to the default gateway.",
+      "It sends an error message to the source."
+    ],
+    "explanation": "This is known as unknown unicast flooding. The switch floods the frame in an attempt to locate the destination device.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MCQ-004",
+    "atom_type": "mcq",
+    "front": "Which switching method performs error checking before forwarding a frame?",
+    "correct_answer": "Store-and-Forward",
+    "distractors": [
+      "Cut-Through",
+      "Fragment-Free",
+      "Fast Forward"
+    ],
+    "explanation": "Store-and-forward switching receives the entire frame and calculates the CRC before forwarding, allowing for error detection.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MCQ-005",
+    "atom_type": "mcq",
+    "front": "Which of the following is a common symptom of a duplex mismatch?",
+    "correct_answer": "High collision rate",
+    "distractors": [
+      "Low utilization",
+      "High bandwidth",
+      "Full connectivity"
+    ],
+    "explanation": "Duplex mismatch causes one side to operate in half-duplex while the other operates in full-duplex, leading to excessive collisions.",
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MAT-001",
+    "atom_type": "matching",
+    "front": "Match the Ethernet frame field with its description.",
+    "pairs": [
+      {
+        "left": "DA",
+        "right": "Destination MAC Address"
+      },
+      {
+        "left": "SA",
+        "right": "Source MAC Address"
+      },
+      {
+        "left": "FCS",
+        "right": "Error detection"
+      },
+      {
+        "left": "Type/Length",
+        "right": "Protocol or frame size"
+      }
+    ],
+    "module": 5
+  },
+  {
+    "card_id": "5.1-MAT-002",
+    "atom_type": "matching",
+    "front": "Match the switching type with its description.",
+    "pairs": [
+      {
+        "left": "Store-and-Forward",
+        "right": "Full frame reception and error check"
+      },
+      {
+        "left": "Cut-Through",
+        "right": "Begins forwarding immediately"
+      },
+      {
+        "left": "CAM Table",
+        "right": "MAC address to port mapping"
+      },
+      {
+        "left": "OUI",
+        "right": "Identifies the manufacturer"
+      }
+    ],
+    "module": 5
+  },
+  {
+    "card_id": "7.1-FC-001",
+    "atom_type": "flashcard",
+    "front": "What is the role of the LLC sublayer in the data link layer?",
+    "back": "The LLC sublayer communicates between the networking software at the upper layers and the device hardware at the lower layers. It identifies which network layer protocol is being used for the frame (e.g., IPv4 or IPv6).",
+    "module": 7
+  },
+  {
+    "card_id": "7.1-FC-002",
+    "atom_type": "flashcard",
+    "front": "What is the role of the MAC sublayer in the data link layer?",
+    "back": "The MAC sublayer is implemented in hardware and is responsible for data encapsulation and media access control. It provides data link layer addressing and is integrated with various physical layer technologies.",
+    "module": 7
+  },
+  {
+    "card_id": "7.1-FC-003",
+    "atom_type": "flashcard",
+    "front": "What are the key functions of IEEE 802.3 data encapsulation?",
+    "back": "Ethernet Frame Formatting, Ethernet Addressing (Source and Destination MAC), and Ethernet Error Detection (FCS).",
+    "module": 7
+  },
+  {
+    "card_id": "7.1-FC-004",
+    "atom_type": "flashcard",
+    "front": "What is the purpose of CSMA/CD?",
+    "back": "CSMA/CD (Carrier Sense Multiple Access/Collision Detection) is a media access control method used in legacy Ethernet networks with bus topology or hubs (half-duplex). It ensures that only one device transmits at a time and handles collisions.",
+    "module": 7
+  },
+  {
+    "card_id": "7.2-FC-005",
+    "atom_type": "flashcard",
+    "front": "What are the sizes (in bytes) of the Source and Destination MAC address fields in an Ethernet frame?",
+    "back": "Both the Source MAC address and the Destination MAC address fields are 6 bytes in size.",
+    "module": 7
+  },
+  {
+    "card_id": "7.2-FC-006",
+    "atom_type": "flashcard",
+    "front": "What are the functions of OUI?",
+    "back": "The OUI (Organizationally Unique Identifier) is a 24-bit code assigned by the IEEE to identify a specific vendor. The vendor uses this OUI as the first 6 hexadecimal digits in the MAC address.",
+    "module": 7
+  },
+  {
+    "card_id": "7.2-FC-007",
+    "atom_type": "flashcard",
+    "front": "What is a broadcast MAC address and how is it represented?",
+    "back": "A broadcast MAC address is a special address that is used to send a frame to every device on the LAN. It is represented as FF:FF:FF:FF:FF:FF.",
+    "module": 7
+  },
+  {
+    "card_id": "7.2-FC-008",
+    "atom_type": "flashcard",
+    "front": "What is a multicast MAC address and what are common prefixes used for IPv4 and IPv6 multicast?",
+    "back": "A multicast MAC address is used to send a frame to a specific group of devices on the LAN. For IPv4 multicast, the MAC address usually begins with 01:00:5e. For IPv6, it begins with 33:33.",
+    "module": 7
+  },
+  {
+    "card_id": "7.1-MCQ-001",
+    "atom_type": "mcq",
+    "front": "Which data link sublayer is responsible for placing information in the frame that identifies which network layer protocol is being used?",
+    "correct_answer": "Logical Link Control (LLC)",
+    "distractors": [
+      "Media Access Control (MAC)",
+      "Network Interface Card (NIC)",
+      "Physical Layer"
+    ],
+    "explanation": "The LLC sublayer is responsible for communicating between the networking software at the upper layers and the device hardware at the lower layers. This sublayer adds information to the frame that identifies the network layer protocol.",
+    "module": 7
+  },
+  {
+    "card_id": "7.1-MCQ-002",
+    "atom_type": "mcq",
+    "front": "What is the maximum data size (payload) in bytes allowed in an Ethernet frame (excluding VLAN tagging)?",
+    "correct_answer": "1500",
+    "distractors": [
+      "64",
+      "1518",
+      "1522"
+    ],
+    "explanation": "The data field in an Ethernet frame can be between 46 and 1500 bytes. 1500 is the maximum size.",
+    "module": 7
+  },
+  {
+    "card_id": "7.2-MCQ-003",
+    "atom_type": "mcq",
+    "front": "A network administrator is troubleshooting connectivity issues on an Ethernet network. They capture a frame with a destination MAC address of FF:FF:FF:FF:FF:FF. What type of frame is this?",
+    "correct_answer": "Broadcast",
+    "distractors": [
+      "Unicast",
+      "Multicast",
+      "Jumbo Frame"
+    ],
+    "explanation": "A destination MAC address of FF:FF:FF:FF:FF:FF indicates a broadcast frame, which is sent to all devices on the local network.",
+    "module": 7
+  },
+  {
+    "card_id": "7.2-MCQ-004",
+    "atom_type": "mcq",
+    "front": "Which part of the MAC address identifies the manufacturer of the Ethernet NIC?",
+    "correct_answer": "Organizationally Unique Identifier (OUI)",
+    "distractors": [
+      "Vendor Assigned Value",
+      "Frame Check Sequence (FCS)",
+      "Preamble"
+    ],
+    "explanation": "The OUI (Organizationally Unique Identifier) is the first 24 bits (6 hexadecimal digits) of a MAC address and identifies the manufacturer.",
+    "module": 7
+  },
+  {
+    "card_id": "7.2-MAT-001",
+    "atom_type": "matching",
+    "front": "Match MAC address types with their descriptions:",
+    "pairs": [
+      {
+        "left": "Unicast",
+        "right": "Frame sent to a specific destination MAC address."
+      },
+      {
+        "left": "Broadcast",
+        "right": "Frame sent to all devices on the LAN (FF:FF:FF:FF:FF:FF)."
+      },
+      {
+        "left": "Multicast",
+        "right": "Frame sent to a group of devices."
+      },
+      {
+        "left": "OUI",
+        "right": "Identifies the manufacturer of the NIC."
+      }
+    ],
+    "module": 7
+  },
+  {
+    "card_id": "7.2-MAT-002",
+    "atom_type": "matching",
+    "front": "Match the Ethernet frame fields with their sizes in bytes:",
+    "pairs": [
+      {
+        "left": "Destination MAC Address",
+        "right": "6 bytes"
+      },
+      {
+        "left": "Source MAC Address",
+        "right": "6 bytes"
+      },
+      {
+        "left": "Type/Length",
+        "right": "2 bytes"
+      },
+      {
+        "left": "Frame Check Sequence (FCS)",
+        "right": "4 bytes"
+      }
+    ],
+    "module": 7
+  },
+  {
+    "card_id": "8.X-NUM-001",
+    "atom_type": "numeric",
+    "front": "An IPv4 address of 192.168.1.10/24 is assigned to a host. What is the network address?",
+    "back": "192.168.1.0. The /24 indicates a subnet mask of 255.255.255.0, so the first three octets represent the network portion.  Host bits (the last octet) are all set to 0 to obtain the network address.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-NUM-002",
+    "atom_type": "numeric",
+    "front": "An IPv4 address of 10.1.1.55/16 is assigned to a host. What is the broadcast address?",
+    "back": "10.1.255.255. The /16 indicates a subnet mask of 255.255.0.0, so the first two octets represent the network portion. Host bits (the last two octets) are all set to 1 to obtain the broadcast address.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-NUM-003",
+    "atom_type": "numeric",
+    "front": "A network is subnetted with a /27 mask. How many usable host addresses are available per subnet?",
+    "back": "30. A /27 mask leaves 5 host bits (32-27=5). 2^5 - 2 = 32 - 2 = 30 usable host addresses.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-NUM-004",
+    "atom_type": "numeric",
+    "front": "A /22 network is subnetted from a class B network. How many subnets are created?",
+    "back": "64.  A Class B default is /16, /22 - /16 = 6, 2^6 = 64 subnets.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-NUM-005",
+    "atom_type": "numeric",
+    "front": "A network has been subnetted to allow for 100 hosts per subnet. What is the minimum number of host bits required in the subnet mask?",
+    "back": "7. The formula 2^h - 2 >= 100 must be satisfied. 2^6 - 2 = 62, which is not enough. 2^7 - 2 = 126, which is sufficient. Therefore, 7 host bits are needed.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-NUM-006",
+    "atom_type": "numeric",
+    "front": "How many subnets are created if a /29 subnet mask is used on a /24 network?",
+    "back": "32. /29 - /24 = 5. Therefore 2^5 = 32 subnets.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-NUM-007",
+    "atom_type": "numeric",
+    "front": "A network 172.16.0.0 is subnetted to create a network with 62 hosts. What is the subnet mask in CIDR notation?",
+    "back": "/26. 62 hosts requires 6 bits: (2^6 -2 = 62). 32 - 6 = 26. /26 subnet mask.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-NUM-008",
+    "atom_type": "numeric",
+    "front": "What is the network address of the IP address 192.168.5.130 255.255.255.192?",
+    "back": "192.168.5.128.  Convert 192.168.5.130 to binary 11000000.10101000.00000101.10000010, then 255.255.255.192 to binary 11111111.11111111.11111111.11000000, preform bitwise AND and convert back to decimal.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-MCQ-001",
+    "atom_type": "mcq",
+    "front": "Which of the following is a private IP address range?",
+    "correct_answer": "192.168.0.0/16",
+    "distractors": [
+      "172.12.0.0/16",
+      "100.10.0.0/16",
+      "11.0.0.0/8"
+    ],
+    "explanation": "The private IPv4 address ranges are 10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-MCQ-002",
+    "atom_type": "mcq",
+    "front": "What is the purpose of the TTL field in the IPv4 header?",
+    "correct_answer": "To prevent packets from endlessly looping in the network.",
+    "distractors": [
+      "To prioritize packets based on their type of service.",
+      "To identify the protocol of the data being carried in the packet.",
+      "To detect corruption in the IPv4 header."
+    ],
+    "explanation": "The TTL field limits the lifetime of a packet by decrementing each time it passes through a router. If it reaches 0, the packet is discarded.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-MCQ-003",
+    "atom_type": "mcq",
+    "front": "Which of the following describes the IPv4 'best effort' characteristic?",
+    "correct_answer": "IP does not guarantee packet delivery.",
+    "distractors": [
+      "IP establishes a connection before sending data.",
+      "IP manages the flow of packets to prevent congestion.",
+      "IP operates only over wired connections."
+    ],
+    "explanation": "IP is an unreliable protocol and does not have mechanisms to guarantee delivery or recover from packet loss. This task is handled by higher-layer protocols like TCP.",
+    "module": 8
+  },
+  {
+    "card_id": "8.X-MCQ-004",
+    "atom_type": "mcq",
+    "front": "Which address is used to send data to all hosts on a remote network?",
+    "correct_answer": "Broadcast address.",
+    "distractors": [
+      "Network address.",
+      "Multicast address.",
+      "Unicast address."
+    ],
+    "explanation": "The broadcast address is used to send data to all hosts on a specific network. This is achieved by setting all the host bits in the IP address to 1.",
+    "module": 8
+  },
+  {
+    "card_id": "9.2-FC-001",
+    "atom_type": "flashcard",
+    "front": "What is the destination MAC address in an ARP Request?",
+    "back": "FF-FF-FF-FF-FF-FF (Broadcast)",
+    "module": 9
+  },
+  {
+    "card_id": "9.2-FC-002",
+    "atom_type": "flashcard",
+    "front": "What is the destination MAC address in an ARP Reply?",
+    "back": "The unicast MAC address of the device that sent the ARP Request.",
+    "module": 9
+  },
+  {
+    "card_id": "9.2-FC-003",
+    "atom_type": "flashcard",
+    "front": "What is the purpose of ARP (Address Resolution Protocol)?",
+    "back": "To resolve IPv4 addresses to MAC addresses.",
+    "module": 9
+  },
+  {
+    "card_id": "9.2-FC-004",
+    "atom_type": "flashcard",
+    "front": "Where is the ARP table (or ARP cache) stored?",
+    "back": "Temporarily in RAM memory.",
+    "module": 9
+  },
+  {
+    "card_id": "9.2-MCQ-001",
+    "atom_type": "mcq",
+    "front": "Which MAC address is used as the destination MAC address when a host sends an ARP request?",
+    "correct_answer": "FF-FF-FF-FF-FF-FF",
+    "distractors": [
+      "The host's own MAC address",
+      "The MAC address of the default gateway",
+      "The MAC address of the DNS server"
+    ],
+    "explanation": "ARP requests are broadcast to all devices on the local network.  FF-FF-FF-FF-FF-FF is the broadcast MAC address.",
+    "module": 9
+  },
+  {
+    "card_id": "9.3-FC-005",
+    "atom_type": "flashcard",
+    "front": "What is the IPv6 equivalent of an ARP Request?",
+    "back": "Neighbor Solicitation (NS) message.",
+    "module": 9
+  },
+  {
+    "card_id": "9.3-FC-006",
+    "atom_type": "flashcard",
+    "front": "What is the IPv6 equivalent of an ARP Reply?",
+    "back": "Neighbor Advertisement (NA) message.",
+    "module": 9
+  },
+  {
+    "card_id": "9.3-FC-007",
+    "atom_type": "flashcard",
+    "front": "What is the purpose of a Gratuitous ARP?",
+    "back": "A device broadcasts its MAC address to update other devices' ARP tables, typically after a change (e.g., IP address change, redundancy failover).",
+    "module": 9
+  },
+  {
+    "card_id": "9.3-FC-008",
+    "atom_type": "flashcard",
+    "front": "What is the IPv6 Solicited-node multicast address format?",
+    "back": "FF02::1:FFxx:xxxx (where xx:xxxx are the last 24 bits of the IPv6 address)",
+    "module": 9
+  },
+  {
+    "card_id": "9.3-MCQ-002",
+    "atom_type": "mcq",
+    "front": "Which ICMPv6 message is used to discover the link-layer address of a neighbor in IPv6?",
+    "correct_answer": "Neighbor Solicitation (NS)",
+    "distractors": [
+      "Router Advertisement (RA)",
+      "Router Solicitation (RS)",
+      "Neighbor Advertisement (NA)"
+    ],
+    "explanation": "Neighbor Solicitation messages are used to discover the link-layer address of a neighbor on the same network in IPv6.",
+    "module": 9
+  },
+  {
+    "card_id": "9.3-MCQ-003",
+    "atom_type": "mcq",
+    "front": "What is the purpose of the IPv6 Solicited-Node multicast address?",
+    "correct_answer": "To limit the scope of Neighbor Solicitation messages.",
+    "distractors": [
+      "To forward packets to all IPv6 nodes",
+      "To send Router Advertisement messages",
+      "To replace the IPv4 broadcast address"
+    ],
+    "explanation": "Solicited-Node multicast addresses allow a host to send a multicast NS message to only the nodes that share its IPv6 address's last 24 bits, reducing unnecessary traffic.",
+    "module": 9
+  },
+  {
+    "card_id": "9.3-MCQ-004",
+    "atom_type": "mcq",
+    "front": "What address is used as the destination address for IPv6 Neighbor Solicitation messages?",
+    "correct_answer": "Solicited-node multicast address",
+    "distractors": [
+      "All-nodes multicast address",
+      "All-routers multicast address",
+      "Broadcast address"
+    ],
+    "explanation": "Neighbor Solicitation messages are sent to the solicited-node multicast address, which is automatically generated based on the target IPv6 address.",
+    "module": 9
+  },
+  {
+    "card_id": "14.2-FC-001",
+    "atom_type": "flashcard",
+    "front": "What is the purpose of the TCP window size?",
+    "back": "The TCP window size is a flow control mechanism that allows the receiver to inform the sender of the amount of data it can receive at one time, preventing the sender from overwhelming the receiver.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-FC-002",
+    "atom_type": "flashcard",
+    "front": "What is the range of well-known ports, and what are they typically used for?",
+    "back": "Well-known ports range from 0-1023. They are typically used for common network services and applications, such as HTTP (port 80) and SSH (port 22).",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-FC-003",
+    "atom_type": "flashcard",
+    "front": "What is the range of registered ports, and who typically uses them?",
+    "back": "Registered ports range from 1024-49151. They are typically used by software vendors for specific applications. These ports should be registered with IANA to avoid conflicts.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-FC-004",
+    "atom_type": "flashcard",
+    "front": "What is the range of dynamic or ephemeral ports, and how are they used?",
+    "back": "Dynamic or ephemeral ports range from 49152-65535. They are typically used by client applications when initiating a connection to a server.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-FC-005",
+    "atom_type": "flashcard",
+    "front": "Describe the TCP 3-way handshake.",
+    "back": "The TCP 3-way handshake is used to establish a connection between two hosts. It consists of SYN (synchronize), SYN-ACK (synchronize-acknowledge), and ACK (acknowledge) packets.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-FC-006",
+    "atom_type": "flashcard",
+    "front": "What are the key differences between TCP and UDP?",
+    "back": "TCP is connection-oriented, reliable, and provides flow control. UDP is connectionless, unreliable, and offers faster transmission with less overhead.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-MCQ-001",
+    "atom_type": "mcq",
+    "front": "Which of the following port numbers is commonly used for HTTP?",
+    "correct_answer": "80",
+    "distractors": [
+      "21",
+      "23",
+      "443"
+    ],
+    "explanation": "HTTP (Hypertext Transfer Protocol) typically uses port 80 for unencrypted web traffic.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-MCQ-002",
+    "atom_type": "mcq",
+    "front": "Which protocol uses port 53 by default?",
+    "correct_answer": "DNS",
+    "distractors": [
+      "SMTP",
+      "DHCP",
+      "FTP"
+    ],
+    "explanation": "DNS (Domain Name System) uses port 53 for translating domain names to IP addresses and vice versa.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-MCQ-003",
+    "atom_type": "mcq",
+    "front": "A TCP window size of zero indicates what?",
+    "correct_answer": "The receiver cannot accept any more data.",
+    "distractors": [
+      "The connection is closed.",
+      "The sender should retransmit the last segment.",
+      "The connection is congested."
+    ],
+    "explanation": "A TCP window size of zero means the receiver's buffer is full and the sender must stop sending data until the receiver advertises a larger window.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-MCQ-004",
+    "atom_type": "mcq",
+    "front": "Port 2048 falls in which port range?",
+    "correct_answer": "Registered",
+    "distractors": [
+      "Well-known",
+      "Dynamic/Ephemeral",
+      "Reserved"
+    ],
+    "explanation": "Registered ports are between 1024 and 49151. Port 2048 falls within this range.",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-NUM-001",
+    "atom_type": "numeric",
+    "front": "A web server is configured to use HTTPS. What port number should be opened on a firewall to allow this traffic?",
+    "back": "443",
+    "module": 14
+  },
+  {
+    "card_id": "14.2-NUM-002",
+    "atom_type": "numeric",
+    "front": "What is the maximum number of bytes that can be advertised as a TCP window size (assuming a standard 16-bit window size field)?",
+    "back": "65535",
+    "module": 14
+  }
+]

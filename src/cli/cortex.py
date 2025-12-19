@@ -49,6 +49,18 @@ from rich.table import Table
 from rich.text import Text
 from sqlalchemy import text
 
+from src.cli.cortex_stats import (
+    get_pre_session_stats,
+    get_struggle_stats,
+    determine_severity,
+)
+from src.cli.source_presets import (
+    resolve_filters,
+    describe_filters,
+    list_presets,
+    SOURCE_PRESETS,
+)
+
 from config import get_settings
 from src.db.database import engine
 from src.study.quiz_engine import QuizEngine, AtomType as QuizAtomType
@@ -252,77 +264,101 @@ def _ensure_struggles_imported() -> bool:
 
 
 def _get_pre_session_stats() -> dict:
-    """Get pre-session statistics for the dashboard."""
-    try:
-        with engine.connect() as conn:
-            # Get overall mastery
-            result = conn.execute(text("""
-                SELECT
-                    COUNT(*) as total,
-                    SUM(CASE WHEN nls_correct_count > nls_incorrect_count THEN 1 ELSE 0 END) as mastered
-                FROM learning_atoms
-                WHERE atom_type IN ('mcq', 'true_false', 'numeric', 'parsons')
-            """))
-            row = result.fetchone()
-            total = row[0] or 1
-            mastered = row[1] or 0
-            overall_mastery = int((mastered / total) * 100) if total > 0 else 0
+    """Get pre-session statistics for the dashboard.
 
-            # Get streak (placeholder)
-            streak_days = 0
-
-            # Get struggle zones
-            result = conn.execute(text("""
-                SELECT module_number, weight
-                FROM struggle_weights
-                WHERE weight > 0.5
-                ORDER BY weight DESC
-                LIMIT 5
-            """))
-            struggle_zones = [
-                {"module_number": row[0], "weight": float(row[1]) if row[1] else 0.0, "avg_priority": float(row[1]) if row[1] else 0.0}
-                for row in result.fetchall()
-            ]
-
-            return {
-                "overall_mastery": overall_mastery,
-                "sections_total": total,
-                "sections_complete": mastered,
-                "streak_days": streak_days,
-                "struggle_zones": struggle_zones,
-                "struggle_count": len(struggle_zones),
-                "due_count": 0,
-                "new_count": 0,
-            }
-    except Exception as e:
-        logger.warning(f"Failed to get pre-session stats: {e}")
-        return {
-            "overall_mastery": 0, "sections_total": 0, "sections_complete": 0,
-            "streak_days": 0, "struggle_zones": [], "struggle_count": 0,
-            "due_count": 0, "new_count": 0,
-        }
+    Note: Delegates to src.cli.cortex_stats module for implementation.
+    """
+    return get_pre_session_stats()
 
 
 def _get_struggle_stats() -> list[dict]:
-    """Get struggle weight statistics by module."""
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(text("""
-                SELECT module_number, section_id, weight
-                FROM struggle_weights
-                ORDER BY module_number, section_id
-            """))
-            return [
-                {
-                    "module_number": row[0],
-                    "section_id": row[1],
-                    "weight": float(row[2]) if row[2] else 0.0,
-                }
-                for row in result.fetchall()
-            ]
-    except Exception as e:
-        console.print(f"[yellow]Warning: Failed to get struggle stats: {e}[/yellow]")
-        return []
+    """Get struggle weight statistics by module with severity and mastery.
+
+    Note: Delegates to src.cli.cortex_stats module for implementation.
+    """
+    return get_struggle_stats()
+
+
+def _show_source_filter_menu() -> tuple[list[int] | None, list[str] | None, str | None]:
+    """
+    Show interactive menu for selecting study source/filter.
+
+    Returns:
+        (modules, sections, source_file) tuple for filtering, or (None, None, None) for full curriculum
+    """
+    console.print("\n[bold cyan]━━━ SELECT STUDY FOCUS ━━━[/bold cyan]\n")
+
+    # Quick options
+    console.print("  [green]0[/green] - Full Curriculum (all modules, struggle-weighted)")
+    console.print()
+
+    # Module ranges
+    console.print("  [cyan]MODULE RANGES[/cyan]")
+    console.print("    [cyan]1[/cyan] - Modules 1-3   (Foundations)")
+    console.print("    [cyan]2[/cyan] - Modules 4-7   (Physical & Data Link)")
+    console.print("    [cyan]3[/cyan] - Modules 8-10  (Network Layer)")
+    console.print("    [cyan]4[/cyan] - Modules 11-13 (IP Addressing)")
+    console.print("    [cyan]5[/cyan] - Modules 14-15 (Transport & App)")
+    console.print("    [cyan]6[/cyan] - Modules 16-17 (Security)")
+    console.print()
+
+    # Topic themes
+    console.print("  [yellow]TOPIC THEMES[/yellow]")
+    console.print("    [yellow]s[/yellow] - Subnetting    (11.4-11.8)")
+    console.print("    [yellow]o[/yellow] - OSI Model     (3.1-3.4)")
+    console.print("    [yellow]i[/yellow] - IPv6          (12.1-12.5)")
+    console.print("    [yellow]r[/yellow] - Routing       (16.1-16.4)")
+    console.print("    [yellow]x[/yellow] - Security      (17.1-17.4)")
+    console.print()
+
+    # ITN Assessments
+    console.print("  [magenta]ITN ASSESSMENTS[/magenta]")
+    console.print("    [magenta]f[/magenta] - ITN Final Packet Tracer")
+    console.print("    [magenta]p[/magenta] - ITN Practice Exam")
+    console.print("    [magenta]t[/magenta] - ITN Practice Test")
+    console.print("    [magenta]k[/magenta] - ITN Skills Assessment")
+    console.print()
+
+    choice = Prompt.ask(
+        "[cyan]>_ SELECT FOCUS[/cyan]",
+        choices=["0", "1", "2", "3", "4", "5", "6", "s", "o", "i", "r", "x", "f", "p", "t", "k"],
+        default="0",
+    )
+
+    # Map choice to filters (modules, sections, source_file)
+    filter_map = {
+        "0": (None, None, None),  # Full curriculum
+        "1": ([1, 2, 3], None, "CCNAModule1-3.txt"),
+        "2": ([4, 5, 6, 7], None, "CCNAModule4-7.txt"),
+        "3": ([8, 9, 10], None, "CCNAModule8-10.txt"),
+        "4": ([11, 12, 13], None, "CCNAModule11-13.txt"),
+        "5": ([14, 15], None, "CCNAModule14-15.txt"),
+        "6": ([16, 17], None, "CCNAModule16-17.txt"),
+        "s": (None, ["11.4", "11.5", "11.6", "11.7", "11.8"], None),
+        "o": (None, ["3.1", "3.2", "3.3", "3.4"], None),
+        "i": (None, ["12.1", "12.2", "12.3", "12.4", "12.5"], None),
+        "r": (None, ["16.1", "16.2", "16.3", "16.4"], None),
+        "x": (None, ["17.1", "17.2", "17.3", "17.4"], None),
+        "f": (None, None, "ITNFinalPacketTracer.txt"),
+        "p": (None, None, "ITNPracticeFinalExam.txt"),
+        "t": (None, None, "ITNPracticeTest.txt"),
+        "k": (None, None, "ITNSkillsAssessment.txt"),
+    }
+
+    modules, sections, source_file = filter_map.get(choice, (None, None, None))
+
+    # Show what was selected
+    if modules:
+        console.print(f"\n[green]→ Focusing on Modules {modules[0]}-{modules[-1]}[/green]")
+    elif sections:
+        console.print(f"\n[green]→ Focusing on Sections {sections[0]}...{sections[-1]}[/green]")
+    elif source_file:
+        name = source_file.replace(".txt", "").replace("ITN", "ITN ")
+        console.print(f"\n[green]→ Focusing on {name}[/green]")
+    else:
+        console.print("\n[green]→ Full Curriculum (struggle-weighted)[/green]")
+
+    return modules, sections, source_file
 
 
 def _show_interactive_dashboard() -> str:
@@ -429,34 +465,27 @@ def _show_interactive_dashboard() -> str:
     menu_text = Text()
     menu_text.append("ACTIONS\n\n", style=STYLES["cortex_accent"])
 
-    # Menu items with 3D-style formatting
+    # Menu items
     menu_items = [
         ("1", "Start adaptive session", "struggle-prioritized", CORTEX_THEME["success"]),
         ("2", "Start war mode", "cram session", CORTEX_THEME["error"]),
         ("3", "View struggle map", "details", CORTEX_THEME["warning"]),
-        ("4", "Import struggles", "from YAML", CORTEX_THEME["secondary"]),
-        ("5", "Configure modules", "", CORTEX_THEME["dim"]),
-        ("6", "Resume session", "", CORTEX_THEME["dim"]),
-        ("7", "Browse study notes", "", CORTEX_THEME["dim"]),
-        ("8", "Learning signals", "dashboard", CORTEX_THEME["accent"]),
-        ("9", "Sync with Anki", "", CORTEX_THEME["secondary"]),
+        ("4", "Configure modules", "", CORTEX_THEME["dim"]),
+        ("5", "Resume session", "", CORTEX_THEME["dim"]),
+        ("6", "Browse study notes", "", CORTEX_THEME["dim"]),
+        ("7", "Learning signals", "dashboard", CORTEX_THEME["accent"]),
+        ("8", "Sync with Anki", "", CORTEX_THEME["secondary"]),
         ("q", "Quit", "", CORTEX_THEME["dim"]),
     ]
 
     for key, label, sublabel, color in menu_items:
-        # 3D button effect for first two options
-        if key in ("1", "2"):
-            menu_text.append("  ╔═", style=Style(color=color))
-            menu_text.append(f" {key} ", style=Style(color=CORTEX_THEME["white"], bold=True))
-            menu_text.append("═╗ ", style=Style(color=color))
-            menu_text.append(f"{label}", style=Style(color=CORTEX_THEME["white"], bold=True))
-            if sublabel:
-                menu_text.append(f" ({sublabel})", style=Style(color=CORTEX_THEME["dim"]))
-            menu_text.append("\n")
-            menu_text.append("  ╚═══╝▓\n", style=Style(color=CORTEX_THEME["dim"]))
+        if key == "q":
+            # Quit is subtle
+            menu_text.append(f"    ◦ [{key}] ", style=Style(color=CORTEX_THEME["dim"]))
+            menu_text.append(f"{label}\n", style=Style(color=CORTEX_THEME["dim"]))
         else:
-            # Flat style for other options
-            menu_text.append(f"    [{key}] ", style=Style(color=color))
+            # Compact style for secondary options with subtle highlight
+            menu_text.append(f"    ▹ [{key}] ", style=Style(color=color))
             menu_text.append(f"{label}", style=Style(color=CORTEX_THEME["white"]))
             if sublabel:
                 menu_text.append(f" ({sublabel})", style=Style(color=CORTEX_THEME["dim"]))
@@ -467,22 +496,21 @@ def _show_interactive_dashboard() -> str:
 
     return Prompt.ask(
         "[cyan]>_ SELECT ACTION[/cyan]",
-        choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "q"],
+        choices=["1", "2", "3", "4", "5", "6", "7", "8", "q"],
         default="1",
     )
 
 
 def _run_interactive_hub(initial_limit: int = 20):
     """Run the interactive Cortex hub loop."""
-    from src.anki.background_sync import start_background_sync, stop_background_sync, get_background_sync
+    from src.anki.background_sync import start_background_sync, stop_background_sync, get_background_sync, BackgroundAnkiSync
 
     limit = initial_limit
     module_list = list(range(1, 18))  # Default: all modules
 
-    # Start background Anki sync
-    sync_manager = start_background_sync(interval_seconds=300, min_quality="B")
-    if sync_manager.status.anki_connected:
-        console.print("[dim]Background Anki sync started[/dim]")
+    # Create sync manager but DON'T auto-start - sync manually via menu option 8
+    # Background sync was disrupting quiz sessions with log spam
+    sync_manager = BackgroundAnkiSync(interval_seconds=300, min_quality="B")
 
     try:
         while True:
@@ -492,9 +520,20 @@ def _run_interactive_hub(initial_limit: int = 20):
             choice = _show_interactive_dashboard()
 
             if choice == "1":
-                # Adaptive session
+                # Adaptive session - show source filter menu first
+                filter_modules, filter_sections, filter_source_file = _show_source_filter_menu()
+
+                # Use filtered modules if specified, otherwise fall back to module_list
+                final_modules = filter_modules if filter_modules else module_list
+
                 console.print("\n[cyan]Starting adaptive session...[/cyan]\n")
-                session = CortexSession(modules=module_list, limit=limit, war_mode=False)
+                session = CortexSession(
+                    modules=final_modules,
+                    limit=limit,
+                    war_mode=False,
+                    sections=filter_sections,
+                    source_file=filter_source_file,
+                )
                 session.run()
                 # After session ends, return to hub
                 console.print("\n[dim]Press Enter to return to hub...[/dim]")
@@ -570,22 +609,11 @@ def _run_interactive_hub(initial_limit: int = 20):
                     elif sub_choice == "2":
                         _create_struggle_deck(struggles)
                 else:
-                    console.print("[yellow]No struggles configured. Select option 4 to import.[/yellow]")
+                    console.print("[yellow]No struggles detected yet. Complete some quiz sessions first.[/yellow]")
                     console.print("\n[dim]Press Enter to return to hub...[/dim]")
                     input()
 
             elif choice == "4":
-                # Import struggles
-                console.print("\n[cyan]Importing struggles from struggles.yaml...[/cyan]")
-                result = _import_struggles_to_db()
-                if result.get("errors"):
-                    for err in result["errors"]:
-                        console.print(f"[yellow]Warning: {err}[/yellow]")
-                console.print(f"[green][OK][/green] Imported {result['imported']} struggle weights")
-                console.print("\n[dim]Press Enter to return to hub...[/dim]")
-                input()
-
-            elif choice == "5":
                 # Configure modules
                 console.print("\n[bold cyan]MODULE CONFIGURATION[/bold cyan]\n")
                 console.print("[dim]Available modules: 1-17[/dim]")
@@ -630,7 +658,7 @@ def _run_interactive_hub(initial_limit: int = 20):
                 console.print("\n[dim]Press Enter to return to hub...[/dim]")
                 input()
 
-            elif choice == "6":
+            elif choice == "5":
                 # Resume session
                 session = CortexSession.resume_latest()
                 if session:
@@ -655,19 +683,19 @@ def _run_interactive_hub(initial_limit: int = 20):
                 console.print("\n[dim]Press Enter to return to hub...[/dim]")
                 input()
 
-            elif choice == "7":
+            elif choice == "6":
                 # Browse study notes
                 _browse_study_notes()
                 console.print("\n[dim]Press Enter to return to hub...[/dim]")
                 input()
 
-            elif choice == "8":
+            elif choice == "7":
                 # Learning signals dashboard
                 _show_signals_dashboard()
                 console.print("\n[dim]Press Enter to return to hub...[/dim]")
                 input()
 
-            elif choice == "9":
+            elif choice == "8":
                 # Manual Anki sync
                 sync = get_background_sync()
                 if sync and sync.status.anki_connected:
@@ -1165,15 +1193,35 @@ def _generate_notes_for_weak_sections(sections: list[dict]):
 
 @cortex_app.command("start")
 def cortex_start(
-    limit: int = typer.Option(20, help="Atoms per session"),
+    modules: Optional[str] = typer.Option(
+        None,
+        "--modules", "-m",
+        help="Module filter: 5 or 1-3 or 1-3,11-13",
+    ),
+    sections: Optional[str] = typer.Option(
+        None,
+        "--sections", "-s",
+        help="Section filter: 11.1,11.2,11.3",
+    ),
+    source: Optional[str] = typer.Option(
+        None,
+        "--source",
+        help="Preset: subnetting, osi-model, ipv6, itn-final, etc.",
+    ),
+    limit: int = typer.Option(20, "--limit", "-l", help="Atoms per session"),
     quick: bool = typer.Option(
         False,
         "--quick", "-q",
         help="Skip hub, start adaptive session immediately",
     ),
+    list_sources: bool = typer.Option(
+        False,
+        "--list-sources",
+        help="List available source presets and exit",
+    ),
 ):
     """
-    Launch the Cortex study hub.
+    Launch the Cortex study hub with optional filtering.
 
     The hub shows your progress, struggle zones, and lets you:
     - Start adaptive or war mode sessions
@@ -1181,21 +1229,103 @@ def cortex_start(
     - Configure modules and session size
     - Resume previous sessions
 
+    FILTERING OPTIONS:
+    --modules: Filter by module numbers (1-17)
+    --sections: Filter by CCNA section IDs
+    --source: Use a preset filter (topic themes, ITN assessments)
+
     Use --quick to skip the hub and start immediately.
+    Use --list-sources to see all available presets.
 
     Examples:
-        nls cortex start           # Open interactive hub
-        nls cortex start --quick   # Start session immediately
+        nls cortex start                        # Open interactive hub
+        nls cortex start --quick                # Start session immediately
+        nls cortex start --modules 11-13        # Focus on IP Addressing
+        nls cortex start --modules 5            # Single module (Number Systems)
+        nls cortex start --source subnetting    # Topic: Subnetting mastery
+        nls cortex start --source itn-final     # ITN Final Packet Tracer
+        nls cortex start --sections 11.4,11.5   # Specific sections only
     """
-    if quick:
-        # Quick mode: skip hub, start adaptive session immediately
+    # Handle --list-sources
+    if list_sources:
+        _display_source_presets()
+        return
+
+    # Resolve filters from arguments
+    filter_modules, filter_sections, filter_source_file = resolve_filters(
+        modules_arg=modules,
+        sections_arg=sections,
+        source_preset=source,
+    )
+
+    if quick or modules or sections or source:
+        # Quick mode or filtered mode: skip hub, start adaptive session immediately
         _ensure_struggles_imported()
-        module_list = list(range(1, 18))
-        session = CortexSession(modules=module_list, limit=limit, war_mode=False)
+
+        # Show what filter is active
+        if modules or sections or source:
+            filter_desc = describe_filters(filter_modules, filter_sections, filter_source_file)
+            console.print(f"[cyan]Filter:[/cyan] {filter_desc}")
+
+        # Default to all modules if no filter
+        module_list = filter_modules or list(range(1, 18))
+
+        session = CortexSession(
+            modules=module_list,
+            sections=filter_sections,
+            source_file=filter_source_file,
+            limit=limit,
+            war_mode=False,
+        )
         session.run()
     else:
         # Interactive hub
         _run_interactive_hub(initial_limit=limit)
+
+
+def _display_source_presets() -> None:
+    """Display all available source presets in a formatted table."""
+    table = Table(
+        title="Available Source Presets",
+        box=box.ROUNDED,
+        border_style="cyan",
+    )
+    table.add_column("Preset", style="green")
+    table.add_column("Name", style="white")
+    table.add_column("Filter", style="dim")
+
+    # Group by category
+    categories = {
+        "Module Ranges": ["modules-1-3", "modules-4-7", "modules-8-10", "modules-11-13", "modules-14-15", "modules-16-17"],
+        "ITN Assessments": ["itn-final", "itn-practice", "itn-test", "itn-skills"],
+        "Topic Themes": ["subnetting", "osi-model", "binary-math", "ipv6", "switching", "routing", "security", "transport", "ios-config", "arp-dhcp", "ethernet"],
+        "Full": ["all"],
+    }
+
+    for category, presets in categories.items():
+        table.add_row(f"[bold cyan]{category}[/bold cyan]", "", "")
+        for preset_name in presets:
+            preset = SOURCE_PRESETS.get(preset_name, {})
+            name = preset.get("name", preset_name)
+
+            # Build filter description
+            filters = []
+            if "modules" in preset:
+                mods = preset["modules"]
+                if len(mods) == 1:
+                    filters.append(f"M{mods[0]}")
+                else:
+                    filters.append(f"M{mods[0]}-{mods[-1]}")
+            if "sections" in preset:
+                secs = preset["sections"]
+                filters.append(f"S{secs[0]}...")
+            if "source_file" in preset:
+                filters.append(preset["source_file"][:20])
+
+            table.add_row(f"  {preset_name}", name, " ".join(filters))
+
+    console.print(table)
+    console.print("\n[dim]Usage: nls cortex start --source <preset>[/dim]")
 
 
 @cortex_app.command("war")

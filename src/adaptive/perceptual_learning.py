@@ -26,74 +26,78 @@ Based on research from:
 Author: Cortex System
 Version: 2.0.0 (Neuromorphic Architecture)
 """
+
 from __future__ import annotations
 
 import random
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
-from uuid import UUID, uuid4
+from typing import Any
+from uuid import uuid4
 
 from loguru import logger
-
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
 # PLM thresholds (milliseconds)
-PLM_TARGET_MS = 1000        # Target response time for fluency
-PLM_FAST_MS = 500           # Exceptionally fast (automatic)
-PLM_SLOW_MS = 3000          # Too slow for perceptual learning
-PLM_TIMEOUT_MS = 5000       # Maximum allowed time
+PLM_TARGET_MS = 1000  # Target response time for fluency
+PLM_FAST_MS = 500  # Exceptionally fast (automatic)
+PLM_SLOW_MS = 3000  # Too slow for perceptual learning
+PLM_TIMEOUT_MS = 5000  # Maximum allowed time
 
 # Training parameters
 MIN_TRIALS_FOR_MASTERY = 20
-MASTERY_ACCURACY = 0.9      # 90% accuracy required
-MASTERY_SPEED_RATE = 0.8    # 80% under target time
-BLOCK_SIZE = 10             # Trials per block
-REST_AFTER_BLOCKS = 3       # Suggest rest after N blocks
+MASTERY_ACCURACY = 0.9  # 90% accuracy required
+MASTERY_SPEED_RATE = 0.8  # 80% under target time
+BLOCK_SIZE = 10  # Trials per block
+REST_AFTER_BLOCKS = 3  # Suggest rest after N blocks
 
 # Interleaving parameters
-MIN_CATEGORIES = 2          # Minimum categories to interleave
-MAX_CATEGORIES = 5          # Maximum categories per session
+MIN_CATEGORIES = 2  # Minimum categories to interleave
+MAX_CATEGORIES = 5  # Maximum categories per session
 
 
 # =============================================================================
 # ENUMERATIONS
 # =============================================================================
 
+
 class PLMTaskType(str, Enum):
     """Types of perceptual learning tasks."""
-    CLASSIFICATION = "classification"   # Classify into category
-    DISCRIMINATION = "discrimination"   # Is this X or Y?
-    COMPLETION = "completion"           # Fill in the missing part
-    ORDERING = "ordering"               # Sequence/priority ordering
-    MATCHING = "matching"               # Match related items
+
+    CLASSIFICATION = "classification"  # Classify into category
+    DISCRIMINATION = "discrimination"  # Is this X or Y?
+    COMPLETION = "completion"  # Fill in the missing part
+    ORDERING = "ordering"  # Sequence/priority ordering
+    MATCHING = "matching"  # Match related items
 
 
 class PLMDifficulty(str, Enum):
     """Difficulty levels for PLM tasks."""
-    EASY = "easy"           # High distinctiveness
-    MEDIUM = "medium"       # Moderate overlap
-    HARD = "hard"           # Adversarial lures
-    ADAPTIVE = "adaptive"   # System-selected
+
+    EASY = "easy"  # High distinctiveness
+    MEDIUM = "medium"  # Moderate overlap
+    HARD = "hard"  # Adversarial lures
+    ADAPTIVE = "adaptive"  # System-selected
 
 
 class FluencyLevel(str, Enum):
     """Fluency classification based on response patterns."""
-    AUTOMATIC = "automatic"     # <500ms, very high accuracy
-    FLUENT = "fluent"           # <1000ms, high accuracy
-    DEVELOPING = "developing"   # <2000ms, good accuracy
-    EFFORTFUL = "effortful"     # >2000ms, any accuracy
-    STRUGGLING = "struggling"   # High error rate
+
+    AUTOMATIC = "automatic"  # <500ms, very high accuracy
+    FLUENT = "fluent"  # <1000ms, high accuracy
+    DEVELOPING = "developing"  # <2000ms, good accuracy
+    EFFORTFUL = "effortful"  # >2000ms, any accuracy
+    STRUGGLING = "struggling"  # High error rate
 
 
 # =============================================================================
 # DATA CLASSES
 # =============================================================================
+
 
 @dataclass
 class PLMStimulus:
@@ -102,13 +106,14 @@ class PLMStimulus:
 
     Represents one item to be classified/discriminated.
     """
+
     id: str
-    content: str                        # The visual content (e.g., equation)
-    content_latex: Optional[str] = None # LaTeX version
-    category: str = ""                  # Correct category
-    category_id: Optional[str] = None
+    content: str  # The visual content (e.g., equation)
+    content_latex: str | None = None  # LaTeX version
+    category: str = ""  # Correct category
+    category_id: str | None = None
     confusable_with: list[str] = field(default_factory=list)  # Similar categories
-    ps_index: float = 0.5               # Pattern separation difficulty
+    ps_index: float = 0.5  # Pattern separation difficulty
     metadata: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -126,17 +131,18 @@ class PLMTrial:
     """
     A single PLM trial (one question-response pair).
     """
+
     stimulus: PLMStimulus
-    options: list[str]                   # Available responses
+    options: list[str]  # Available responses
     correct_response: str
     task_type: PLMTaskType
     difficulty: PLMDifficulty
 
     # Response data
-    response: Optional[str] = None
+    response: str | None = None
     response_time_ms: int = 0
     is_correct: bool = False
-    timestamp: Optional[datetime] = None
+    timestamp: datetime | None = None
 
     @property
     def is_fast(self) -> bool:
@@ -154,18 +160,19 @@ class PLMBlock:
     """
     A block of PLM trials (typically 10-20 trials).
     """
+
     block_id: str
     trials: list[PLMTrial]
-    categories: list[str]               # Categories in this block
+    categories: list[str]  # Categories in this block
     task_type: PLMTaskType
     difficulty: PLMDifficulty
 
     # Block metrics
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     accuracy: float = 0.0
     avg_response_time_ms: float = 0.0
-    fast_rate: float = 0.0              # % under target time
+    fast_rate: float = 0.0  # % under target time
 
     def calculate_metrics(self) -> None:
         """Calculate block-level metrics."""
@@ -183,14 +190,15 @@ class PLMSession:
     """
     A complete PLM training session.
     """
+
     session_id: str
     user_id: str
-    target_category: Optional[str] = None  # Focus category (if any)
+    target_category: str | None = None  # Focus category (if any)
     blocks: list[PLMBlock] = field(default_factory=list)
 
     # Session metrics
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     total_trials: int = 0
     overall_accuracy: float = 0.0
     overall_speed_ms: float = 0.0
@@ -209,8 +217,7 @@ class PLMSession:
         self.overall_accuracy = sum(1 for t in all_trials if t.is_correct) / len(all_trials)
         self.overall_speed_ms = sum(t.response_time_ms for t in all_trials) / len(all_trials)
         self.fluency_achieved = (
-            self.overall_accuracy >= MASTERY_ACCURACY and
-            self.overall_speed_ms <= PLM_TARGET_MS
+            self.overall_accuracy >= MASTERY_ACCURACY and self.overall_speed_ms <= PLM_TARGET_MS
         )
 
 
@@ -219,8 +226,9 @@ class CategoryFluency:
     """
     Fluency metrics for a specific category.
     """
+
     category: str
-    category_id: Optional[str] = None
+    category_id: str | None = None
     total_trials: int = 0
     correct_trials: int = 0
     accuracy: float = 0.0
@@ -228,7 +236,7 @@ class CategoryFluency:
     fast_rate: float = 0.0
     fluency_level: FluencyLevel = FluencyLevel.EFFORTFUL
     confused_with: dict[str, int] = field(default_factory=dict)  # category -> error count
-    last_trained: Optional[datetime] = None
+    last_trained: datetime | None = None
 
     def update_from_trial(self, trial: PLMTrial) -> None:
         """Update fluency metrics from a trial."""
@@ -238,18 +246,13 @@ class CategoryFluency:
         else:
             # Track confusion patterns
             if trial.response:
-                self.confused_with[trial.response] = (
-                    self.confused_with.get(trial.response, 0) + 1
-                )
+                self.confused_with[trial.response] = self.confused_with.get(trial.response, 0) + 1
 
         # Update running averages
         self.accuracy = self.correct_trials / self.total_trials
         # EMA for response time
         alpha = 0.1
-        self.avg_response_ms = (
-            self.avg_response_ms * (1 - alpha) +
-            trial.response_time_ms * alpha
-        )
+        self.avg_response_ms = self.avg_response_ms * (1 - alpha) + trial.response_time_ms * alpha
 
         # Update fluency level
         self._update_fluency_level()
@@ -276,6 +279,7 @@ class CategoryFluency:
 # =============================================================================
 # PLM GENERATOR
 # =============================================================================
+
 
 class PLMGenerator:
     """
@@ -306,17 +310,14 @@ class PLMGenerator:
 
     def get_available_categories(self) -> list[str]:
         """Get categories with enough atoms for training."""
-        return [
-            cat for cat, atoms in self._categories.items()
-            if len(atoms) >= 3
-        ]
+        return [cat for cat, atoms in self._categories.items() if len(atoms) >= 3]
 
     def generate_classification_trial(
         self,
         target_category: str,
         distractor_categories: list[str],
         difficulty: PLMDifficulty = PLMDifficulty.MEDIUM,
-    ) -> Optional[PLMTrial]:
+    ) -> PLMTrial | None:
         """
         Generate a classification trial.
 
@@ -360,7 +361,7 @@ class PLMGenerator:
         category_a: str,
         category_b: str,
         difficulty: PLMDifficulty = PLMDifficulty.MEDIUM,
-    ) -> Optional[PLMTrial]:
+    ) -> PLMTrial | None:
         """
         Generate a discrimination trial.
 
@@ -396,7 +397,7 @@ class PLMGenerator:
         task_type: PLMTaskType = PLMTaskType.CLASSIFICATION,
         difficulty: PLMDifficulty = PLMDifficulty.MEDIUM,
         block_size: int = BLOCK_SIZE,
-    ) -> Optional[PLMBlock]:
+    ) -> PLMBlock | None:
         """
         Generate a block of PLM trials.
 
@@ -412,14 +413,10 @@ class PLMGenerator:
             if task_type == PLMTaskType.CLASSIFICATION:
                 target = random.choice(categories)
                 distractors = [c for c in categories if c != target]
-                trial = self.generate_classification_trial(
-                    target, distractors, difficulty
-                )
+                trial = self.generate_classification_trial(target, distractors, difficulty)
             else:  # DISCRIMINATION
                 pair = random.sample(categories, 2)
-                trial = self.generate_discrimination_trial(
-                    pair[0], pair[1], difficulty
-                )
+                trial = self.generate_discrimination_trial(pair[0], pair[1], difficulty)
 
             if trial:
                 trials.append(trial)
@@ -440,6 +437,7 @@ class PLMGenerator:
 # PLM ENGINE
 # =============================================================================
 
+
 class PLMEngine:
     """
     Main engine for running PLM training sessions.
@@ -454,7 +452,7 @@ class PLMEngine:
     def __init__(self):
         """Initialize the PLM engine."""
         self._fluency_data: dict[str, CategoryFluency] = {}
-        self._active_session: Optional[PLMSession] = None
+        self._active_session: PLMSession | None = None
         self._generators: dict[str, PLMGenerator] = {}
 
     def register_atoms(self, atoms: list[dict[str, Any]], source: str = "default") -> None:
@@ -475,7 +473,7 @@ class PLMEngine:
         source: str = "default",
         task_type: PLMTaskType = PLMTaskType.CLASSIFICATION,
         difficulty: PLMDifficulty = PLMDifficulty.ADAPTIVE,
-    ) -> Optional[PLMSession]:
+    ) -> PLMSession | None:
         """
         Start a new PLM training session.
 
@@ -510,7 +508,11 @@ class PLMEngine:
         )
 
         # Generate first block
-        actual_difficulty = self._select_difficulty(valid_categories) if difficulty == PLMDifficulty.ADAPTIVE else difficulty
+        actual_difficulty = (
+            self._select_difficulty(valid_categories)
+            if difficulty == PLMDifficulty.ADAPTIVE
+            else difficulty
+        )
 
         block = generator.generate_block(
             categories=valid_categories,
@@ -525,7 +527,7 @@ class PLMEngine:
         self._active_session = session
         return session
 
-    def get_next_trial(self) -> Optional[PLMTrial]:
+    def get_next_trial(self) -> PLMTrial | None:
         """Get the next trial in the active session."""
         if not self._active_session or not self._active_session.blocks:
             return None
@@ -547,7 +549,7 @@ class PLMEngine:
         self,
         response: str,
         response_time_ms: int,
-    ) -> Optional[PLMTrial]:
+    ) -> PLMTrial | None:
         """
         Record response for the current trial.
 
@@ -576,7 +578,7 @@ class PLMEngine:
         # Record response
         current_trial.response = response
         current_trial.response_time_ms = response_time_ms
-        current_trial.is_correct = (response == current_trial.correct_response)
+        current_trial.is_correct = response == current_trial.correct_response
         current_trial.timestamp = datetime.now()
 
         # Update category fluency
@@ -590,7 +592,7 @@ class PLMEngine:
     def generate_next_block(
         self,
         source: str = "default",
-    ) -> Optional[PLMBlock]:
+    ) -> PLMBlock | None:
         """Generate the next block for the active session."""
         if not self._active_session:
             return None
@@ -625,11 +627,7 @@ class PLMEngine:
 
     def _select_difficulty(self, categories: list[str]) -> PLMDifficulty:
         """Select difficulty based on current fluency levels."""
-        fluencies = [
-            self._fluency_data.get(cat)
-            for cat in categories
-            if cat in self._fluency_data
-        ]
+        fluencies = [self._fluency_data.get(cat) for cat in categories if cat in self._fluency_data]
 
         if not fluencies:
             return PLMDifficulty.EASY
@@ -644,7 +642,7 @@ class PLMEngine:
         else:
             return PLMDifficulty.EASY
 
-    def end_session(self) -> Optional[PLMSession]:
+    def end_session(self) -> PLMSession | None:
         """End the active session and return final metrics."""
         if not self._active_session:
             return None
@@ -656,7 +654,7 @@ class PLMEngine:
         self._active_session = None
         return session
 
-    def get_fluency_report(self, categories: Optional[list[str]] = None) -> dict[str, Any]:
+    def get_fluency_report(self, categories: list[str] | None = None) -> dict[str, Any]:
         """
         Get a fluency report for specified categories.
 
@@ -705,24 +703,30 @@ class PLMEngine:
         # Generate recommendations
         for cat, data in report["categories"].items():
             if data["fluency_level"] == "struggling":
-                report["recommendations"].append({
-                    "category": cat,
-                    "action": "review_source",
-                    "reason": f"Low accuracy ({data['accuracy']:.0%}). Review source material before continuing PLM.",
-                })
+                report["recommendations"].append(
+                    {
+                        "category": cat,
+                        "action": "review_source",
+                        "reason": f"Low accuracy ({data['accuracy']:.0%}). Review source material before continuing PLM.",
+                    }
+                )
             elif data["fluency_level"] == "effortful" and data["accuracy"] > 0.7:
-                report["recommendations"].append({
-                    "category": cat,
-                    "action": "speed_training",
-                    "reason": f"Good accuracy but slow ({data['avg_response_ms']}ms). Focus on speed.",
-                })
+                report["recommendations"].append(
+                    {
+                        "category": cat,
+                        "action": "speed_training",
+                        "reason": f"Good accuracy but slow ({data['avg_response_ms']}ms). Focus on speed.",
+                    }
+                )
             elif data["confused_with"]:
                 top_confusion = max(data["confused_with"], key=data["confused_with"].get)
-                report["recommendations"].append({
-                    "category": cat,
-                    "action": "discrimination_training",
-                    "reason": f"Often confused with '{top_confusion}'. Practice distinguishing these.",
-                })
+                report["recommendations"].append(
+                    {
+                        "category": cat,
+                        "action": "discrimination_training",
+                        "reason": f"Often confused with '{top_confusion}'. Practice distinguishing these.",
+                    }
+                )
 
         return report
 
@@ -732,7 +736,7 @@ class PLMEngine:
 # =============================================================================
 
 # Global PLM engine instance
-_engine: Optional[PLMEngine] = None
+_engine: PLMEngine | None = None
 
 
 def get_plm_engine() -> PLMEngine:
@@ -789,7 +793,7 @@ def _generate_feedback(is_correct: bool, response_time_ms: int, fluency: Fluency
     elif fluency == FluencyLevel.DEVELOPING and is_correct:
         return f"Correct! Try to respond faster (target: {PLM_TARGET_MS}ms, yours: {response_time_ms}ms)"
     elif is_correct:
-        return f"Correct, but too slow. Focus on pattern recognition, not calculation."
+        return "Correct, but too slow. Focus on pattern recognition, not calculation."
     else:
         return "Incorrect. Look for the distinguishing features."
 
@@ -811,7 +815,4 @@ def needs_plm_training(
         return False  # Not enough data
 
     # Good accuracy but slow = needs perceptual training
-    if accuracy > 0.7 and avg_response_ms > PLM_TARGET_MS:
-        return True
-
-    return False
+    return bool(accuracy > 0.7 and avg_response_ms > PLM_TARGET_MS)

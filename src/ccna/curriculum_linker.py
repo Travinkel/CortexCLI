@@ -7,17 +7,17 @@ Program → Track → Module → Atom
 Creates necessary database records and provides mapping functions
 for the generation pipeline.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 from uuid import UUID
 
 from loguru import logger
 
-from src.ccna.content_parser import CCNAContentParser, ModuleContent
+from src.ccna.content_parser import CCNAContentParser
 from src.db.database import session_scope
-from src.db.models.canonical import CleanProgram, CleanTrack, CleanModule
+from src.db.models.canonical import CleanModule, CleanProgram, CleanTrack
 
 
 @dataclass
@@ -70,7 +70,7 @@ class CurriculumLinker:
                 module_id_map=module_map,
             )
 
-    def _ensure_program(self, session) -> Optional[CleanProgram]:
+    def _ensure_program(self, session) -> CleanProgram | None:
         """Find or create CCNA program."""
         program = (
             session.query(CleanProgram)
@@ -107,11 +107,7 @@ class CurriculumLinker:
 
         if not track:
             # Also check for partial matches
-            track = (
-                session.query(CleanTrack)
-                .filter(CleanTrack.name.ilike("%CCNA%"))
-                .first()
-            )
+            track = session.query(CleanTrack).filter(CleanTrack.name.ilike("%CCNA%")).first()
 
         if track:
             logger.info(f"Found existing track: {track.name}")
@@ -194,11 +190,7 @@ class CurriculumLinker:
                 logger.warning(f"Invalid module_id format: {module_id}")
                 return None
 
-            module = (
-                session.query(CleanModule)
-                .filter(CleanModule.week_order == module_num)
-                .first()
-            )
+            module = session.query(CleanModule).filter(CleanModule.week_order == module_num).first()
 
             if module:
                 return module.id
@@ -215,22 +207,14 @@ class CurriculumLinker:
         """
         with session_scope() as session:
             # Find the CCNA track
-            track = (
-                session.query(CleanTrack)
-                .filter(CleanTrack.name.ilike("%CCNA%"))
-                .first()
-            )
+            track = session.query(CleanTrack).filter(CleanTrack.name.ilike("%CCNA%")).first()
 
             if not track:
                 logger.warning("CCNA track not found")
                 return {}
 
             # Get all modules in track
-            modules = (
-                session.query(CleanModule)
-                .filter(CleanModule.track_id == track.id)
-                .all()
-            )
+            modules = session.query(CleanModule).filter(CleanModule.track_id == track.id).all()
 
             mapping = {}
             for module in modules:
@@ -253,11 +237,7 @@ class CurriculumLinker:
         with session_scope() as session:
             module_num = int(module_id.replace("NET-M", ""))
 
-            module = (
-                session.query(CleanModule)
-                .filter(CleanModule.week_order == module_num)
-                .first()
-            )
+            module = session.query(CleanModule).filter(CleanModule.week_order == module_num).first()
 
             if not module:
                 return False
@@ -276,20 +256,12 @@ class CurriculumLinker:
             Dict with module counts by status
         """
         with session_scope() as session:
-            track = (
-                session.query(CleanTrack)
-                .filter(CleanTrack.name.ilike("%CCNA%"))
-                .first()
-            )
+            track = session.query(CleanTrack).filter(CleanTrack.name.ilike("%CCNA%")).first()
 
             if not track:
                 return {"error": "Track not found"}
 
-            modules = (
-                session.query(CleanModule)
-                .filter(CleanModule.track_id == track.id)
-                .all()
-            )
+            modules = session.query(CleanModule).filter(CleanModule.track_id == track.id).all()
 
             status_counts = {
                 "not_started": 0,
@@ -322,9 +294,7 @@ def setup_ccna_curriculum() -> CurriculumMapping:
     mapping = linker.ensure_curriculum_structure()
 
     logger.info(
-        f"CCNA curriculum ready: "
-        f"track={mapping.track_id}, "
-        f"modules={len(mapping.module_id_map)}"
+        f"CCNA curriculum ready: track={mapping.track_id}, modules={len(mapping.module_id_map)}"
     )
 
     return mapping

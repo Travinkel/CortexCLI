@@ -35,18 +35,18 @@ Usage:
 Author: Cortex System
 Version: 2.0.0 (Neuromorphic Architecture)
 """
+
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
-import threading
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, List, Optional
+from typing import Any
 
 from loguru import logger
 
@@ -57,6 +57,7 @@ try:
     from google_auth_oauthlib.flow import InstalledAppFlow
     from googleapiclient.discovery import build
     from googleapiclient.errors import HttpError
+
     GOOGLE_AVAILABLE = True
 except ImportError:
     GOOGLE_AVAILABLE = False
@@ -76,16 +77,25 @@ CREDENTIALS_PATH = CORTEX_DIR / "credentials.json"
 TOKEN_PATH = CORTEX_DIR / "google_token.json"
 WEBHOOK_STATE_PATH = CORTEX_DIR / "webhook_state.json"
 
-# Default timezone
-DEFAULT_TIMEZONE = "America/New_York"  # TODO: Make configurable
+
+def _get_timezone() -> str:
+    """Get configured timezone from settings, with fallback."""
+    try:
+        from config import get_settings
+
+        return get_settings().google_calendar_timezone
+    except ImportError:
+        return "America/New_York"
 
 
 # =============================================================================
 # ENUMERATIONS
 # =============================================================================
 
+
 class EventChangeType(str, Enum):
     """Types of calendar event changes."""
+
     CREATED = "created"
     UPDATED = "updated"
     DELETED = "deleted"
@@ -94,20 +104,23 @@ class EventChangeType(str, Enum):
 
 class StudyBlockType(str, Enum):
     """Types of study blocks."""
-    DEEP_WORK = "deep_work"         # High cognitive load tasks
-    REVIEW = "review"               # Spaced repetition review
-    PLM_DRILL = "plm_drill"         # Perceptual learning drills
-    REMEDIATION = "remediation"     # Focused remediation
-    LIGHT_REVIEW = "light_review"   # Low energy period work
+
+    DEEP_WORK = "deep_work"  # High cognitive load tasks
+    REVIEW = "review"  # Spaced repetition review
+    PLM_DRILL = "plm_drill"  # Perceptual learning drills
+    REMEDIATION = "remediation"  # Focused remediation
+    LIGHT_REVIEW = "light_review"  # Low energy period work
 
 
 # =============================================================================
 # DATA CLASSES
 # =============================================================================
 
+
 @dataclass
 class CalendarEvent:
     """Parsed calendar event."""
+
     event_id: str
     title: str
     start: datetime
@@ -125,16 +138,18 @@ class CalendarEvent:
 @dataclass
 class ScheduleChange:
     """Represents a change to the schedule requiring adaptation."""
+
     change_type: EventChangeType
-    event: Optional[CalendarEvent]
-    previous_event: Optional[CalendarEvent] = None
-    affected_window: Optional[tuple[datetime, datetime]] = None
+    event: CalendarEvent | None
+    previous_event: CalendarEvent | None = None
+    affected_window: tuple[datetime, datetime] | None = None
     timestamp: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
 class TimeBlock:
     """An available time block for scheduling."""
+
     start: datetime
     end: datetime
     is_peak_hour: bool = False
@@ -148,6 +163,7 @@ class TimeBlock:
 @dataclass
 class WebhookChannel:
     """Webhook channel registration."""
+
     channel_id: str
     resource_id: str
     expiration: datetime
@@ -165,8 +181,8 @@ class CortexCalendar:
 
     def __init__(
         self,
-        credentials_path: Optional[Path] = None,
-        token_path: Optional[Path] = None,
+        credentials_path: Path | None = None,
+        token_path: Path | None = None,
     ):
         self.credentials_path = credentials_path or CREDENTIALS_PATH
         self.token_path = token_path or TOKEN_PATH
@@ -275,9 +291,7 @@ class CortexCalendar:
         if not creds or not creds.valid:
             try:
                 logger.info("Starting OAuth authentication flow...")
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    str(self.credentials_path), SCOPES
-                )
+                flow = InstalledAppFlow.from_client_secrets_file(str(self.credentials_path), SCOPES)
                 creds = flow.run_local_server(port=0)
 
                 # Save token for future runs
@@ -337,13 +351,17 @@ class CortexCalendar:
         end_time = start_time + timedelta(minutes=duration_minutes)
 
         try:
-            events_result = self.service.events().list(
-                calendarId="primary",
-                timeMin=start_time.isoformat() + "Z",
-                timeMax=end_time.isoformat() + "Z",
-                singleEvents=True,
-                orderBy="startTime",
-            ).execute()
+            events_result = (
+                self.service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=start_time.isoformat() + "Z",
+                    timeMax=end_time.isoformat() + "Z",
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
 
             events = events_result.get("items", [])
             return len(events) == 0
@@ -356,9 +374,9 @@ class CortexCalendar:
         self,
         start_time: datetime,
         duration_minutes: int,
-        modules: List[int],
+        modules: list[int],
         title: str = "Cortex Study Session",
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Book a study session on Google Calendar.
 
@@ -387,17 +405,17 @@ Duration: {duration_minutes} minutes
 Mode: War Room (Aggressive Mastery)
 
 Command to start:
-  nls cortex start --war --modules {modules_str}
+  nls cortex start --mode war --modules {modules_str}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Generated by The Cortex""",
             "start": {
                 "dateTime": start_time.isoformat(),
-                "timeZone": "America/New_York",  # TODO: Make configurable
+                "timeZone": _get_timezone(),
             },
             "end": {
                 "dateTime": end_time.isoformat(),
-                "timeZone": "America/New_York",
+                "timeZone": _get_timezone(),
             },
             "colorId": "9",  # Blue
             "reminders": {
@@ -410,10 +428,14 @@ Generated by The Cortex""",
         }
 
         try:
-            created_event = self.service.events().insert(
-                calendarId="primary",
-                body=event,
-            ).execute()
+            created_event = (
+                self.service.events()
+                .insert(
+                    calendarId="primary",
+                    body=event,
+                )
+                .execute()
+            )
 
             event_id = created_event.get("id")
             logger.info(f"Created calendar event: {event_id}")
@@ -423,7 +445,7 @@ Generated by The Cortex""",
             logger.error(f"Failed to create event: {e}")
             return None
 
-    def get_upcoming_sessions(self, days: int = 7) -> List[dict]:
+    def get_upcoming_sessions(self, days: int = 7) -> list[dict]:
         """
         Get upcoming Cortex study sessions.
 
@@ -440,14 +462,18 @@ Generated by The Cortex""",
         time_max = now + timedelta(days=days)
 
         try:
-            events_result = self.service.events().list(
-                calendarId="primary",
-                timeMin=now.isoformat() + "Z",
-                timeMax=time_max.isoformat() + "Z",
-                singleEvents=True,
-                orderBy="startTime",
-                q="Cortex",  # Filter by "Cortex" in title/description
-            ).execute()
+            events_result = (
+                self.service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=now.isoformat() + "Z",
+                    timeMax=time_max.isoformat() + "Z",
+                    singleEvents=True,
+                    orderBy="startTime",
+                    q="Cortex",  # Filter by "Cortex" in title/description
+                )
+                .execute()
+            )
 
             events = events_result.get("items", [])
 
@@ -494,10 +520,10 @@ Generated by The Cortex""",
     def update_session(
         self,
         event_id: str,
-        start_time: Optional[datetime] = None,
-        duration_minutes: Optional[int] = None,
-        title: Optional[str] = None,
-        modules: Optional[List[int]] = None,
+        start_time: datetime | None = None,
+        duration_minutes: int | None = None,
+        title: str | None = None,
+        modules: list[int] | None = None,
     ) -> bool:
         """
         Update an existing study session.
@@ -517,16 +543,18 @@ Generated by The Cortex""",
 
         try:
             # Get existing event
-            event = self.service.events().get(
-                calendarId="primary",
-                eventId=event_id,
-            ).execute()
+            event = (
+                self.service.events()
+                .get(
+                    calendarId="primary",
+                    eventId=event_id,
+                )
+                .execute()
+            )
 
             # Update fields
             if start_time:
-                end_time = start_time + timedelta(
-                    minutes=duration_minutes or 60
-                )
+                end_time = start_time + timedelta(minutes=duration_minutes or 60)
                 event["start"]["dateTime"] = start_time.isoformat()
                 event["end"]["dateTime"] = end_time.isoformat()
 
@@ -568,9 +596,9 @@ Generated by The Cortex"""
         self,
         date: datetime,
         min_duration_minutes: int = 30,
-        preferred_hours: Optional[list[int]] = None,
-        avoid_hours: Optional[list[int]] = None,
-    ) -> List[TimeBlock]:
+        preferred_hours: list[int] | None = None,
+        avoid_hours: list[int] | None = None,
+    ) -> list[TimeBlock]:
         """
         Find available time slots on a given date.
 
@@ -592,13 +620,17 @@ Generated by The Cortex"""
 
         try:
             # Get all events for the day
-            events_result = self.service.events().list(
-                calendarId="primary",
-                timeMin=start_of_day.isoformat() + "Z",
-                timeMax=end_of_day.isoformat() + "Z",
-                singleEvents=True,
-                orderBy="startTime",
-            ).execute()
+            events_result = (
+                self.service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=start_of_day.isoformat() + "Z",
+                    timeMax=end_of_day.isoformat() + "Z",
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
 
             events = events_result.get("items", [])
 
@@ -608,10 +640,12 @@ Generated by The Cortex"""
                 start_str = e.get("start", {}).get("dateTime")
                 end_str = e.get("end", {}).get("dateTime")
                 if start_str and end_str:
-                    busy_periods.append((
-                        datetime.fromisoformat(start_str.replace("Z", "+00:00")),
-                        datetime.fromisoformat(end_str.replace("Z", "+00:00")),
-                    ))
+                    busy_periods.append(
+                        (
+                            datetime.fromisoformat(start_str.replace("Z", "+00:00")),
+                            datetime.fromisoformat(end_str.replace("Z", "+00:00")),
+                        )
+                    )
 
             # Find gaps
             available_slots = []
@@ -621,22 +655,26 @@ Generated by The Cortex"""
                 if current_time < busy_start:
                     gap_duration = (busy_start - current_time).total_seconds() / 60
                     if gap_duration >= min_duration_minutes:
-                        available_slots.append(TimeBlock(
-                            start=current_time,
-                            end=busy_start,
-                            is_peak_hour=self._is_peak_hour(current_time.hour, preferred_hours),
-                        ))
+                        available_slots.append(
+                            TimeBlock(
+                                start=current_time,
+                                end=busy_start,
+                                is_peak_hour=self._is_peak_hour(current_time.hour, preferred_hours),
+                            )
+                        )
                 current_time = max(current_time, busy_end)
 
             # Final gap until end of day
             if current_time < end_of_day:
                 gap_duration = (end_of_day - current_time).total_seconds() / 60
                 if gap_duration >= min_duration_minutes:
-                    available_slots.append(TimeBlock(
-                        start=current_time,
-                        end=end_of_day,
-                        is_peak_hour=self._is_peak_hour(current_time.hour, preferred_hours),
-                    ))
+                    available_slots.append(
+                        TimeBlock(
+                            start=current_time,
+                            end=end_of_day,
+                            is_peak_hour=self._is_peak_hour(current_time.hour, preferred_hours),
+                        )
+                    )
 
             # Filter out avoid hours and set block types
             filtered_slots = []
@@ -663,7 +701,7 @@ Generated by The Cortex"""
             logger.error(f"Failed to find available slots: {e}")
             return []
 
-    def _is_peak_hour(self, hour: int, preferred_hours: Optional[list[int]]) -> bool:
+    def _is_peak_hour(self, hour: int, preferred_hours: list[int] | None) -> bool:
         """Check if hour is a peak performance hour."""
         if preferred_hours:
             return hour in preferred_hours
@@ -674,11 +712,11 @@ Generated by The Cortex"""
         self,
         date: datetime,
         duration_minutes: int,
-        modules: List[int],
-        preferred_hours: Optional[list[int]] = None,
-        avoid_hours: Optional[list[int]] = None,
+        modules: list[int],
+        preferred_hours: list[int] | None = None,
+        avoid_hours: list[int] | None = None,
         block_type: StudyBlockType = StudyBlockType.DEEP_WORK,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Book a study session at the optimal time.
 
@@ -726,9 +764,9 @@ Generated by The Cortex"""
         self,
         start_date: datetime,
         days: int = 7,
-        peak_hours: list[int] = [9, 10, 11],
+        peak_hours: list[int] = None,
         duration_minutes: int = 60,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Proactively block peak cognitive hours for deep work.
 
@@ -744,14 +782,14 @@ Generated by The Cortex"""
         Returns:
             List of created event IDs
         """
+        if peak_hours is None:
+            peak_hours = [9, 10, 11]
         event_ids = []
         current_date = start_date
 
         for _ in range(days):
             for hour in peak_hours:
-                start_time = current_date.replace(
-                    hour=hour, minute=0, second=0, microsecond=0
-                )
+                start_time = current_date.replace(hour=hour, minute=0, second=0, microsecond=0)
 
                 # Check if slot is available
                 if self.check_availability(start_time, duration_minutes):
@@ -777,7 +815,7 @@ Generated by The Cortex"""
         self,
         callback_url: str,
         expiration_hours: int = 24,
-    ) -> Optional[WebhookChannel]:
+    ) -> WebhookChannel | None:
         """
         Register a webhook for calendar change notifications.
 
@@ -794,9 +832,9 @@ Generated by The Cortex"""
             return None
 
         channel_id = str(uuid.uuid4())
-        token = hashlib.sha256(
-            f"{channel_id}:{datetime.now().isoformat()}".encode()
-        ).hexdigest()[:32]
+        token = hashlib.sha256(f"{channel_id}:{datetime.now().isoformat()}".encode()).hexdigest()[
+            :32
+        ]
 
         expiration = datetime.now() + timedelta(hours=expiration_hours)
 
@@ -809,10 +847,14 @@ Generated by The Cortex"""
         }
 
         try:
-            response = self.service.events().watch(
-                calendarId="primary",
-                body=body,
-            ).execute()
+            response = (
+                self.service.events()
+                .watch(
+                    calendarId="primary",
+                    body=body,
+                )
+                .execute()
+            )
 
             channel = WebhookChannel(
                 channel_id=response.get("id"),
@@ -845,10 +887,12 @@ Generated by The Cortex"""
             return False
 
         try:
-            self.service.channels().stop(body={
-                "id": channel.channel_id,
-                "resourceId": channel.resource_id,
-            }).execute()
+            self.service.channels().stop(
+                body={
+                    "id": channel.channel_id,
+                    "resourceId": channel.resource_id,
+                }
+            ).execute()
 
             logger.info(f"Stopped webhook channel: {channel.channel_id}")
             return True
@@ -868,7 +912,7 @@ Generated by The Cortex"""
         with open(WEBHOOK_STATE_PATH, "w") as f:
             json.dump(state, f)
 
-    def _load_webhook_state(self) -> Optional[WebhookChannel]:
+    def _load_webhook_state(self) -> WebhookChannel | None:
         """Load webhook channel state from file."""
         if not WEBHOOK_STATE_PATH.exists():
             return None
@@ -890,8 +934,8 @@ Generated by The Cortex"""
     def process_webhook_notification(
         self,
         headers: dict[str, str],
-        on_change: Optional[Callable[[ScheduleChange], None]] = None,
-    ) -> Optional[ScheduleChange]:
+        on_change: Callable[[ScheduleChange], None] | None = None,
+    ) -> ScheduleChange | None:
         """
         Process an incoming webhook notification.
 
@@ -947,7 +991,7 @@ Generated by The Cortex"""
     def adapt_to_schedule_change(
         self,
         change: ScheduleChange,
-        current_session_start: Optional[datetime] = None,
+        current_session_start: datetime | None = None,
         current_session_duration: int = 60,
     ) -> dict[str, Any]:
         """
@@ -989,12 +1033,16 @@ Generated by The Cortex"""
             if time_until_conflict <= 5:
                 # Immediate conflict - end session
                 result["action"] = "end_session"
-                result["reason"] = f"Calendar event '{change.event.title}' starts in {time_until_conflict:.0f} minutes"
+                result["reason"] = (
+                    f"Calendar event '{change.event.title}' starts in {time_until_conflict:.0f} minutes"
+                )
 
             elif time_until_conflict <= 20:
                 # Short time left - switch to quick review
                 result["action"] = "switch_mode"
-                result["reason"] = f"Only {time_until_conflict:.0f} minutes until '{change.event.title}'"
+                result["reason"] = (
+                    f"Only {time_until_conflict:.0f} minutes until '{change.event.title}'"
+                )
                 result["suggested_task_type"] = "plm_drill"  # Quick perceptual learning
                 result["new_end_time"] = change.event.start - timedelta(minutes=5)
 
@@ -1015,20 +1063,24 @@ Generated by The Cortex"""
 
         return result
 
-    def get_next_event(self) -> Optional[CalendarEvent]:
+    def get_next_event(self) -> CalendarEvent | None:
         """Get the next upcoming calendar event."""
         if not self._authenticated or not self.service:
             return None
 
         try:
             now = datetime.utcnow()
-            events_result = self.service.events().list(
-                calendarId="primary",
-                timeMin=now.isoformat() + "Z",
-                maxResults=1,
-                singleEvents=True,
-                orderBy="startTime",
-            ).execute()
+            events_result = (
+                self.service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=now.isoformat() + "Z",
+                    maxResults=1,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
 
             events = events_result.get("items", [])
             if not events:
@@ -1054,10 +1106,151 @@ Generated by The Cortex"""
             logger.warning(f"Could not get next event: {e}")
             return None
 
-    def time_until_next_event(self) -> Optional[timedelta]:
+    def time_until_next_event(self) -> timedelta | None:
         """Get time until the next calendar event."""
         next_event = self.get_next_event()
         if not next_event:
             return None
 
         return next_event.start - datetime.now(next_event.start.tzinfo)
+
+    # =========================================================================
+    # FATIGUE-BASED RESCHEDULING
+    # =========================================================================
+
+    def reschedule_session(
+        self,
+        event_id: str,
+        delay_minutes: int = 30,
+        reason: str = "fatigue_detected",
+    ) -> bool:
+        """
+        Reschedule a study session by delaying it.
+
+        Used when cognitive fatigue is detected to give the learner
+        recovery time before resuming.
+
+        Args:
+            event_id: Google Calendar event ID to reschedule
+            delay_minutes: Minutes to delay the session (default: 30)
+            reason: Reason for rescheduling (for logging)
+
+        Returns:
+            True if rescheduled successfully, False otherwise
+        """
+        if not self._authenticated or not self.service:
+            logger.error("Not authenticated. Call authenticate() first.")
+            return False
+
+        try:
+            # Get existing event
+            event = (
+                self.service.events()
+                .get(
+                    calendarId="primary",
+                    eventId=event_id,
+                )
+                .execute()
+            )
+
+            # Parse current times
+            start_str = event.get("start", {}).get("dateTime")
+            end_str = event.get("end", {}).get("dateTime")
+
+            if not start_str or not end_str:
+                logger.warning(f"Event {event_id} has no dateTime (all-day event?)")
+                return False
+
+            current_start = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
+            current_end = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
+            duration = current_end - current_start
+
+            # Calculate new times
+            new_start = current_start + timedelta(minutes=delay_minutes)
+            new_end = new_start + duration
+
+            # Update event times
+            event["start"]["dateTime"] = new_start.isoformat()
+            event["end"]["dateTime"] = new_end.isoformat()
+
+            # Add reschedule note to description
+            current_desc = event.get("description", "")
+            reschedule_note = f"\n\n[Rescheduled +{delay_minutes}min: {reason}]"
+            if reschedule_note not in current_desc:
+                event["description"] = current_desc + reschedule_note
+
+            # Update the event
+            self.service.events().update(
+                calendarId="primary",
+                eventId=event_id,
+                body=event,
+            ).execute()
+
+            logger.info(
+                f"Rescheduled event {event_id}: "
+                f"{current_start.strftime('%H:%M')} -> {new_start.strftime('%H:%M')} "
+                f"(+{delay_minutes}min, reason={reason})"
+            )
+            return True
+
+        except HttpError as e:
+            logger.error(f"Failed to reschedule event: {e}")
+            return False
+
+    def reschedule_on_fatigue(
+        self,
+        fatigue_level: float,
+        fatigue_threshold: float = 0.8,
+        delay_minutes: int = 30,
+    ) -> bool:
+        """
+        Automatically reschedule the next Cortex session if fatigue exceeds threshold.
+
+        This is the "Time Lord" integration that responds to cognitive state.
+        When the neuromorphic engine detects high fatigue, this method
+        automatically adjusts the calendar to give recovery time.
+
+        Args:
+            fatigue_level: Current fatigue level (0.0 - 1.0)
+            fatigue_threshold: Threshold to trigger rescheduling (default: 0.8)
+            delay_minutes: Minutes to delay if fatigue detected (default: 30)
+
+        Returns:
+            True if a session was rescheduled, False otherwise
+        """
+        if fatigue_level < fatigue_threshold:
+            logger.debug(
+                f"Fatigue {fatigue_level:.2f} below threshold {fatigue_threshold}, "
+                "no rescheduling needed"
+            )
+            return False
+
+        # Find the next Cortex session
+        upcoming = self.get_upcoming_sessions(days=1)
+        cortex_sessions = [
+            s
+            for s in upcoming
+            if "Cortex" in s.get("title", "") or "cortex" in s.get("description", "").lower()
+        ]
+
+        if not cortex_sessions:
+            logger.debug("No upcoming Cortex sessions to reschedule")
+            return False
+
+        next_session = cortex_sessions[0]
+        event_id = next_session.get("id")
+
+        if not event_id:
+            return False
+
+        # Reschedule the session
+        logger.warning(
+            f"Fatigue level {fatigue_level:.2f} exceeds threshold {fatigue_threshold}. "
+            f"Rescheduling next session by +{delay_minutes} minutes."
+        )
+
+        return self.reschedule_session(
+            event_id=event_id,
+            delay_minutes=delay_minutes,
+            reason=f"fatigue_detected_{fatigue_level:.2f}",
+        )

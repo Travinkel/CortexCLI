@@ -15,19 +15,19 @@ Hardening:
 - Detection of Anki modal dialogs (blocks API)
 - Detailed error logging for sync failures
 """
+
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import requests
+from loguru import logger
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from loguru import logger
 
 from config import get_settings
-
 
 # Default retry configuration for AnkiConnect
 DEFAULT_RETRIES = 3
@@ -45,9 +45,9 @@ class AnkiClient:
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        deck_name: Optional[str] = None,
-        note_type: Optional[str] = None,
+        base_url: str | None = None,
+        deck_name: str | None = None,
+        note_type: str | None = None,
         timeout: int = 60,
         retries: int = DEFAULT_RETRIES,
         backoff_factor: float = DEFAULT_BACKOFF_FACTOR,
@@ -84,7 +84,7 @@ class AnkiClient:
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
 
-        logger.info(
+        logger.debug(
             "Initialized AnkiConnect client: url={}, deck={}, note_type={}, "
             "timeout={}s, retries={}",
             self.base_url,
@@ -98,7 +98,7 @@ class AnkiClient:
     # Core API Methods
     # ========================================
 
-    def _invoke(self, action: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    def _invoke(self, action: str, params: dict[str, Any] | None = None) -> Any:
         """
         Invoke an AnkiConnect API action.
 
@@ -144,6 +144,88 @@ class AnkiClient:
 
         return data.get("result")
 
+    def _invoke_multi(self, actions: list[dict[str, Any]]) -> list[Any]:
+        """
+        Invoke multiple AnkiConnect actions in a single request.
+
+        This is MUCH faster than sequential calls (~50x speedup).
+
+        Args:
+            actions: List of action dicts, each with 'action' and optional 'params'
+
+        Returns:
+            List of results from each action
+        """
+        payload = {
+            "action": "multi",
+            "version": 6,
+            "params": {"actions": actions},
+        }
+
+        logger.debug("AnkiConnect multi request: {} actions", len(actions))
+
+        response = self.session.post(
+            self.base_url,
+            json=payload,
+            timeout=self.timeout * 2,  # Allow more time for batch
+        )
+        response.raise_for_status()
+
+        data = response.json()
+
+        if data.get("error"):
+            raise RuntimeError(f"AnkiConnect multi error: {data['error']}")
+
+        return data.get("result", [])
+
+    def batch_find_notes(self, queries: list[str]) -> list[list[int]]:
+        """
+        Find notes for multiple queries in a single request.
+
+        Args:
+            queries: List of search queries
+
+        Returns:
+            List of note ID lists (one per query)
+        """
+        actions = [
+            {"action": "findNotes", "params": {"query": q}}
+            for q in queries
+        ]
+        return self._invoke_multi(actions)
+
+    def batch_update_notes(self, updates: list[dict[str, Any]]) -> list[Any]:
+        """
+        Update multiple notes in a single request.
+
+        Args:
+            updates: List of update dicts with 'id' and 'fields'
+
+        Returns:
+            List of results (None for each successful update)
+        """
+        actions = [
+            {"action": "updateNoteFields", "params": {"note": u}}
+            for u in updates
+        ]
+        return self._invoke_multi(actions)
+
+    def batch_add_notes(self, notes: list[dict[str, Any]]) -> list[int | None]:
+        """
+        Add multiple notes in a single request.
+
+        Args:
+            notes: List of note dicts with deckName, modelName, fields, tags
+
+        Returns:
+            List of note IDs (None for failures)
+        """
+        actions = [
+            {"action": "addNote", "params": {"note": n}}
+            for n in notes
+        ]
+        return self._invoke_multi(actions)
+
     def check_connection(self, cache_seconds: float = 30.0) -> bool:
         """
         Check if AnkiConnect is running and accessible.
@@ -170,7 +252,7 @@ class AnkiClient:
             version = self._invoke("version")
             self._connection_available = True
             self._last_connection_check = now
-            logger.info("AnkiConnect version detected: {}", version)
+            logger.debug("AnkiConnect version detected: {}", version)
             return True
 
         except requests.exceptions.ConnectionError:
@@ -212,6 +294,18 @@ class AnkiClient:
         """
         return self._connection_available
 
+    def get_version(self) -> int | None:
+        """
+        Get AnkiConnect API version.
+
+        Returns:
+            API version number if available, None if not connected
+        """
+        try:
+            return self._invoke("version")
+        except Exception:
+            return None
+
     def require_connection(self) -> None:
         """
         Raise an exception if Anki is not available.
@@ -230,9 +324,10 @@ class AnkiClient:
 
     def fetch_all_cards(
         self,
-        deck_name: Optional[str] = None,
+        deck_name: str | None = None,
+        query: str | None = None,
         include_stats: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Fetch all cards from Anki deck with optional FSRS stats.
 
@@ -241,6 +336,7 @@ class AnkiClient:
 
         Args:
             deck_name: Deck to fetch from (default from config)
+            query: Anki search query to filter cards
             include_stats: Whether to include FSRS stats (stability, difficulty, etc.)
 
         Returns:
@@ -257,28 +353,28 @@ class AnkiClient:
                 - fsrs_stats: FSRS scheduling data (if include_stats=True)
         """
         deck = deck_name or self.deck_name
+        search_query = query or f'deck:"{deck}"'
 
         try:
             # Find all notes in deck
-            query = f'deck:"{deck}"'
-            logger.info("Querying Anki for notes with query: {}", query)
+            logger.debug("Querying Anki for notes with query: {}", search_query)
 
-            note_ids = self._invoke("findNotes", {"query": query})
+            note_ids = self._invoke("findNotes", {"query": search_query})
 
             if not note_ids:
                 logger.warning(
-                    "Anki returned 0 notes for deck '{}'. Check deck name.",
-                    deck,
+                    "Anki returned 0 notes for query '{}'. Check deck name and query.",
+                    search_query,
                 )
                 return []
 
-            logger.info("Found {} notes in deck '{}'", len(note_ids), deck)
+            logger.debug("Found {} notes for query '{}'", len(note_ids), search_query)
 
             # Fetch note details
             notes = self._invoke("notesInfo", {"notes": note_ids})
 
             # Fetch FSRS stats if requested
-            stats_by_note_id: Dict[str, Dict[str, Any]] = {}
+            stats_by_note_id: dict[str, dict[str, Any]] = {}
             if include_stats:
                 stats = self.fetch_card_stats(deck_name=deck)
                 for stat in stats:
@@ -287,7 +383,7 @@ class AnkiClient:
                         stats_by_note_id[note_id] = stat
 
             # Map notes to card dictionaries
-            cards: List[Dict[str, Any]] = []
+            cards: list[dict[str, Any]] = []
             for note in notes or []:
                 if not note:
                     continue
@@ -301,7 +397,7 @@ class AnkiClient:
 
                 cards.append(card)
 
-            logger.info("Mapped {} notes to card dictionaries", len(cards))
+            logger.debug("Mapped {} notes to card dictionaries", len(cards))
             return cards
 
         except requests.RequestException as exc:
@@ -310,9 +406,9 @@ class AnkiClient:
 
     def fetch_card_stats(
         self,
-        deck_name: Optional[str] = None,
+        deck_name: str | None = None,
         reviewed_only: bool = False,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Fetch FSRS scheduling stats for all cards in deck.
 
@@ -337,25 +433,25 @@ class AnkiClient:
         try:
             # Find all cards in deck
             query = f'deck:"{deck}"'
-            logger.info("Querying Anki for cards with query: {}", query)
+            logger.debug("Querying Anki for cards with query: {}", query)
 
             card_ids = self._invoke("findCards", {"query": query})
 
             if not card_ids:
-                logger.warning("Anki returned 0 cards for deck '{}'", deck)
+                logger.debug("Anki returned 0 cards for deck '{}'", deck)
                 return []
 
-            logger.info("Found {} cards in deck '{}'", len(card_ids), deck)
+            logger.debug("Found {} cards in deck '{}'", len(card_ids), deck)
 
             # Fetch card info with FSRS data
             cards = self._invoke("cardsInfo", {"cards": card_ids})
-            logger.info("Fetched cardsInfo for {} cards", len(cards or []))
+            logger.debug("Fetched cardsInfo for {} cards", len(cards or []))
 
             # Fetch review logs for accuracy calculation
             review_logs = self._fetch_review_logs(card_ids)
 
             # Build stats list
-            stats: List[Dict[str, Any]] = []
+            stats: list[dict[str, Any]] = []
             for card in cards or []:
                 card_key = str(card.get("cardId") or card.get("id") or "")
                 fields = card.get("fields", {})
@@ -368,9 +464,7 @@ class AnkiClient:
                     continue
 
                 # Calculate accuracy from review log
-                correct_count = sum(
-                    1 for entry in review_entries if (entry.get("ease") or 0) > 1
-                )
+                correct_count = sum(1 for entry in review_entries if (entry.get("ease") or 0) > 1)
                 accuracy_percent = (
                     round((correct_count / len(review_entries)) * 100, 2)
                     if review_entries
@@ -385,29 +479,31 @@ class AnkiClient:
                 due_iso, due_mode = self._format_due(card.get("due"), queue_code)
 
                 # Last review timestamp
-                last_review_iso = (
-                    self._last_review_from_logs(review_entries)
-                    or self._format_timestamp(card.get("mod"))
-                )
+                last_review_iso = self._last_review_from_logs(
+                    review_entries
+                ) or self._format_timestamp(card.get("mod"))
 
-                stats.append({
-                    "anki_card_id": card_key,
-                    "note_id": str(card.get("noteId") or ""),
-                    "card_id": self._field_value(fields.get("Card ID")) or str(card.get("noteId") or ""),
-                    "deck_name": card.get("deckName") or deck,
-                    "card_type": self._map_card_type(card.get("type")),
-                    "queue": queue_label,
-                    "due_date": due_iso,
-                    "due_interpretation": due_mode,
-                    "interval_days": card.get("interval") or card.get("ivl"),
-                    "ease_factor": self._format_ease(card.get("factor")),
-                    "review_count": card.get("reps"),
-                    "lapses": card.get("lapses"),
-                    "tags": " ".join(card.get("tags", [])),
-                    "last_review": last_review_iso,
-                    "correct_count": correct_count,
-                    "accuracy_percent": accuracy_percent,
-                })
+                stats.append(
+                    {
+                        "anki_card_id": card_key,
+                        "note_id": str(card.get("noteId") or ""),
+                        "card_id": self._field_value(fields.get("Card ID"))
+                        or str(card.get("noteId") or ""),
+                        "deck_name": card.get("deckName") or deck,
+                        "card_type": self._map_card_type(card.get("type")),
+                        "queue": queue_label,
+                        "due_date": due_iso,
+                        "due_interpretation": due_mode,
+                        "interval_days": card.get("interval") or card.get("ivl"),
+                        "ease_factor": self._format_ease(card.get("factor")),
+                        "review_count": card.get("reps"),
+                        "lapses": card.get("lapses"),
+                        "tags": " ".join(card.get("tags", [])),
+                        "last_review": last_review_iso,
+                        "correct_count": correct_count,
+                        "accuracy_percent": accuracy_percent,
+                    }
+                )
 
             return stats
 
@@ -419,13 +515,86 @@ class AnkiClient:
     # Card Push Methods
     # ========================================
 
+    def find_note_by_card_id(self, card_id: str) -> int | None:
+        """
+        Search Anki for an existing note by Card ID field.
+
+        This allows preserving review history when card_id matches
+        even if anki_note_id is not stored in our database.
+
+        Args:
+            card_id: The custom card ID (e.g., "NET-M1-015")
+
+        Returns:
+            Anki note ID if found, None otherwise
+        """
+        try:
+            # Try multiple search formats for finding card by ID
+            # LearningOS-v2 note type uses "concept_id" field for the card ID
+            # Anki search syntax: fieldname:value (single word fields) or deck:"name" "text"
+            for query in [
+                f'concept_id:"{card_id}"',
+                f'deck:"{self.deck_name}" concept_id:"{card_id}"',
+                f'deck:"{self.deck_name}" "{card_id}"',
+            ]:
+                note_ids = self._invoke("findNotes", {"query": query})
+                if note_ids and len(note_ids) > 0:
+                    logger.debug("Found existing note for card_id={}: {}", card_id, note_ids[0])
+                    return note_ids[0]
+
+            return None
+        except Exception as exc:
+            logger.warning("Failed to search for card_id={}: {}", card_id, exc)
+            return None
+
+    def find_note_by_front(self, front_text: str) -> int | None:
+        """
+        Search Anki for an existing note by front text content.
+
+        Fallback method when Card ID doesn't match.
+        Uses first 60 chars to avoid query length issues.
+
+        Args:
+            front_text: The question/front text to search for
+
+        Returns:
+            Anki note ID if found, None otherwise
+        """
+        try:
+            # Use first 60 chars, escape special chars for Anki search
+            search_text = front_text[:60].replace('"', '').replace(":", " ").replace("\\", "")
+            # Simple wildcard search in deck
+            query = f'deck:"{self.deck_name}" "{search_text}"'
+            note_ids = self._invoke("findNotes", {"query": query})
+
+            if note_ids and len(note_ids) == 1:  # Only if unique match
+                logger.debug("Found existing note by front text: {}", note_ids[0])
+                return note_ids[0]
+            elif note_ids and len(note_ids) > 1:
+                # Multiple matches - try to find exact match
+                for nid in note_ids[:5]:  # Check first 5
+                    info = self._invoke("notesInfo", {"notes": [nid]})
+                    if info and info[0].get("fields", {}).get("front", {}).get("value", "") == front_text:
+                        logger.debug("Found exact match by front text: {}", nid)
+                        return nid
+
+            return None
+        except Exception as exc:
+            logger.debug("Front text search failed: {}", exc)
+            return None
+
     def upsert_card(
         self,
-        card_data: Dict[str, Any],
+        card_data: dict[str, Any],
         dry_run: bool = False,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
-        Create or update a card in Anki.
+        Create or update a card in Anki with smart matching.
+
+        Smart matching strategy (preserves review history):
+        1. If anki_note_id is provided → Update existing note
+        2. If card_id matches existing note → Update existing (preserves reviews!)
+        3. Otherwise → Create new note
 
         Args:
             card_data: Card dictionary with keys:
@@ -447,11 +616,15 @@ class AnkiClient:
             )
             return None
 
-        # Build Anki fields
+        # Build Anki fields - use lowercase to match LearningOS-v2 note type
+        # Fields: front, concept_id, back, tags, source, metadata_json
         fields = {
-            "Card ID": card_data.get("card_id", ""),
-            "Front": card_data.get("front", ""),
-            "Back": card_data.get("back", ""),
+            "front": card_data.get("front", ""),
+            "back": card_data.get("back", ""),
+            "concept_id": card_data.get("card_id", ""),  # Use card_id as concept_id
+            "tags": " ".join(card_data.get("tags", [])) if isinstance(card_data.get("tags"), list) else card_data.get("tags", ""),
+            "source": "cortex",
+            "metadata_json": "",
         }
 
         # Build tags
@@ -460,41 +633,196 @@ class AnkiClient:
             tags = tags.split()
 
         try:
-            # Check if updating existing note
+            # Check if updating existing note by anki_note_id
             note_id = card_data.get("anki_note_id")
 
             if note_id and str(note_id).isdigit():
-                # Update existing note
+                # Update existing note by ID
                 self._invoke(
                     "updateNoteFields",
                     {"note": {"id": int(note_id), "fields": fields}},
                 )
-                logger.info("Updated Anki note: note_id={}", note_id)
+                logger.info("Updated Anki note by ID: note_id={}", note_id)
                 return str(note_id)
-            else:
-                # Create new note
-                note_payload = {
-                    "deckName": self.deck_name,
-                    "modelName": self.note_type,
-                    "fields": fields,
-                    "tags": tags,
-                }
 
-                result = self._invoke("addNote", {"note": note_payload})
+            # Smart matching: Search for existing note by card_id
+            card_id = card_data.get("card_id")
+            existing_note_id = None
+
+            if card_id:
+                existing_note_id = self.find_note_by_card_id(card_id)
+
+            # Fallback: Search by front text if card_id search failed
+            if not existing_note_id:
+                front_text = card_data.get("front", "")
+                if front_text:
+                    existing_note_id = self.find_note_by_front(front_text)
+
+            if existing_note_id:
+                # Found existing note - update it (preserves reviews!)
+                self._invoke(
+                    "updateNoteFields",
+                    {"note": {"id": existing_note_id, "fields": fields}},
+                )
                 logger.info(
-                    "Created Anki note: note_id={}, card_id={}",
+                    "Updated existing Anki note: note_id={}, card_id={} (reviews preserved)",
+                    existing_note_id,
+                    card_id,
+                )
+                return str(existing_note_id)
+
+            # No existing note found - create new
+            front_text = card_data.get("front", "")
+            is_cloze = "{{c" in front_text and "}}" in front_text
+
+            # Use cloze note type for cloze cards if needed
+            model_name = self.note_type
+            if is_cloze and "cloze" not in model_name.lower():
+                # For cloze cards, try to use a cloze-compatible note type
+                # The LearningOS-v2 note type should handle both, but if not
+                # we need to skip cloze cards or use Anki's built-in Cloze type
+                logger.warning(
+                    "Cloze card detected but note type '{}' may not support cloze. card_id={}",
+                    model_name,
+                    card_id,
+                )
+
+            note_payload = {
+                "deckName": self.deck_name,
+                "modelName": model_name,
+                "fields": fields,
+                "tags": tags,
+                "options": {
+                    "allowDuplicate": False,
+                    "duplicateScope": "deck",
+                },
+            }
+
+            result = self._invoke("addNote", {"note": note_payload})
+
+            if result:
+                logger.info(
+                    "Created new Anki note: note_id={}, card_id={}",
                     result,
                     card_data.get("card_id"),
                 )
                 return str(result)
+            else:
+                logger.warning(
+                    "Anki returned null for addNote: card_id={} (possible duplicate or invalid format)",
+                    card_data.get("card_id"),
+                )
+                return None
 
         except Exception as exc:  # pylint: disable=broad-except
-            logger.error(
-                "Failed to upsert card in Anki: card_id={}, error={}",
-                card_data.get("card_id"),
-                exc,
-            )
+            error_msg = str(exc)
+            if "duplicate" in error_msg.lower():
+                logger.warning(
+                    "Duplicate card detected, skipping: card_id={}",
+                    card_data.get("card_id"),
+                )
+            elif "unknown reason" in error_msg.lower():
+                # This often means field mismatch or cloze format issue
+                logger.warning(
+                    "Card creation failed (likely field mismatch or cloze format): card_id={}, front={}...",
+                    card_data.get("card_id"),
+                    (card_data.get("front") or "")[:50],
+                )
+            else:
+                logger.error(
+                    "Failed to upsert card in Anki: card_id={}, error={}",
+                    card_data.get("card_id"),
+                    exc,
+                )
             return None
+
+    def delete_notes(self, note_ids: list[int]) -> bool:
+        """
+        Delete notes from Anki by note IDs.
+
+        Args:
+            note_ids: List of Anki note IDs to delete
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not note_ids:
+            return True
+
+        try:
+            self._invoke("deleteNotes", {"notes": note_ids})
+            logger.info("Deleted {} notes from Anki", len(note_ids))
+            return True
+        except Exception as exc:
+            logger.error("Failed to delete notes: {}", exc)
+            return False
+
+    def delete_deck_cards(self, deck_name: str) -> int:
+        """
+        Delete all cards in a deck (but keep the deck structure).
+
+        Args:
+            deck_name: Deck name (e.g., "CCNA::ITN")
+
+        Returns:
+            Number of notes deleted
+        """
+        try:
+            # Find all notes in deck
+            note_ids = self._invoke("findNotes", {"query": f'deck:"{deck_name}"'})
+            if not note_ids:
+                logger.info("No notes found in deck '{}'", deck_name)
+                return 0
+
+            # Delete all notes
+            self._invoke("deleteNotes", {"notes": note_ids})
+            logger.info("Deleted {} notes from deck '{}'", len(note_ids), deck_name)
+            return len(note_ids)
+        except Exception as exc:
+            logger.error("Failed to delete deck cards: {}", exc)
+            return 0
+
+    def create_filtered_deck(
+        self,
+        name: str,
+        search_query: str,
+        limit: int = 100,
+        order: int = 5,
+    ) -> bool:
+        """
+        Create a filtered/custom study deck.
+
+        Args:
+            name: Name for the filtered deck
+            search_query: Anki search query for cards to include
+            limit: Maximum cards to include (default 100)
+            order: Sort order (0=oldest, 5=random, 8=due date)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Delete existing filtered deck with same name if exists
+            try:
+                self._invoke("deleteDecks", {"decks": [name], "cardsToo": False})
+            except Exception:
+                pass  # Deck might not exist
+
+            # Create filtered deck
+            self._invoke(
+                "createFilteredDeck",
+                {
+                    "newDeckName": name,
+                    "searchQuery": search_query,
+                    "gatherCount": limit,
+                    "reschedule": True,
+                },
+            )
+            logger.info("Created filtered deck '{}' with query '{}'", name, search_query)
+            return True
+        except Exception as exc:
+            logger.error("Failed to create filtered deck '{}': {}", name, exc)
+            return False
 
     def suspend_card(self, note_id: int, dry_run: bool = False) -> bool:
         """
@@ -532,7 +860,7 @@ class AnkiClient:
     # Helper Methods
     # ========================================
 
-    def _map_note_to_card(self, note: Dict[str, Any]) -> Dict[str, Any]:
+    def _map_note_to_card(self, note: dict[str, Any]) -> dict[str, Any]:
         """
         Map Anki note to card dictionary.
 
@@ -562,7 +890,7 @@ class AnkiClient:
             "note_type": note.get("modelName") or self.note_type,
         }
 
-    def _parse_prerequisite_tags(self, tags: List[str]) -> Dict[str, Any]:
+    def _parse_prerequisite_tags(self, tags: list[str]) -> dict[str, Any]:
         """
         Parse tag:prereq:domain:topic:subtopic hierarchy from tags.
 
@@ -589,12 +917,14 @@ class AnkiClient:
             # Split tag:prereq:domain:topic:subtopic
             parts = tag.split(":")
             if len(parts) >= 3:
-                parsed.append({
-                    "full_tag": tag,
-                    "domain": parts[2] if len(parts) > 2 else None,
-                    "topic": parts[3] if len(parts) > 3 else None,
-                    "subtopic": parts[4] if len(parts) > 4 else None,
-                })
+                parsed.append(
+                    {
+                        "full_tag": tag,
+                        "domain": parts[2] if len(parts) > 2 else None,
+                        "topic": parts[3] if len(parts) > 3 else None,
+                        "subtopic": parts[4] if len(parts) > 4 else None,
+                    }
+                )
 
         return {
             "has_prerequisites": True,
@@ -604,8 +934,8 @@ class AnkiClient:
 
     def _fetch_review_logs(
         self,
-        card_ids: List[int],
-    ) -> Dict[str, List[Dict[str, Any]]]:
+        card_ids: list[int],
+    ) -> dict[str, list[dict[str, Any]]]:
         """
         Fetch review logs for cards (for accuracy calculation).
 
@@ -622,17 +952,12 @@ class AnkiClient:
             return {}
 
         # Group by card ID
-        buckets: Dict[str, List[Dict[str, Any]]] = {}
+        buckets: dict[str, list[dict[str, Any]]] = {}
         for record in records:
             if not isinstance(record, dict):
                 continue
 
-            key = str(
-                record.get("cid")
-                or record.get("cardId")
-                or record.get("id")
-                or ""
-            )
+            key = str(record.get("cid") or record.get("cardId") or record.get("id") or "")
 
             if not key:
                 continue
@@ -647,8 +972,8 @@ class AnkiClient:
 
     def _last_review_from_logs(
         self,
-        records: List[Dict[str, Any]],
-    ) -> Optional[str]:
+        records: list[dict[str, Any]],
+    ) -> str | None:
         """Extract last review timestamp from review log."""
         if not records:
             return None
@@ -666,7 +991,7 @@ class AnkiClient:
         return self._format_timestamp(int(stamp))
 
     @staticmethod
-    def _field_value(field: Optional[Dict[str, Any]]) -> str:
+    def _field_value(field: dict[str, Any] | None) -> str:
         """Extract string value from Anki field dictionary."""
         if not field:
             return ""
@@ -680,7 +1005,7 @@ class AnkiClient:
         return str(field).strip()
 
     @staticmethod
-    def _map_card_type(card_type: Optional[int]) -> str:
+    def _map_card_type(card_type: int | None) -> str:
         """Map Anki card type code to human-readable label."""
         mapping = {
             0: "new",
@@ -691,7 +1016,7 @@ class AnkiClient:
         return mapping.get(card_type, "unknown")
 
     @staticmethod
-    def _map_queue(queue: Optional[int]) -> str:
+    def _map_queue(queue: int | None) -> str:
         """Map Anki queue code to human-readable label."""
         mapping = {
             -3: "manually_suspended",
@@ -706,28 +1031,28 @@ class AnkiClient:
         return mapping.get(queue, "unknown")
 
     @staticmethod
-    def _format_ease(raw: Optional[int]) -> Optional[float]:
+    def _format_ease(raw: int | None) -> float | None:
         """Format Anki ease factor (stored as integer * 1000)."""
         if raw is None:
             return None
         return round(raw / 1000, 3)
 
     @staticmethod
-    def _format_timestamp(raw: Optional[int]) -> Optional[str]:
+    def _format_timestamp(raw: int | None) -> str | None:
         """Format Unix timestamp to ISO 8601 string."""
         if raw is None:
             return None
 
         try:
-            return datetime.fromtimestamp(raw, tz=timezone.utc).isoformat()
+            return datetime.fromtimestamp(raw, tz=UTC).isoformat()
         except (OSError, OverflowError, ValueError):
             return None
 
     def _format_due(
         self,
-        due: Optional[int],
-        queue: Optional[int],
-    ) -> tuple[Optional[str], str]:
+        due: int | None,
+        queue: int | None,
+    ) -> tuple[str | None, str]:
         """
         Format Anki due date (interpretation depends on queue type).
 
@@ -740,17 +1065,21 @@ class AnkiClient:
         try:
             # Review/day learning: day count since epoch
             if queue in {2, 3}:
-                iso_date = datetime.fromtimestamp(
-                    int(due) * 86400,
-                    tz=timezone.utc,
-                ).date().isoformat()
+                iso_date = (
+                    datetime.fromtimestamp(
+                        int(due) * 86400,
+                        tz=UTC,
+                    )
+                    .date()
+                    .isoformat()
+                )
                 return iso_date, "epoch_days"
 
             # Learning queue: unix seconds
             if queue == 1:
                 iso_date = datetime.fromtimestamp(
                     int(due),
-                    tz=timezone.utc,
+                    tz=UTC,
                 ).isoformat()
                 return iso_date, "unix_seconds"
 

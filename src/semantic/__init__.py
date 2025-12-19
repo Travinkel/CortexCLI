@@ -11,11 +11,12 @@ Technology:
 - PostgreSQL pgvector for vector storage
 - HNSW indexing for fast similarity search
 """
-from src.semantic.embedding_service import EmbeddingService, EmbeddingResult
-from src.semantic.similarity_service import SemanticSimilarityService, SimilarityMatch
-from src.semantic.prerequisite_inference import PrerequisiteInferenceService, PrerequisiteSuggestion
-from src.semantic.clustering_service import ClusteringService, ClusterResult
+
 from src.semantic.batch_embedding import BatchEmbeddingProcessor
+from src.semantic.clustering_service import ClusteringService, ClusterResult
+from src.semantic.embedding_service import EmbeddingResult, EmbeddingService
+from src.semantic.prerequisite_inference import PrerequisiteInferenceService, PrerequisiteSuggestion
+from src.semantic.similarity_service import SemanticSimilarityService, SimilarityMatch
 
 __all__ = [
     # Embedding

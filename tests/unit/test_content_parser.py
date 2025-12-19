@@ -4,7 +4,9 @@ Unit tests for CCNAContentParser.
 Tests regex pattern coverage to prevent silent data loss from unparsed content.
 Run: pytest tests/unit/test_content_parser.py -v
 """
+
 import pytest
+
 from src.ccna.content_parser import CCNAContentParser
 
 
@@ -306,7 +308,7 @@ specific functions in moving data across the network infrastructure.
 """)
 
         module = parser.parse_file(str(test_file), module_number=1)
-        validation = parser.validate_coverage(module)
+        parser.validate_coverage(module)
 
         assert len(module.sections) >= 2, "Should detect multiple sections"
 

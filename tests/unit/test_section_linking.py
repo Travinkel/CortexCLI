@@ -4,11 +4,11 @@ Unit Tests for Section Linking Logic.
 Tests the keyword matching and section assignment logic used to link
 learning atoms to CCNA sections.
 """
-import pytest
+
 from scripts.fix_atom_section_links import (
+    SECTION_PRIMARY_KEYWORDS,
     find_best_section_for_atom,
     score_section_match,
-    SECTION_PRIMARY_KEYWORDS,
 )
 
 
@@ -57,7 +57,7 @@ class TestFindBestSection:
         """Should match networking basics to Module 1."""
         result = find_best_section_for_atom(
             front="What is a host device?",
-            back="An end device that sends or receives data on the network"
+            back="An end device that sends or receives data on the network",
         )
 
         assert result.section_id is not None
@@ -67,7 +67,7 @@ class TestFindBestSection:
         """Should match TCP content to Module 14."""
         result = find_best_section_for_atom(
             front="What is the TCP three-way handshake?",
-            back="SYN, SYN-ACK, ACK sequence to establish a connection"
+            back="SYN, SYN-ACK, ACK sequence to establish a connection",
         )
 
         assert result.section_id is not None
@@ -77,7 +77,7 @@ class TestFindBestSection:
         """Should match IPv4 addressing to Module 11."""
         result = find_best_section_for_atom(
             front="What is a subnet mask?",
-            back="A 32-bit number that identifies the network portion of an IPv4 address"
+            back="A 32-bit number that identifies the network portion of an IPv4 address",
         )
 
         assert result.section_id is not None
@@ -87,7 +87,7 @@ class TestFindBestSection:
         """Should match IPv6 content to Module 12."""
         result = find_best_section_for_atom(
             front="What is SLAAC?",
-            back="Stateless Address Autoconfiguration - allows hosts to self-configure IPv6 addresses"
+            back="Stateless Address Autoconfiguration - allows hosts to self-configure IPv6 addresses",
         )
 
         assert result.section_id is not None
@@ -98,23 +98,22 @@ class TestFindBestSection:
         # Use content with absolutely no networking-related terms
         result = find_best_section_for_atom(
             front="What is mitochondria?",
-            back="The organelle that produces ATP in eukaryotic cells"
+            back="The organelle that produces ATP in eukaryotic cells",
         )
 
-        assert result.section_id is None, f"Got unexpected match: {result.section_id} with confidence {result.confidence}"
+        assert result.section_id is None, (
+            f"Got unexpected match: {result.section_id} with confidence {result.confidence}"
+        )
         assert result.method == "none"
 
     def test_low_confidence_for_partial_match(self):
         """Partial matches should have lower confidence than strong matches."""
         result_strong = find_best_section_for_atom(
             front="Explain the TCP three-way handshake with SYN and ACK",
-            back="SYN, SYN-ACK, ACK sequence for reliable connection establishment"
+            back="SYN, SYN-ACK, ACK sequence for reliable connection establishment",
         )
 
-        result_weak = find_best_section_for_atom(
-            front="What is TCP?",
-            back="A protocol"
-        )
+        result_weak = find_best_section_for_atom(front="What is TCP?", back="A protocol")
 
         if result_strong.section_id and result_weak.section_id:
             assert result_strong.confidence >= result_weak.confidence
@@ -147,8 +146,9 @@ class TestSectionCoverage:
         for section_id, keywords in SECTION_PRIMARY_KEYWORDS.items():
             for keyword in keywords:
                 # Keywords should be lowercase for consistent matching
-                assert keyword == keyword.lower(), \
+                assert keyword == keyword.lower(), (
                     f"Section {section_id} has uppercase keyword: {keyword}"
+                )
 
 
 class TestEdgeCases:
@@ -171,8 +171,7 @@ class TestEdgeCases:
     def test_special_characters(self):
         """Should handle special characters in content."""
         result = find_best_section_for_atom(
-            front="What is 802.11a/b/g/n/ac?",
-            back="Wi-Fi standards for wireless LANs"
+            front="What is 802.11a/b/g/n/ac?", back="Wi-Fi standards for wireless LANs"
         )
 
         # Should match wireless section
@@ -182,7 +181,7 @@ class TestEdgeCases:
         """Should handle numbers and IP addresses in content."""
         result = find_best_section_for_atom(
             front="What is 192.168.1.1?",
-            back="A private IPv4 address commonly used for home routers"
+            back="A private IPv4 address commonly used for home routers",
         )
 
         # Should match IPv4 private addressing section

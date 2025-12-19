@@ -10,12 +10,13 @@ Handles learning state migration when replacing cards:
 This ensures that when a low-quality card is replaced with a high-quality
 one covering the same content, the learner's progress is preserved.
 """
+
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
 
 from loguru import logger
 from rapidfuzz import fuzz
@@ -126,9 +127,7 @@ class AnkiMigrationService:
         settings = get_settings()
         self.anki_client = AnkiClient()
         self.similarity_threshold = settings.ccna_migration_similarity_threshold
-        self.preserve_grades = [
-            g.strip() for g in settings.ccna_preserve_grades.split(",")
-        ]
+        self.preserve_grades = [g.strip() for g in settings.ccna_preserve_grades.split(",")]
 
     async def export_learning_states(
         self,
@@ -187,9 +186,7 @@ class AnkiMigrationService:
         due_date = None
         if fsrs_stats.get("due_date"):
             try:
-                due_date = datetime.fromisoformat(
-                    fsrs_stats["due_date"].replace("Z", "+00:00")
-                )
+                due_date = datetime.fromisoformat(fsrs_stats["due_date"].replace("Z", "+00:00"))
             except (ValueError, TypeError):
                 pass
 
@@ -482,13 +479,9 @@ class AnkiMigrationService:
         matched_new = {m.new_card_id for m in matches}
 
         unmatched_old = [
-            s for s in old_states
-            if s.has_learning_progress and s.card_id not in matched_old
+            s for s in old_states if s.has_learning_progress and s.card_id not in matched_old
         ]
-        unmatched_new = [
-            a for a in new_atoms
-            if a.card_id not in matched_new
-        ]
+        unmatched_new = [a for a in new_atoms if a.card_id not in matched_new]
 
         transfers_successful = sum(1 for r in results if r.state_transferred)
         transfers_failed = sum(1 for r in results if not r.state_transferred)
@@ -539,8 +532,7 @@ class AnkiMigrationService:
             candidates.append(state)
 
         logger.info(
-            f"Found {len(candidates)} preservation candidates "
-            f"(grades: {self.preserve_grades})"
+            f"Found {len(candidates)} preservation candidates (grades: {self.preserve_grades})"
         )
         return candidates
 

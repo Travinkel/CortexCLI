@@ -10,14 +10,14 @@ Tests the hardened numeric normalization and comparison that handles:
 
 Run: pytest tests/unit/test_numeric_comparison.py -v
 """
-import pytest
+
 import sys
 from pathlib import Path
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.cli.cortex import _normalize_numeric, _compare_numeric_answers
+from src.cli.cortex import _compare_numeric_answers, _normalize_numeric
 
 
 class TestNormalizeNumeric:

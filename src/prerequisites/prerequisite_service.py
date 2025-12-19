@@ -4,24 +4,23 @@ Prerequisite service for managing explicit prerequisites.
 Provides CRUD operations, tag parsing, circular dependency detection,
 and chain resolution for the prerequisite system.
 """
+
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select, and_, or_, text
+from sqlalchemy import and_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.db.models import (
-    ExplicitPrerequisite,
-    PrerequisiteWaiver,
-    CleanConcept,
     CleanAtom,
+    CleanConcept,
+    ExplicitPrerequisite,
     InferredPrerequisite,
 )
 
@@ -29,6 +28,7 @@ from src.db.models import (
 @dataclass
 class ParsedPrerequisiteTag:
     """Parsed prerequisite tag from Anki format."""
+
     domain: str
     topic: str
     subtopic: str | None = None
@@ -45,6 +45,7 @@ class ParsedPrerequisiteTag:
 @dataclass
 class PrerequisiteChainNode:
     """Node in a prerequisite chain."""
+
     concept_id: UUID
     concept_name: str
     depth: int
@@ -55,8 +56,9 @@ class PrerequisiteChainNode:
 @dataclass
 class CircularDependencyError:
     """Information about a detected circular dependency."""
-    chain: List[UUID]
-    concept_names: List[str]
+
+    chain: list[UUID]
+    concept_names: list[str]
     message: str
 
 
@@ -132,9 +134,7 @@ class PrerequisiteService:
                 source_concept_id, target_concept_id
             )
             if is_circular:
-                raise ValueError(
-                    f"Adding this prerequisite would create a circular dependency"
-                )
+                raise ValueError("Adding this prerequisite would create a circular dependency")
 
         prerequisite = ExplicitPrerequisite(
             source_concept_id=source_concept_id,
@@ -177,7 +177,7 @@ class PrerequisiteService:
         origin: str | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[ExplicitPrerequisite]:
+    ) -> list[ExplicitPrerequisite]:
         """
         List prerequisites with optional filters.
 
@@ -194,12 +194,9 @@ class PrerequisiteService:
         Returns:
             List of matching prerequisites
         """
-        query = (
-            select(ExplicitPrerequisite)
-            .options(
-                selectinload(ExplicitPrerequisite.source_concept),
-                selectinload(ExplicitPrerequisite.target_concept),
-            )
+        query = select(ExplicitPrerequisite).options(
+            selectinload(ExplicitPrerequisite.source_concept),
+            selectinload(ExplicitPrerequisite.target_concept),
         )
 
         conditions = []
@@ -295,7 +292,7 @@ class PrerequisiteService:
             raw_tag=tag,
         )
 
-    def parse_prerequisite_tags(self, tags: List[str]) -> List[ParsedPrerequisiteTag]:
+    def parse_prerequisite_tags(self, tags: list[str]) -> list[ParsedPrerequisiteTag]:
         """
         Parse multiple prerequisite tags.
 
@@ -315,9 +312,9 @@ class PrerequisiteService:
     async def sync_from_anki_tags(
         self,
         atom_id: UUID,
-        tags: List[str],
+        tags: list[str],
         gating_type: str = "soft",
-    ) -> List[ExplicitPrerequisite]:
+    ) -> list[ExplicitPrerequisite]:
         """
         Create prerequisites from Anki tags for an atom.
 
@@ -371,26 +368,20 @@ class PrerequisiteService:
 
         return created
 
-    async def _find_concept_by_path(
-        self, parsed: ParsedPrerequisiteTag
-    ) -> CleanConcept | None:
+    async def _find_concept_by_path(self, parsed: ParsedPrerequisiteTag) -> CleanConcept | None:
         """Find a concept matching the parsed tag path."""
         # Try exact name match first
         search_name = parsed.subtopic or parsed.topic
 
         result = await self.session.execute(
-            select(CleanConcept).where(
-                CleanConcept.name.ilike(f"%{search_name}%")
-            ).limit(1)
+            select(CleanConcept).where(CleanConcept.name.ilike(f"%{search_name}%")).limit(1)
         )
         concept = result.scalar_one_or_none()
 
         if not concept:
             # Try domain match
             result = await self.session.execute(
-                select(CleanConcept).where(
-                    CleanConcept.domain.ilike(f"%{parsed.domain}%")
-                ).limit(1)
+                select(CleanConcept).where(CleanConcept.domain.ilike(f"%{parsed.domain}%")).limit(1)
             )
             concept = result.scalar_one_or_none()
 
@@ -430,9 +421,7 @@ class PrerequisiteService:
 
         return ":".join(parts)
 
-    async def export_prerequisites_to_anki_tags(
-        self, atom_id: UUID
-    ) -> List[str]:
+    async def export_prerequisites_to_anki_tags(self, atom_id: UUID) -> list[str]:
         """
         Export all prerequisites for an atom as Anki tags.
 
@@ -482,7 +471,7 @@ class PrerequisiteService:
         )
         return result.scalar() or False
 
-    async def detect_circular_dependencies(self) -> List[CircularDependencyError]:
+    async def detect_circular_dependencies(self) -> list[CircularDependencyError]:
         """
         Detect all circular dependencies in the prerequisite graph.
 
@@ -524,18 +513,18 @@ class PrerequisiteService:
             chain = row[0]
             # Get concept names for the chain
             concepts_result = await self.session.execute(
-                select(CleanConcept.id, CleanConcept.name).where(
-                    CleanConcept.id.in_(chain)
-                )
+                select(CleanConcept.id, CleanConcept.name).where(CleanConcept.id.in_(chain))
             )
             concept_map = {str(c.id): c.name for c in concepts_result}
             names = [concept_map.get(str(c), str(c)) for c in chain]
 
-            errors.append(CircularDependencyError(
-                chain=chain,
-                concept_names=names,
-                message=f"Circular dependency: {' -> '.join(names)} -> {names[0]}",
-            ))
+            errors.append(
+                CircularDependencyError(
+                    chain=chain,
+                    concept_names=names,
+                    message=f"Circular dependency: {' -> '.join(names)} -> {names[0]}",
+                )
+            )
 
         return errors
 
@@ -547,7 +536,7 @@ class PrerequisiteService:
         self,
         concept_id: UUID,
         max_depth: int = 10,
-    ) -> List[PrerequisiteChainNode]:
+    ) -> list[PrerequisiteChainNode]:
         """
         Get the full prerequisite chain for a concept.
 
@@ -597,13 +586,15 @@ class PrerequisiteService:
 
         nodes = []
         for row in result:
-            nodes.append(PrerequisiteChainNode(
-                concept_id=row.concept_id,
-                concept_name=row.concept_name,
-                depth=row.depth,
-                gating_type=row.gating_type,
-                mastery_threshold=row.mastery_threshold,
-            ))
+            nodes.append(
+                PrerequisiteChainNode(
+                    concept_id=row.concept_id,
+                    concept_name=row.concept_name,
+                    depth=row.depth,
+                    gating_type=row.gating_type,
+                    mastery_threshold=row.mastery_threshold,
+                )
+            )
 
         # Sort by depth
         nodes.sort(key=lambda n: n.depth)
@@ -632,9 +623,7 @@ class PrerequisiteService:
         """
         # Get the inferred prerequisite
         result = await self.session.execute(
-            select(InferredPrerequisite).where(
-                InferredPrerequisite.id == inferred_id
-            )
+            select(InferredPrerequisite).where(InferredPrerequisite.id == inferred_id)
         )
         inferred = result.scalar_one_or_none()
 
@@ -645,7 +634,7 @@ class PrerequisiteService:
         atom_result = await self.session.execute(
             select(CleanAtom).where(CleanAtom.id == inferred.source_atom_id)
         )
-        atom = atom_result.scalar_one_or_none()
+        atom_result.scalar_one_or_none()
 
         # Create explicit prerequisite
         try:
@@ -670,6 +659,6 @@ class PrerequisiteService:
             await self.session.flush()
             return prerequisite
 
-        except ValueError as e:
+        except ValueError:
             # Log error and return None
             return None

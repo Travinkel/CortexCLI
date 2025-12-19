@@ -13,23 +13,24 @@ Where:
 
     quiz_mastery = best_of_last_3_attempts
 """
+
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
 from loguru import logger
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.adaptive.models import (
+    ATOM_TYPE_KNOWLEDGE_MAP,
+    MASTERY_WEIGHTS,
     ConceptMastery,
     KnowledgeBreakdown,
     MasteryLevel,
-    MASTERY_WEIGHTS,
-    ATOM_TYPE_KNOWLEDGE_MAP,
 )
 from src.db.database import session_scope
 
@@ -43,7 +44,7 @@ class MasteryCalculator:
     science research (62.5% review, 37.5% quiz).
     """
 
-    def __init__(self, session: Optional[Session] = None):
+    def __init__(self, session: Session | None = None):
         """
         Initialize calculator.
 
@@ -79,25 +80,18 @@ class MasteryCalculator:
                 )
 
             # Compute review mastery from atom retrievabilities
-            review_mastery = self._compute_review_mastery(
-                session, learner_id, concept_id
-            )
+            review_mastery = self._compute_review_mastery(session, learner_id, concept_id)
 
             # Compute quiz mastery from quiz attempts
-            quiz_mastery = self._compute_quiz_mastery(
-                session, learner_id, concept_id
-            )
+            quiz_mastery = self._compute_quiz_mastery(session, learner_id, concept_id)
 
             # Combined mastery (62.5% review + 37.5% quiz)
             combined_mastery = (
-                review_mastery * MASTERY_WEIGHTS["review"] +
-                quiz_mastery * MASTERY_WEIGHTS["quiz"]
+                review_mastery * MASTERY_WEIGHTS["review"] + quiz_mastery * MASTERY_WEIGHTS["quiz"]
             )
 
             # Knowledge type breakdown
-            knowledge_breakdown = self._compute_knowledge_breakdown(
-                session, learner_id, concept_id
-            )
+            knowledge_breakdown = self._compute_knowledge_breakdown(session, learner_id, concept_id)
 
             # Get activity counts
             activity = self._get_activity_counts(session, learner_id, concept_id)
@@ -135,17 +129,19 @@ class MasteryCalculator:
         Retrievability = e^(-days_since_review / stability)
         """
         # Get atoms for concept with their FSRS metrics
+        # Uses anki_stability (from pull_service) as primary stability source,
+        # with fallback to stability_days for legacy compatibility
         query = text("""
             SELECT
                 ca.id,
-                ca.stability_days,
+                COALESCE(ca.anki_stability, ca.stability_days) as stability_days,
                 ca.retrievability,
-                ca.anki_last_review,
+                ca.anki_synced_at as anki_last_review,
                 ca.anki_review_count
             FROM learning_atoms ca
             WHERE ca.concept_id = :concept_id
-            AND ca.stability_days IS NOT NULL
-            AND ca.stability_days > 0
+            AND (ca.anki_stability IS NOT NULL OR ca.stability_days IS NOT NULL)
+            AND COALESCE(ca.anki_stability, ca.stability_days, 0) > 0
         """)
 
         result = session.execute(query, {"concept_id": str(concept_id)})
@@ -156,7 +152,7 @@ class MasteryCalculator:
 
         total_weight = 0.0
         weighted_sum = 0.0
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for atom in atoms:
             stability = float(atom.stability_days) if atom.stability_days else 0
@@ -170,7 +166,7 @@ class MasteryCalculator:
             if last_review:
                 # Handle timezone-aware comparison
                 if last_review.tzinfo is None:
-                    last_review = last_review.replace(tzinfo=timezone.utc)
+                    last_review = last_review.replace(tzinfo=UTC)
                 days_since = (now - last_review).days
             else:
                 days_since = 30  # Default if no review date
@@ -231,7 +227,7 @@ class MasteryCalculator:
                   AND sar.session_id IN (
                       SELECT id FROM learning_path_sessions
                       WHERE learner_id = :learner_id
-                      AND session_mode IN ('quiz', 'adaptive')
+                      AND mode IN ('quiz', 'adaptive')
                   )
                   AND sar.answered_at IS NOT NULL
             )
@@ -242,12 +238,15 @@ class MasteryCalculator:
         """)
 
         try:
-            result = session.execute(query, {
-                "concept_id": str(concept_id),
-                "learner_id": learner_id,
-            })
+            result = session.execute(
+                query,
+                {
+                    "concept_id": str(concept_id),
+                    "learner_id": learner_id,
+                },
+            )
             responses = result.fetchall()
-        except Exception:
+        except SQLAlchemyError:
             # Table might not exist yet
             return 0.0
 
@@ -277,16 +276,17 @@ class MasteryCalculator:
 
         Maps atom types to knowledge categories and averages retrievabilities.
         """
+        # Uses anki_stability as primary stability source
         query = text("""
             SELECT
                 ca.atom_type,
-                ca.stability_days,
+                COALESCE(ca.anki_stability, ca.stability_days) as stability_days,
                 ca.retrievability,
-                ca.anki_last_review,
+                ca.anki_synced_at as anki_last_review,
                 ca.anki_review_count
             FROM learning_atoms ca
             WHERE ca.concept_id = :concept_id
-            AND ca.stability_days IS NOT NULL
+            AND (ca.anki_stability IS NOT NULL OR ca.stability_days IS NOT NULL)
         """)
 
         result = session.execute(query, {"concept_id": str(concept_id)})
@@ -299,7 +299,7 @@ class MasteryCalculator:
             "application": [],
         }
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for atom in atoms:
             atom_type = (atom.atom_type or "flashcard").lower()
@@ -312,7 +312,7 @@ class MasteryCalculator:
             last_review = atom.anki_last_review
             if last_review:
                 if last_review.tzinfo is None:
-                    last_review = last_review.replace(tzinfo=timezone.utc)
+                    last_review = last_review.replace(tzinfo=UTC)
                 days_since = (now - last_review).days
             else:
                 days_since = 30
@@ -336,7 +336,7 @@ class MasteryCalculator:
         self,
         session: Session,
         concept_id: UUID,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Get basic concept information."""
         query = text("""
             SELECT id, name, definition
@@ -368,10 +368,13 @@ class MasteryCalculator:
             AND concept_id = :concept_id
         """)
         try:
-            result = session.execute(query, {
-                "learner_id": learner_id,
-                "concept_id": str(concept_id),
-            })
+            result = session.execute(
+                query,
+                {
+                    "learner_id": learner_id,
+                    "concept_id": str(concept_id),
+                },
+            )
             row = result.fetchone()
             if row:
                 return {
@@ -380,8 +383,8 @@ class MasteryCalculator:
                     "last_review": row.last_review_at,
                     "last_quiz": row.last_quiz_at,
                 }
-        except Exception:
-            pass
+        except SQLAlchemyError:
+            pass  # DB error fetching engagement metrics
         return {}
 
     def _check_unlock_status(
@@ -390,7 +393,7 @@ class MasteryCalculator:
         learner_id: str,
         concept_id: UUID,
         current_mastery: float,
-    ) -> tuple[bool, Optional[str]]:
+    ) -> tuple[bool, str | None]:
         """Check if concept is unlocked for learner."""
         # Check for hard prerequisites that are not met
         query = text("""
@@ -409,12 +412,15 @@ class MasteryCalculator:
         """)
 
         try:
-            result = session.execute(query, {
-                "learner_id": learner_id,
-                "concept_id": str(concept_id),
-            })
+            result = session.execute(
+                query,
+                {
+                    "learner_id": learner_id,
+                    "concept_id": str(concept_id),
+                },
+            )
             prerequisites = result.fetchall()
-        except Exception:
+        except SQLAlchemyError:
             # Table might not exist
             return True, "no_prerequisites"
 
@@ -434,8 +440,8 @@ class MasteryCalculator:
         self,
         learner_id: str,
         concept_id: UUID,
-        review_mastery: Optional[float] = None,
-        quiz_mastery: Optional[float] = None,
+        review_mastery: float | None = None,
+        quiz_mastery: float | None = None,
     ) -> ConceptMastery:
         """
         Update and persist mastery state for a learner/concept.
@@ -457,10 +463,13 @@ class MasteryCalculator:
                     FROM learner_mastery_state
                     WHERE learner_id = :learner_id AND concept_id = :concept_id
                 """)
-                result = session.execute(check_query, {
-                    "learner_id": learner_id,
-                    "concept_id": str(concept_id),
-                })
+                result = session.execute(
+                    check_query,
+                    {
+                        "learner_id": learner_id,
+                        "concept_id": str(concept_id),
+                    },
+                )
                 existing = result.fetchone()
 
                 if existing:
@@ -471,7 +480,9 @@ class MasteryCalculator:
                     new_quiz = quiz_mastery if quiz_mastery is not None else current_quiz
 
                     # Calculate combined mastery (62.5% review + 37.5% quiz)
-                    combined = new_review * MASTERY_WEIGHTS["review"] + new_quiz * MASTERY_WEIGHTS["quiz"]
+                    combined = (
+                        new_review * MASTERY_WEIGHTS["review"] + new_quiz * MASTERY_WEIGHTS["quiz"]
+                    )
 
                     # Update existing state
                     update_query = text("""
@@ -486,20 +497,25 @@ class MasteryCalculator:
                             updated_at = NOW()
                         WHERE learner_id = :learner_id AND concept_id = :concept_id
                     """)
-                    session.execute(update_query, {
-                        "learner_id": learner_id,
-                        "concept_id": str(concept_id),
-                        "review_mastery": new_review,
-                        "quiz_mastery": new_quiz,
-                        "combined_mastery": combined,
-                        "is_review_update": review_mastery is not None,
-                        "is_quiz_update": quiz_mastery is not None,
-                    })
+                    session.execute(
+                        update_query,
+                        {
+                            "learner_id": learner_id,
+                            "concept_id": str(concept_id),
+                            "review_mastery": new_review,
+                            "quiz_mastery": new_quiz,
+                            "combined_mastery": combined,
+                            "is_review_update": review_mastery is not None,
+                            "is_quiz_update": quiz_mastery is not None,
+                        },
+                    )
                 else:
                     # Create new state
                     new_review = review_mastery if review_mastery is not None else 0
                     new_quiz = quiz_mastery if quiz_mastery is not None else 0
-                    combined = new_review * MASTERY_WEIGHTS["review"] + new_quiz * MASTERY_WEIGHTS["quiz"]
+                    combined = (
+                        new_review * MASTERY_WEIGHTS["review"] + new_quiz * MASTERY_WEIGHTS["quiz"]
+                    )
 
                     insert_query = text("""
                         INSERT INTO learner_mastery_state (
@@ -516,18 +532,23 @@ class MasteryCalculator:
                             TRUE, 'new_learner'
                         )
                     """)
-                    session.execute(insert_query, {
-                        "learner_id": learner_id,
-                        "concept_id": str(concept_id),
-                        "review_mastery": new_review,
-                        "quiz_mastery": new_quiz,
-                        "combined_mastery": combined,
-                        "is_review_update": review_mastery is not None,
-                        "is_quiz_update": quiz_mastery is not None,
-                    })
+                    session.execute(
+                        insert_query,
+                        {
+                            "learner_id": learner_id,
+                            "concept_id": str(concept_id),
+                            "review_mastery": new_review,
+                            "quiz_mastery": new_quiz,
+                            "combined_mastery": combined,
+                            "is_review_update": review_mastery is not None,
+                            "is_quiz_update": quiz_mastery is not None,
+                        },
+                    )
 
                 session.commit()
-                logger.debug(f"Updated mastery state for {learner_id}/{concept_id}: review={review_mastery}, quiz={quiz_mastery}")
+                logger.debug(
+                    f"Updated mastery state for {learner_id}/{concept_id}: review={review_mastery}, quiz={quiz_mastery}"
+                )
             except Exception as e:
                 logger.warning(f"Could not update mastery state: {e}")
                 session.rollback()
@@ -538,7 +559,7 @@ class MasteryCalculator:
     def compute_all_concept_mastery(
         self,
         learner_id: str,
-        concept_ids: Optional[list[UUID]] = None,
+        concept_ids: list[UUID] | None = None,
     ) -> list[ConceptMastery]:
         """
         Compute mastery for multiple concepts.
@@ -567,7 +588,7 @@ class MasteryCalculator:
     def get_mastery_summary(
         self,
         learner_id: str,
-        cluster_id: Optional[UUID] = None,
+        cluster_id: UUID | None = None,
     ) -> dict:
         """
         Get mastery summary for a learner.
@@ -602,8 +623,8 @@ class MasteryCalculator:
             try:
                 result = session.execute(query, params)
                 rows = result.fetchall()
-            except Exception:
-                rows = []
+            except SQLAlchemyError:
+                rows = []  # DB error fetching mastery state
 
             # Count by level
             counts = {level.value: 0 for level in MasteryLevel}
@@ -636,7 +657,7 @@ class MasteryCalculator:
     def initialize_mastery_from_anki(
         self,
         learner_id: str,
-        track_id: Optional[UUID] = None,
+        track_id: UUID | None = None,
     ) -> int:
         """
         Initialize mastery state from existing Anki review data.
@@ -660,6 +681,7 @@ class MasteryCalculator:
                 track_filter = "AND cm.track_id = :track_id"
                 params["track_id"] = str(track_id)
 
+            # Use anki_stability as primary stability source
             query = text(f"""
                 SELECT
                     cc.id as concept_id,
@@ -668,14 +690,14 @@ class MasteryCalculator:
                     SUM(COALESCE(ca.anki_review_count, 0)) as total_reviews,
                     AVG(
                         CASE
-                            WHEN ca.stability_days > 0 AND ca.anki_last_review IS NOT NULL THEN
-                                EXP(-EXTRACT(EPOCH FROM (NOW() - ca.anki_last_review)) / 86400.0 / ca.stability_days)
+                            WHEN COALESCE(ca.anki_stability, ca.stability_days) > 0 AND ca.anki_synced_at IS NOT NULL THEN
+                                EXP(-EXTRACT(EPOCH FROM (NOW() - ca.anki_synced_at)) / 86400.0 / COALESCE(ca.anki_stability, ca.stability_days))
                             ELSE 0
                         END
                     ) as avg_retrievability
                 FROM concepts cc
                 JOIN learning_atoms ca ON ca.concept_id = cc.id
-                JOIN clean_modules cm ON ca.module_id = cm.id
+                LEFT JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
                 WHERE 1=1 {track_filter}
                 GROUP BY cc.id, cc.name
                 HAVING COUNT(ca.id) > 0
@@ -694,10 +716,13 @@ class MasteryCalculator:
                     SELECT id FROM learner_mastery_state
                     WHERE learner_id = :learner_id AND concept_id = :concept_id
                 """)
-                existing = session.execute(check_query, {
-                    "learner_id": learner_id,
-                    "concept_id": str(concept.concept_id),
-                }).fetchone()
+                existing = session.execute(
+                    check_query,
+                    {
+                        "learner_id": learner_id,
+                        "concept_id": str(concept.concept_id),
+                    },
+                ).fetchone()
 
                 combined = review_mastery * MASTERY_WEIGHTS["review"]
 
@@ -710,13 +735,16 @@ class MasteryCalculator:
                             updated_at = NOW()
                         WHERE learner_id = :learner_id AND concept_id = :concept_id
                     """)
-                    session.execute(update_query, {
-                        "learner_id": learner_id,
-                        "concept_id": str(concept.concept_id),
-                        "review_mastery": review_mastery,
-                        "combined_mastery": combined,
-                        "review_count": int(concept.total_reviews or 0),
-                    })
+                    session.execute(
+                        update_query,
+                        {
+                            "learner_id": learner_id,
+                            "concept_id": str(concept.concept_id),
+                            "review_mastery": review_mastery,
+                            "combined_mastery": combined,
+                            "review_count": int(concept.total_reviews or 0),
+                        },
+                    )
                 else:
                     insert_query = text("""
                         INSERT INTO learner_mastery_state (
@@ -729,13 +757,16 @@ class MasteryCalculator:
                             TRUE, 'initialized_from_anki'
                         )
                     """)
-                    session.execute(insert_query, {
-                        "learner_id": learner_id,
-                        "concept_id": str(concept.concept_id),
-                        "review_mastery": review_mastery,
-                        "combined_mastery": combined,
-                        "review_count": int(concept.total_reviews or 0),
-                    })
+                    session.execute(
+                        insert_query,
+                        {
+                            "learner_id": learner_id,
+                            "concept_id": str(concept.concept_id),
+                            "review_mastery": review_mastery,
+                            "combined_mastery": combined,
+                            "review_count": int(concept.total_reviews or 0),
+                        },
+                    )
 
                 count += 1
 
@@ -750,10 +781,13 @@ class MasteryCalculator:
             class SessionWrapper:
                 def __init__(self, s):
                     self.session = s
+
                 def __enter__(self):
                     return self.session
+
                 def __exit__(self, *args):
                     pass
+
             return SessionWrapper(self._session)
         return session_scope()
 
@@ -774,10 +808,7 @@ def calculate_combined_mastery(
     Returns:
         Combined mastery (0-1)
     """
-    return (
-        review_mastery * MASTERY_WEIGHTS["review"] +
-        quiz_mastery * MASTERY_WEIGHTS["quiz"]
-    )
+    return review_mastery * MASTERY_WEIGHTS["review"] + quiz_mastery * MASTERY_WEIGHTS["quiz"]
 
 
 def calculate_retrievability(

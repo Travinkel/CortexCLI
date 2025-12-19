@@ -4,25 +4,22 @@ Quiz Pool Manager for question pool management and selection.
 Handles question pool creation, randomized selection with reproducible seeds,
 and pool statistics for quiz generation.
 """
+
 from __future__ import annotations
 
 import hashlib
 import random
 from dataclasses import dataclass
-from datetime import datetime
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.db.models import (
-    QuizQuestion,
     QuizDefinition,
-    CleanAtom,
-    CleanConcept,
+    QuizQuestion,
 )
 from src.db.models.prerequisites import QuestionPool
 
@@ -30,15 +27,16 @@ from src.db.models.prerequisites import QuestionPool
 @dataclass
 class PoolStatistics:
     """Statistics for a question pool."""
+
     pool_id: UUID
     pool_name: str
     total_questions: int
     active_questions: int
     avg_difficulty: float | None
-    difficulty_distribution: Dict[str, int]  # 'easy', 'medium', 'hard'
-    type_distribution: Dict[str, int]  # question_type -> count
-    knowledge_type_distribution: Dict[str, int]
-    quality_distribution: Dict[str, int]  # 'high', 'medium', 'low'
+    difficulty_distribution: dict[str, int]  # 'easy', 'medium', 'hard'
+    type_distribution: dict[str, int]  # question_type -> count
+    knowledge_type_distribution: dict[str, int]
+    quality_distribution: dict[str, int]  # 'high', 'medium', 'low'
     has_sufficient_questions: bool
     min_questions_required: int
 
@@ -46,6 +44,7 @@ class PoolStatistics:
 @dataclass
 class SelectedQuestion:
     """A question selected from a pool."""
+
     question_id: UUID
     atom_id: UUID
     question_type: str
@@ -123,7 +122,7 @@ class QuizPoolManager:
         concept_id: UUID | None = None,
         concept_cluster_id: UUID | None = None,
         is_active: bool = True,
-    ) -> List[QuestionPool]:
+    ) -> list[QuestionPool]:
         """List question pools with optional filters."""
         query = select(QuestionPool)
 
@@ -144,7 +143,7 @@ class QuizPoolManager:
     async def add_questions_to_pool(
         self,
         pool_id: UUID,
-        question_ids: List[UUID],
+        question_ids: list[UUID],
     ) -> int:
         """
         Add questions to a pool.
@@ -172,7 +171,7 @@ class QuizPoolManager:
     async def remove_questions_from_pool(
         self,
         pool_id: UUID,
-        question_ids: List[UUID] | None = None,
+        question_ids: list[UUID] | None = None,
     ) -> int:
         """
         Remove questions from a pool.
@@ -209,11 +208,11 @@ class QuizPoolManager:
         pool_id: UUID,
         count: int,
         seed: str | int | None = None,
-        exclude_ids: List[UUID] | None = None,
-        difficulty_range: Tuple[float, float] | None = None,
-        question_types: List[str] | None = None,
-        knowledge_types: List[str] | None = None,
-    ) -> List[SelectedQuestion]:
+        exclude_ids: list[UUID] | None = None,
+        difficulty_range: tuple[float, float] | None = None,
+        question_types: list[str] | None = None,
+        knowledge_types: list[str] | None = None,
+    ) -> list[SelectedQuestion]:
         """
         Select random questions from a pool.
 
@@ -239,7 +238,7 @@ class QuizPoolManager:
             .where(
                 and_(
                     QuizQuestion.pool_id == pool_id,
-                    QuizQuestion.is_active == True,
+                    QuizQuestion.is_active,
                 )
             )
         )
@@ -301,15 +300,15 @@ class QuizPoolManager:
 
         # Hash string to create seed
         hash_bytes = hashlib.sha256(str(seed).encode()).digest()
-        return int.from_bytes(hash_bytes[:8], byteorder='big')
+        return int.from_bytes(hash_bytes[:8], byteorder="big")
 
     async def select_questions_for_quiz(
         self,
         quiz_definition_id: UUID,
         user_id: str,
         attempt_number: int,
-        previous_question_ids: List[UUID] | None = None,
-    ) -> List[SelectedQuestion]:
+        previous_question_ids: list[UUID] | None = None,
+    ) -> list[SelectedQuestion]:
         """
         Select questions for a quiz attempt.
 
@@ -357,7 +356,7 @@ class QuizPoolManager:
         # Final selection based on quiz count
         random.seed(self._create_seed(seed))
         random.shuffle(all_questions)
-        selected = all_questions[:quiz_def.question_count]
+        selected = all_questions[: quiz_def.question_count]
         random.seed()
 
         return selected
@@ -383,8 +382,7 @@ class QuizPoolManager:
 
         # Get questions
         result = await self.session.execute(
-            select(QuizQuestion)
-            .where(
+            select(QuizQuestion).where(
                 and_(
                     QuizQuestion.pool_id == pool_id,
                 )
@@ -410,12 +408,12 @@ class QuizPoolManager:
                 difficulty_dist["hard"] += 1
 
         # Type distribution
-        type_dist: Dict[str, int] = {}
+        type_dist: dict[str, int] = {}
         for q in questions:
             type_dist[q.question_type] = type_dist.get(q.question_type, 0) + 1
 
         # Knowledge type distribution
-        knowledge_dist: Dict[str, int] = {}
+        knowledge_dist: dict[str, int] = {}
         for q in questions:
             if q.knowledge_type:
                 knowledge_dist[q.knowledge_type] = knowledge_dist.get(q.knowledge_type, 0) + 1
@@ -449,7 +447,7 @@ class QuizPoolManager:
     async def ensure_pool_coverage(
         self,
         quiz_definition_id: UUID,
-    ) -> Dict[str, any]:
+    ) -> dict[str, any]:
         """
         Verify that pools have enough questions for a quiz definition.
 
@@ -478,12 +476,14 @@ class QuizPoolManager:
             stats = await self.get_pool_statistics(pool_id)
             if stats:
                 total_available += stats.active_questions
-                pool_reports.append({
-                    "pool_id": str(pool_id),
-                    "pool_name": stats.pool_name,
-                    "active_questions": stats.active_questions,
-                    "sufficient": stats.has_sufficient_questions,
-                })
+                pool_reports.append(
+                    {
+                        "pool_id": str(pool_id),
+                        "pool_name": stats.pool_name,
+                        "active_questions": stats.active_questions,
+                        "sufficient": stats.has_sufficient_questions,
+                    }
+                )
 
         return {
             "quiz_definition_id": str(quiz_definition_id),
@@ -500,24 +500,20 @@ class QuizPoolManager:
         self,
         required: int,
         available: int,
-        pools: List[Dict],
-    ) -> List[str]:
+        pools: list[dict],
+    ) -> list[str]:
         """Generate recommendations for improving pool coverage."""
         recommendations = []
 
         if available < required:
             gap = required - available
-            recommendations.append(
-                f"Add {gap} more questions to reach minimum requirement"
-            )
+            recommendations.append(f"Add {gap} more questions to reach minimum requirement")
 
         # Check for unbalanced pools
         if pools:
             counts = [p["active_questions"] for p in pools]
             if max(counts) > 0 and min(counts) / max(counts) < 0.5:
-                recommendations.append(
-                    "Balance question counts across pools for better variety"
-                )
+                recommendations.append("Balance question counts across pools for better variety")
 
         # Recommend multiple attempts buffer
         if available < required * 2:
@@ -536,8 +532,8 @@ class QuizPoolManager:
         pool_id: UUID,
         count: int,
         seed: str | int | None = None,
-        diversity_weights: Dict[str, float] | None = None,
-    ) -> List[SelectedQuestion]:
+        diversity_weights: dict[str, float] | None = None,
+    ) -> list[SelectedQuestion]:
         """
         Select questions with enforced diversity across types and knowledge areas.
 
@@ -553,11 +549,6 @@ class QuizPoolManager:
         Returns:
             Diversified list of questions
         """
-        weights = diversity_weights or {
-            "type": 0.4,
-            "knowledge": 0.3,
-            "difficulty": 0.3,
-        }
 
         # Get all available questions
         all_questions = await self.select_questions(
@@ -570,7 +561,7 @@ class QuizPoolManager:
             return all_questions
 
         # Group by type
-        by_type: Dict[str, List[SelectedQuestion]] = {}
+        by_type: dict[str, list[SelectedQuestion]] = {}
         for q in all_questions:
             by_type.setdefault(q.question_type, []).append(q)
 

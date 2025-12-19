@@ -30,20 +30,23 @@ Based on research from:
 Author: Cortex System
 Version: 2.0.0 (Neuromorphic Architecture)
 """
+
 from __future__ import annotations
 
 import math
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, Iterator
-from uuid import UUID, uuid4
+from typing import Any
+from uuid import uuid4
 
 from loguru import logger
 
 # Try to import numpy for vector operations
 try:
     import numpy as np
+
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
@@ -53,83 +56,91 @@ except ImportError:
 # ENUMERATIONS
 # =============================================================================
 
+
 class AtomType(str, Enum):
     """Types of Learning Atoms."""
-    DEFINITION = "definition"           # Core concept definition
-    THEOREM = "theorem"                 # Mathematical theorem
-    LEMMA = "lemma"                     # Supporting lemma
-    COROLLARY = "corollary"             # Direct consequence
-    PROOF_STEP = "proof_step"           # Individual proof step
-    INTUITION_PUMP = "intuition_pump"   # Conceptual explanation
-    COUNTER_EXAMPLE = "counter_example" # Counterexample
-    EXAMPLE = "example"                 # Worked example
+
+    DEFINITION = "definition"  # Core concept definition
+    THEOREM = "theorem"  # Mathematical theorem
+    LEMMA = "lemma"  # Supporting lemma
+    COROLLARY = "corollary"  # Direct consequence
+    PROOF_STEP = "proof_step"  # Individual proof step
+    INTUITION_PUMP = "intuition_pump"  # Conceptual explanation
+    COUNTER_EXAMPLE = "counter_example"  # Counterexample
+    EXAMPLE = "example"  # Worked example
     ADVERSARIAL_LURE = "adversarial_lure"  # Confusable item
-    PROCEDURE = "procedure"             # Step-by-step process
-    FACT = "fact"                       # Atomic fact
+    PROCEDURE = "procedure"  # Step-by-step process
+    FACT = "fact"  # Atomic fact
 
 
 class CognitiveModality(str, Enum):
     """Cognitive modality required to process the atom."""
-    SYMBOLIC = "symbolic"               # Pure symbolic manipulation
-    VISUAL_SPATIAL = "visual_spatial"   # Geometric/visual
-    VERBAL = "verbal"                   # Language-based
-    PROCEDURAL = "procedural"           # Sequential steps
-    INTEGRATIVE = "integrative"         # Requires combining modalities
+
+    SYMBOLIC = "symbolic"  # Pure symbolic manipulation
+    VISUAL_SPATIAL = "visual_spatial"  # Geometric/visual
+    VERBAL = "verbal"  # Language-based
+    PROCEDURAL = "procedural"  # Sequential steps
+    INTEGRATIVE = "integrative"  # Requires combining modalities
 
 
 class ConnectionType(str, Enum):
     """Types of connections between atoms."""
-    PREREQUISITE = "prerequisite"       # Must learn A before B
-    SUPPORTS = "supports"               # A helps understand B
-    CONTRASTS = "contrasts"             # A and B are commonly confused
-    GENERALIZES = "generalizes"         # B is more general than A
-    SPECIALIZES = "specializes"         # B is specific case of A
-    PROVES = "proves"                   # A is used to prove B
-    APPLIES = "applies"                 # A is application of B
-    ADVERSARIAL = "adversarial"         # A is adversarial lure for B
+
+    PREREQUISITE = "prerequisite"  # Must learn A before B
+    SUPPORTS = "supports"  # A helps understand B
+    CONTRASTS = "contrasts"  # A and B are commonly confused
+    GENERALIZES = "generalizes"  # B is more general than A
+    SPECIALIZES = "specializes"  # B is specific case of A
+    PROVES = "proves"  # A is used to prove B
+    APPLIES = "applies"  # A is application of B
+    ADVERSARIAL = "adversarial"  # A is adversarial lure for B
 
 
 # =============================================================================
 # LEARNING ATOM SCHEMA
 # =============================================================================
 
+
 @dataclass
 class AtomContent:
     """Content representation of an atom."""
-    text: str                           # Natural language description
-    latex: Optional[str] = None         # Formal LaTeX representation
-    lean_code: Optional[str] = None     # Lean 4 formalization (optional)
-    visual_description: Optional[str] = None  # For visual content
+
+    text: str  # Natural language description
+    latex: str | None = None  # Formal LaTeX representation
+    lean_code: str | None = None  # Lean 4 formalization (optional)
+    visual_description: str | None = None  # For visual content
 
 
 @dataclass
 class AtomMetadata:
     """Metadata for cognitive processing."""
-    source: str = ""                    # E.g., "Spivak Calculus 4th Ed, pg 102"
-    chapter: Optional[int] = None
-    section: Optional[str] = None
-    page: Optional[int] = None
+
+    source: str = ""  # E.g., "Spivak Calculus 4th Ed, pg 102"
+    chapter: int | None = None
+    section: str | None = None
+    page: int | None = None
     atom_type: AtomType = AtomType.FACT
     cognitive_modality: CognitiveModality = CognitiveModality.SYMBOLIC
 
     # Cognitive indices (0-1)
-    ps_index: float = 0.5               # Pattern Separation Index
-    pfit_index: float = 0.5             # P-FIT Integration Index
-    hippocampal_index: float = 0.5      # Memory consolidation difficulty
-    intrinsic_load: float = 0.5         # Cognitive load
+    ps_index: float = 0.5  # Pattern Separation Index
+    pfit_index: float = 0.5  # P-FIT Integration Index
+    hippocampal_index: float = 0.5  # Memory consolidation difficulty
+    intrinsic_load: float = 0.5  # Cognitive load
 
     # Timestamps
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 @dataclass
 class AtomConnection:
     """Connection to another atom in the knowledge graph."""
+
     target_id: str
     connection_type: ConnectionType
-    strength: float = 0.5               # Connection strength (0-1)
-    inferred: bool = False              # Was this inferred from embeddings?
+    strength: float = 0.5  # Connection strength (0-1)
+    inferred: bool = False  # Was this inferred from embeddings?
 
 
 @dataclass
@@ -147,10 +158,11 @@ class LearningAtom:
     atom is to be confused with similar atoms. High ps_index = high
     confusion risk = needs discrimination training.
     """
+
     id: str
     content: AtomContent
     metadata: AtomMetadata
-    embedding: Optional[list[float]] = None  # Semantic embedding vector
+    embedding: list[float] | None = None  # Semantic embedding vector
     connections: list[AtomConnection] = field(default_factory=list)
 
     # FSRS-style spaced repetition data
@@ -158,11 +170,11 @@ class LearningAtom:
     difficulty: float = 0.3
     lapses: int = 0
     review_count: int = 0
-    last_review: Optional[datetime] = None
+    last_review: datetime | None = None
 
     # Concept association
-    concept_id: Optional[str] = None
-    concept_name: Optional[str] = None
+    concept_id: str | None = None
+    concept_name: str | None = None
 
     def __post_init__(self):
         """Initialize timestamps if not set."""
@@ -183,7 +195,8 @@ class LearningAtom:
     def prerequisites(self) -> list[str]:
         """Get prerequisite atom IDs."""
         return [
-            c.target_id for c in self.connections
+            c.target_id
+            for c in self.connections
             if c.connection_type == ConnectionType.PREREQUISITE
         ]
 
@@ -191,8 +204,7 @@ class LearningAtom:
     def adversarial_lures(self) -> list[str]:
         """Get adversarial lure atom IDs."""
         return [
-            c.target_id for c in self.connections
-            if c.connection_type == ConnectionType.ADVERSARIAL
+            c.target_id for c in self.connections if c.connection_type == ConnectionType.ADVERSARIAL
         ]
 
     def to_dict(self) -> dict[str, Any]:
@@ -230,7 +242,7 @@ class LearningAtom:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "LearningAtom":
+    def from_dict(cls, data: dict[str, Any]) -> LearningAtom:
         """Create atom from dictionary."""
         content_data = data.get("content", {})
         metadata_data = data.get("metadata", {})
@@ -280,6 +292,7 @@ class LearningAtom:
 # KNOWLEDGE GRAPH
 # =============================================================================
 
+
 class KnowledgeGraph:
     """
     Graph structure for Learning Atoms.
@@ -295,7 +308,7 @@ class KnowledgeGraph:
         """Initialize empty knowledge graph."""
         self._atoms: dict[str, LearningAtom] = {}
         self._by_concept: dict[str, list[str]] = {}  # concept_id -> atom_ids
-        self._adjacency: dict[str, list[str]] = {}   # atom_id -> connected atom_ids
+        self._adjacency: dict[str, list[str]] = {}  # atom_id -> connected atom_ids
 
     def add_atom(self, atom: LearningAtom) -> None:
         """Add an atom to the graph."""
@@ -310,7 +323,7 @@ class KnowledgeGraph:
         # Build adjacency list
         self._adjacency[atom.id] = [c.target_id for c in atom.connections]
 
-    def get_atom(self, atom_id: str) -> Optional[LearningAtom]:
+    def get_atom(self, atom_id: str) -> LearningAtom | None:
         """Get an atom by ID."""
         return self._atoms.get(atom_id)
 
@@ -397,7 +410,7 @@ class KnowledgeGraph:
     def get_learning_path(
         self,
         target_atom_id: str,
-        mastered_atoms: Optional[set[str]] = None,
+        mastered_atoms: set[str] | None = None,
     ) -> list[LearningAtom]:
         """
         Get the optimal learning path to master an atom.
@@ -491,17 +504,14 @@ class KnowledgeGraph:
         inferred = []
 
         # Get atoms with embeddings
-        atoms_with_embeddings = [
-            a for a in self._atoms.values()
-            if a.embedding is not None
-        ]
+        atoms_with_embeddings = [a for a in self._atoms.values() if a.embedding is not None]
 
         if len(atoms_with_embeddings) < 2:
             return []
 
         # Compare all pairs
         for i, atom_a in enumerate(atoms_with_embeddings):
-            for atom_b in atoms_with_embeddings[i+1:]:
+            for atom_b in atoms_with_embeddings[i + 1 :]:
                 sim = self._cosine_similarity(atom_a.embedding, atom_b.embedding)
 
                 if sim > similarity_threshold:
@@ -511,19 +521,23 @@ class KnowledgeGraph:
                     if atom_b.id not in existing_connections:
                         # Determine direction based on atom type hierarchy
                         if self._should_be_prerequisite(atom_a, atom_b):
-                            inferred.append(AtomConnection(
-                                target_id=atom_a.id,
-                                connection_type=ConnectionType.PREREQUISITE,
-                                strength=sim,
-                                inferred=True,
-                            ))
+                            inferred.append(
+                                AtomConnection(
+                                    target_id=atom_a.id,
+                                    connection_type=ConnectionType.PREREQUISITE,
+                                    strength=sim,
+                                    inferred=True,
+                                )
+                            )
                         elif self._should_be_prerequisite(atom_b, atom_a):
-                            inferred.append(AtomConnection(
-                                target_id=atom_b.id,
-                                connection_type=ConnectionType.PREREQUISITE,
-                                strength=sim,
-                                inferred=True,
-                            ))
+                            inferred.append(
+                                AtomConnection(
+                                    target_id=atom_b.id,
+                                    connection_type=ConnectionType.PREREQUISITE,
+                                    strength=sim,
+                                    inferred=True,
+                                )
+                            )
 
         return inferred
 
@@ -599,6 +613,7 @@ class KnowledgeGraph:
 # ATOM FACTORY
 # =============================================================================
 
+
 class AtomFactory:
     """
     Factory for creating Learning Atoms from various sources.
@@ -610,7 +625,7 @@ class AtomFactory:
     - Detecting atom types
     """
 
-    def __init__(self, embedding_model: Optional[Any] = None):
+    def __init__(self, embedding_model: Any | None = None):
         """
         Initialize the factory.
 
@@ -622,11 +637,11 @@ class AtomFactory:
     def create_atom(
         self,
         text: str,
-        latex: Optional[str] = None,
+        latex: str | None = None,
         source: str = "",
-        concept_name: Optional[str] = None,
-        concept_id: Optional[str] = None,
-        atom_type: Optional[AtomType] = None,
+        concept_name: str | None = None,
+        concept_id: str | None = None,
+        atom_type: AtomType | None = None,
     ) -> LearningAtom:
         """
         Create a Learning Atom from content.
@@ -679,7 +694,7 @@ class AtomFactory:
 
         return atom
 
-    def _infer_atom_type(self, text: str, latex: Optional[str]) -> AtomType:
+    def _infer_atom_type(self, text: str, latex: str | None) -> AtomType:
         """Infer atom type from content."""
         text_lower = text.lower()
 
@@ -704,7 +719,7 @@ class AtomFactory:
         else:
             return AtomType.FACT
 
-    def _infer_modality(self, text: str, latex: Optional[str]) -> CognitiveModality:
+    def _infer_modality(self, text: str, latex: str | None) -> CognitiveModality:
         """Infer cognitive modality from content."""
         text_lower = text.lower()
 
@@ -760,7 +775,7 @@ class AtomFactory:
 
         return 0.4 + length_factor + abstract_factor
 
-    def _estimate_intrinsic_load(self, text: str, latex: Optional[str]) -> float:
+    def _estimate_intrinsic_load(self, text: str, latex: str | None) -> float:
         """
         Estimate intrinsic cognitive load.
 
@@ -797,7 +812,7 @@ class AtomFactory:
 # =============================================================================
 
 # Global knowledge graph instance
-_graph: Optional[KnowledgeGraph] = None
+_graph: KnowledgeGraph | None = None
 
 
 def get_knowledge_graph() -> KnowledgeGraph:
@@ -811,8 +826,8 @@ def get_knowledge_graph() -> KnowledgeGraph:
 def create_atom_from_flashcard(
     front: str,
     back: str,
-    concept_name: Optional[str] = None,
-    source: Optional[str] = None,
+    concept_name: str | None = None,
+    source: str | None = None,
 ) -> LearningAtom:
     """
     Create a Learning Atom from a simple flashcard.

@@ -24,40 +24,42 @@ Reference: Cortex 2.0 Architecture Specification, Section 2.4
 Author: Cortex System
 Version: 2.0.0 (Notion-Centric Architecture)
 """
+
 from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from loguru import logger
 
 from config import get_settings
-from src.sync.notion_client import NotionClient
 from src.graph.zscore_engine import ZScoreResult
-
+from src.sync.notion_client import NotionClient
 
 # =============================================================================
 # DATA MODELS
 # =============================================================================
 
+
 @dataclass
 class CortexPropertyUpdate:
     """A batch of Cortex property updates for a Notion page."""
+
     page_id: str
-    z_score: Optional[float] = None
-    z_activation: Optional[bool] = None
-    memory_state: Optional[str] = None
-    psi: Optional[float] = None
-    validation_status: Optional[str] = None
-    last_diagnosis: Optional[str] = None
-    last_remediation: Optional[str] = None
+    z_score: float | None = None
+    z_activation: bool | None = None
+    memory_state: str | None = None
+    psi: float | None = None
+    validation_status: str | None = None
+    last_diagnosis: str | None = None
+    last_remediation: str | None = None
 
 
 @dataclass
 class NotionUpdateResult:
     """Result of a batch update operation."""
+
     total: int = 0
     success: int = 0
     failed: int = 0
@@ -72,6 +74,7 @@ class NotionUpdateResult:
 # =============================================================================
 # NOTION CORTEX SERVICE
 # =============================================================================
+
 
 class NotionCortexService:
     """
@@ -92,7 +95,7 @@ class NotionCortexService:
         update_result = service.update_zscores(results)
     """
 
-    def __init__(self, notion_client: Optional[NotionClient] = None):
+    def __init__(self, notion_client: NotionClient | None = None):
         """
         Initialize the Cortex Notion service.
 
@@ -357,8 +360,8 @@ class NotionCortexService:
     def record_diagnosis(
         self,
         page_id: str,
-        fail_mode: Optional[str],
-        remediation: Optional[str],
+        fail_mode: str | None,
+        remediation: str | None,
         confidence: float = 0.0,
     ) -> bool:
         """
@@ -531,7 +534,7 @@ class NotionCortexService:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
-_service: Optional[NotionCortexService] = None
+_service: NotionCortexService | None = None
 
 
 def get_notion_cortex() -> NotionCortexService:

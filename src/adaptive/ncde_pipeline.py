@@ -26,32 +26,25 @@ Version: 2.0.0 (Neuromorphic Architecture)
 from __future__ import annotations
 
 import math
-import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Callable, Optional, Protocol
-from uuid import UUID
+from datetime import datetime
+from typing import Any
 
 from loguru import logger
 
 from .neuro_model import (
     CognitiveDiagnosis,
-    CognitiveState,
     FailMode,
-    SuccessMode,
     RemediationType,
     diagnose_interaction,
-    compute_cognitive_load,
-    compute_learning_reward,
-    THRESHOLDS,
 )
-
 
 # =============================================================================
 # TELEMETRY DATA STRUCTURES
 # =============================================================================
+
 
 @dataclass
 class RawInteractionEvent:
@@ -61,6 +54,7 @@ class RawInteractionEvent:
     This is the "sensory layer" input - unprocessed behavioral signals
     that the NCDE will analyze to infer cognitive state.
     """
+
     # Core interaction
     atom_id: str
     atom_type: str
@@ -70,7 +64,7 @@ class RawInteractionEvent:
 
     # Timing (milliseconds)
     response_time_ms: int
-    time_to_first_keystroke_ms: Optional[int] = None
+    time_to_first_keystroke_ms: int | None = None
     dwell_time_ms: int = 0  # Time spent before first interaction
 
     # Mouse dynamics (if available)
@@ -82,7 +76,7 @@ class RawInteractionEvent:
     # Keystroke dynamics (if available)
     total_keystrokes: int = 0
     backspace_count: int = 0
-    average_inter_key_latency_ms: Optional[float] = None
+    average_inter_key_latency_ms: float | None = None
 
     # Context
     session_duration_seconds: int = 0
@@ -90,8 +84,8 @@ class RawInteractionEvent:
     timestamp: datetime = field(default_factory=datetime.now)
 
     # Lure tracking (for MCQ)
-    selected_distractor_id: Optional[str] = None
-    distractor_similarity: Optional[float] = None  # PSI to correct answer
+    selected_distractor_id: str | None = None
+    distractor_similarity: float | None = None  # PSI to correct answer
 
 
 @dataclass
@@ -102,6 +96,7 @@ class NormalizedTelemetry:
     Z-scoring ensures the diagnosis is robust to individual differences
     in speed, motor control, and interaction style.
     """
+
     # Z-scored metrics
     z_response_time: float = 0.0  # Z-score of RT
     z_dwell_time: float = 0.0
@@ -129,6 +124,7 @@ class FatigueVector:
 
     Reference: Section 3.2.2 - Calculation Logic
     """
+
     physical: float = 0.0  # Motor fatigue (cursor jitter, click accuracy)
     cognitive: float = 0.0  # Resource depletion (RT variability)
     motivation: float = 0.0  # Engagement drop (gaming behaviors)
@@ -136,16 +132,12 @@ class FatigueVector:
     @property
     def norm(self) -> float:
         """Euclidean norm of the fatigue vector."""
-        return math.sqrt(
-            self.physical ** 2 +
-            self.cognitive ** 2 +
-            self.motivation ** 2
-        )
+        return math.sqrt(self.physical**2 + self.cognitive**2 + self.motivation**2)
 
     @property
     def is_critical(self) -> bool:
-        """Check if fatigue exceeds safe threshold."""
-        return self.norm > 0.7
+        """Check if fatigue exceeds safe threshold (raised to reduce false positives)."""
+        return self.norm > 0.95  # Raised from 0.85 - 3D norm reaches 0.85 too quickly
 
     def to_dict(self) -> dict[str, float]:
         return {
@@ -159,6 +151,7 @@ class FatigueVector:
 # =============================================================================
 # CONFUSION MATRIX FOR PSI CALCULATION
 # =============================================================================
+
 
 class ConfusionMatrix:
     """
@@ -174,7 +167,7 @@ class ConfusionMatrix:
     def __init__(
         self,
         alpha: float = 0.2,  # Learning rate for confusion
-        beta: float = 0.1,   # Decay rate for correct discriminations
+        beta: float = 0.1,  # Decay rate for correct discriminations
     ):
         """
         Initialize the confusion matrix.
@@ -209,10 +202,7 @@ class ConfusionMatrix:
         self._matrix[key] = min(1.0, new_value)
         self._timestamps[key] = datetime.now()
 
-        logger.debug(
-            f"ConfusionMatrix: {target} → {selected}: "
-            f"{current:.3f} → {new_value:.3f}"
-        )
+        logger.debug(f"ConfusionMatrix: {target} → {selected}: {current:.3f} → {new_value:.3f}")
 
     def record_discrimination(self, target: str, selected: str) -> None:
         """
@@ -250,10 +240,7 @@ class ConfusionMatrix:
         Returns:
             PSI value between 0 and 1
         """
-        confusion_probs = [
-            prob for (t, _), prob in self._matrix.items()
-            if t == target
-        ]
+        confusion_probs = [prob for (t, _), prob in self._matrix.items() if t == target]
 
         if not confusion_probs:
             return 1.0  # No confusion recorded = high separation
@@ -263,17 +250,14 @@ class ConfusionMatrix:
 
         return max(0.0, min(1.0, psi))
 
-    def get_worst_pair(self, target: str) -> Optional[tuple[str, float]]:
+    def get_worst_pair(self, target: str) -> tuple[str, float] | None:
         """
         Find the concept most confused with the target.
 
         Returns:
             Tuple of (confusable_id, confusion_probability) or None
         """
-        pairs = [
-            (selected, prob) for (t, selected), prob in self._matrix.items()
-            if t == target
-        ]
+        pairs = [(selected, prob) for (t, selected), prob in self._matrix.items() if t == target]
 
         if not pairs:
             return None
@@ -292,7 +276,8 @@ class ConfusionMatrix:
             List of confusable concept IDs
         """
         return [
-            selected for (t, selected), prob in self._matrix.items()
+            selected
+            for (t, selected), prob in self._matrix.items()
             if t == target and prob >= threshold
         ]
 
@@ -300,6 +285,7 @@ class ConfusionMatrix:
 # =============================================================================
 # FATIGUE VECTOR CALCULATOR
 # =============================================================================
+
 
 class FatigueVectorCalculator:
     """
@@ -345,9 +331,19 @@ class FatigueVectorCalculator:
 
         # Keep rolling window
         if len(self._history) > self.window_size * 2:
-            self._history = self._history[-self.window_size * 2:]
+            self._history = self._history[-self.window_size * 2 :]
         if len(self._rt_history) > self.window_size * 2:
-            self._rt_history = self._rt_history[-self.window_size * 2:]
+            self._rt_history = self._rt_history[-self.window_size * 2 :]
+
+    def reset(self) -> None:
+        """
+        Clear history after a micro-break to reset fatigue calculation.
+
+        Called when the learner takes a break, so fatigue doesn't
+        immediately re-calculate to high values from old data.
+        """
+        self._history = []
+        self._rt_history = []
 
     def calculate(self) -> FatigueVector:
         """
@@ -359,8 +355,8 @@ class FatigueVectorCalculator:
         if len(self._history) < 3:
             return FatigueVector()
 
-        recent = self._history[-self.window_size:]
-        recent_rt = self._rt_history[-self.window_size:]
+        recent = self._history[-self.window_size :]
+        recent_rt = self._rt_history[-self.window_size :]
 
         # === Physical Fatigue (Motor) ===
         # Derived from cursor efficiency deviation
@@ -387,7 +383,7 @@ class FatigueVectorCalculator:
 
         # Check for monotonic RT increase (slowing down)
         if len(recent_rt) >= 5:
-            diffs = [recent_rt[i+1] - recent_rt[i] for i in range(len(recent_rt)-1)]
+            diffs = [recent_rt[i + 1] - recent_rt[i] for i in range(len(recent_rt) - 1)]
             increasing = sum(1 for d in diffs if d > 0)
             if increasing / len(diffs) > 0.7:
                 f_cognitive = min(1.0, f_cognitive + 0.2)
@@ -418,6 +414,7 @@ class FatigueVectorCalculator:
 # FEATURE EXTRACTOR
 # =============================================================================
 
+
 class FeatureExtractor:
     """
     Normalizes raw telemetry into z-scored features.
@@ -440,7 +437,7 @@ class FeatureExtractor:
     def update_baseline(
         self,
         rt_history: list[int],
-        dwell_history: Optional[list[int]] = None,
+        dwell_history: list[int] | None = None,
     ) -> None:
         """Update baseline statistics from learner's history."""
         if len(rt_history) >= 5:
@@ -484,7 +481,9 @@ class FeatureExtractor:
         return NormalizedTelemetry(
             z_response_time=round(z_rt, 3),
             z_dwell_time=round(z_dwell, 3),
-            z_cursor_efficiency=round((path_efficiency - self._efficiency_mean) / self._efficiency_std, 3),
+            z_cursor_efficiency=round(
+                (path_efficiency - self._efficiency_mean) / self._efficiency_std, 3
+            ),
             path_efficiency=round(path_efficiency, 3),
             hesitation_index=round(hesitation_index, 3),
             selection_volatility=raw.selection_changes,
@@ -497,6 +496,7 @@ class FeatureExtractor:
 # REMEDIATION STRATEGIES
 # =============================================================================
 
+
 class RemediationStrategy(ABC):
     """Base class for remediation strategies."""
 
@@ -507,7 +507,7 @@ class RemediationStrategy(ABC):
         pass
 
     @abstractmethod
-    def execute(self, session_context: "SessionContext") -> "RemediationResult":
+    def execute(self, session_context: SessionContext) -> RemediationResult:
         """Execute the remediation strategy."""
         pass
 
@@ -515,9 +515,10 @@ class RemediationStrategy(ABC):
 @dataclass
 class RemediationResult:
     """Result of executing a remediation strategy."""
+
     strategy_name: str
     nodes_to_inject: list[dict] = field(default_factory=list)
-    mode_switch: Optional[str] = None  # "plm", "break", None
+    mode_switch: str | None = None  # "plm", "break", None
     message: str = ""
     should_suspend_current: bool = False
 
@@ -529,7 +530,7 @@ class StandardFlowStrategy(RemediationStrategy):
     def name(self) -> str:
         return "standard"
 
-    def execute(self, session_context: "SessionContext") -> RemediationResult:
+    def execute(self, session_context: SessionContext) -> RemediationResult:
         return RemediationResult(
             strategy_name=self.name,
             message="Continue with standard flow",
@@ -546,11 +547,15 @@ class MicroBreakStrategy(RemediationStrategy):
     def name(self) -> str:
         return "micro_break"
 
-    def execute(self, session_context: "SessionContext") -> RemediationResult:
+    @property
+    def message(self) -> str:
+        return f"Cognitive fatigue detected. Take a {self.break_minutes}-minute break."
+
+    def execute(self, session_context: SessionContext) -> RemediationResult:
         return RemediationResult(
             strategy_name=self.name,
             mode_switch="break",
-            message=f"Cognitive fatigue detected. Take a {self.break_minutes}-minute break.",
+            message=self.message,
             should_suspend_current=True,
         )
 
@@ -572,7 +577,7 @@ class ForceZStrategy(RemediationStrategy):
     def name(self) -> str:
         return "force_z"
 
-    def execute(self, session_context: "SessionContext") -> RemediationResult:
+    def execute(self, session_context: SessionContext) -> RemediationResult:
         # Find prerequisite chain
         prereq_path = self._find_prerequisite_path()
 
@@ -615,7 +620,7 @@ class PLMStrategy(RemediationStrategy):
     def name(self) -> str:
         return "plm"
 
-    def execute(self, session_context: "SessionContext") -> RemediationResult:
+    def execute(self, session_context: SessionContext) -> RemediationResult:
         # Generate PLM stimuli batch
         return RemediationResult(
             strategy_name=self.name,
@@ -628,6 +633,7 @@ class PLMStrategy(RemediationStrategy):
 # =============================================================================
 # REMEDIATION FACTORY
 # =============================================================================
+
 
 class RemediationSelector:
     """
@@ -657,6 +663,7 @@ class RemediationSelector:
         psi: float,
         confusion_matrix: ConfusionMatrix,
         target_concept: str,
+        session_context: SessionContext | None = None,
     ) -> RemediationStrategy:
         """
         Select the appropriate remediation strategy.
@@ -667,25 +674,45 @@ class RemediationSelector:
             psi: Pattern Separation Index for target
             confusion_matrix: The confusion matrix
             target_concept: The target concept ID
+            session_context: Session context for interaction/time checks
 
         Returns:
             The selected RemediationStrategy
         """
-        # Rule 1 (Safety): Check fatigue first
+        # Rule 1 (Safety): Check fatigue - but only after sufficient session activity
+        # Evidence-based: Cognitive fatigue detection requires baseline data (min 10 interactions)
+        # and meaningful time under load (10+ minutes) to avoid false positives
         if fatigue.is_critical:
-            logger.info(f"RemediationSelector: Fatigue critical ({fatigue.norm:.2f})")
-            return MicroBreakStrategy(break_minutes=10)
+            min_interactions_met = False
+            min_time_met = False
+
+            if session_context:
+                total_interactions = session_context.correct_count + session_context.incorrect_count
+                min_interactions_met = total_interactions >= 10
+                min_time_met = session_context.duration_seconds >= 600  # 10 minutes
+
+            if min_interactions_met or min_time_met:
+                logger.info(f"RemediationSelector: Fatigue critical ({fatigue.norm:.2f})")
+                return MicroBreakStrategy(break_minutes=10)
+            else:
+                logger.debug(
+                    f"RemediationSelector: Fatigue signal ({fatigue.norm:.2f}) ignored - "
+                    f"insufficient session data (need 10+ interactions or 10+ minutes)"
+                )
 
         # Rule 2 (Foundations): Knowledge Gap → Force Z
         if diagnosis.fail_mode == FailMode.ENCODING_ERROR:
-            logger.info(f"RemediationSelector: Encoding error → Force Z")
+            logger.info("RemediationSelector: Encoding error → Force Z")
             return ForceZStrategy(target_node_id=target_concept)
 
         # Rule 3 (Fluency): Discrimination Failure → PLM
-        if diagnosis.fail_mode == FailMode.DISCRIMINATION_ERROR or psi < self.psi_critical_threshold:
+        if (
+            diagnosis.fail_mode == FailMode.DISCRIMINATION_ERROR
+            or psi < self.psi_critical_threshold
+        ):
             worst_pair = confusion_matrix.get_worst_pair(target_concept)
             if worst_pair:
-                logger.info(f"RemediationSelector: Discrimination failure → PLM")
+                logger.info("RemediationSelector: Discrimination failure → PLM")
                 return PLMStrategy(confusable_pair=(target_concept, worst_pair[0]))
 
         # Rule 4 (Default): Standard flow
@@ -696,6 +723,7 @@ class RemediationSelector:
 # SESSION CONTEXT
 # =============================================================================
 
+
 @dataclass
 class SessionContext:
     """
@@ -703,13 +731,14 @@ class SessionContext:
 
     Maintains the cognitive state across interactions within a session.
     """
+
     # Session metadata
     session_id: str
     learner_id: str
     start_time: datetime = field(default_factory=datetime.now)
 
     # Queue state
-    current_node_id: Optional[str] = None
+    current_node_id: str | None = None
     queue_position: int = 0
     queue_size: int = 0
 
@@ -744,6 +773,7 @@ class SessionContext:
 # =============================================================================
 # NCDE PIPELINE
 # =============================================================================
+
 
 class NCDEPipeline:
     """
@@ -868,14 +898,14 @@ class NCDEPipeline:
         # Update diagnosis with fatigue override
         if fatigue.is_critical and diagnosis.fail_mode:
             # Force lapse classification if fatigued
-            logger.info("NCDE: Overriding diagnosis to FATIGUE due to high fatigue vector")
+            logger.debug("NCDE: Overriding diagnosis to FATIGUE due to high fatigue vector")
             diagnosis.fail_mode = FailMode.FATIGUE_ERROR
             diagnosis.remediation_type = RemediationType.REST
 
         # Store diagnosis
         context.diagnosis_history.append(diagnosis)
 
-        logger.info(
+        logger.debug(
             f"NCDE: Diagnosis complete. "
             f"fail_mode={diagnosis.fail_mode}, "
             f"confidence={diagnosis.confidence:.2f}"
@@ -898,25 +928,37 @@ class NCDEPipeline:
             psi=psi,
             confusion_matrix=self.confusion_matrix,
             target_concept=concept_id,
+            session_context=context,
         )
 
-        logger.info(f"NCDE: Selected strategy: {strategy.name}")
+        logger.debug(f"NCDE: Selected strategy: {strategy.name}")
 
         return diagnosis, strategy
 
     def update_learner_baseline(
         self,
         rt_history: list[int],
-        dwell_history: Optional[list[int]] = None,
+        dwell_history: list[int] | None = None,
     ) -> None:
         """Update baseline statistics from learner's historical data."""
         self.feature_extractor.update_baseline(rt_history, dwell_history)
         self.fatigue_calculator.update_baseline(rt_history)
 
+    def reset_fatigue(self) -> None:
+        """
+        Reset fatigue calculator after a micro-break.
+
+        Clears the fatigue calculator's history so that fatigue
+        doesn't immediately re-calculate to high values after a break.
+        """
+        self.fatigue_calculator.reset()
+        logger.info("NCDE: Fatigue calculator reset after micro-break")
+
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def create_raw_event(
     atom_id: str,
@@ -927,7 +969,7 @@ def create_raw_event(
     response_time_ms: int,
     session_duration_seconds: int = 0,
     session_index: int = 0,
-    selected_distractor_id: Optional[str] = None,
+    selected_distractor_id: str | None = None,
 ) -> RawInteractionEvent:
     """
     Factory function to create a RawInteractionEvent.
@@ -945,3 +987,140 @@ def create_raw_event(
         session_index=session_index,
         selected_distractor_id=selected_distractor_id,
     )
+
+
+# =============================================================================
+# STRUGGLE WEIGHT UPDATE - Bridge to Dynamic Struggle Tracking
+# =============================================================================
+
+
+@dataclass
+class StruggleUpdateData:
+    """Data needed to update struggle weights from NCDE diagnosis."""
+
+    module_number: int
+    section_id: str | None
+    failure_mode: str
+    accuracy: float  # 0.0-1.0, where 0=incorrect, 1=correct
+    atom_id: str | None = None
+    session_id: str | None = None
+
+
+def prepare_struggle_update(
+    diagnosis: CognitiveDiagnosis,
+    module_number: int,
+    section_id: str | None,
+    is_correct: bool,
+    atom_id: str | None = None,
+    session_id: str | None = None,
+) -> StruggleUpdateData:
+    """
+    Prepare struggle update data from an NCDE diagnosis.
+
+    This is called after each diagnosis to create data that can be
+    passed to the database update function.
+
+    Args:
+        diagnosis: The cognitive diagnosis from NCDE
+        module_number: CCNA module number (1-17)
+        section_id: Section ID (e.g., "5.1.2") or None for module-level
+        is_correct: Whether the user answered correctly
+        atom_id: UUID of the atom being studied
+        session_id: UUID of the current study session
+
+    Returns:
+        StruggleUpdateData ready for database insertion
+    """
+    # Convert correctness to accuracy score
+    accuracy = 1.0 if is_correct else 0.0
+
+    # Get failure mode name
+    failure_mode = "unknown"
+    if diagnosis.fail_mode:
+        failure_mode = diagnosis.fail_mode.value
+
+    return StruggleUpdateData(
+        module_number=module_number,
+        section_id=section_id,
+        failure_mode=failure_mode,
+        accuracy=accuracy,
+        atom_id=atom_id,
+        session_id=session_id,
+    )
+
+
+async def update_struggle_weight_async(
+    db_session: Any,
+    update_data: StruggleUpdateData,
+) -> None:
+    """
+    Update struggle weights in the database (async version).
+
+    Calls the PostgreSQL function update_struggle_from_ncde() which:
+    1. Updates the ncde_weight in struggle_weights table
+    2. Records the change in struggle_weight_history
+
+    Args:
+        db_session: SQLAlchemy async session
+        update_data: The struggle update data from prepare_struggle_update
+    """
+    try:
+        from sqlalchemy import text
+
+        await db_session.execute(
+            text(
+                "SELECT update_struggle_from_ncde(:module, :section, :mode, :accuracy, :atom, :session)"
+            ),
+            {
+                "module": update_data.module_number,
+                "section": update_data.section_id,
+                "mode": update_data.failure_mode,
+                "accuracy": update_data.accuracy,
+                "atom": update_data.atom_id,
+                "session": update_data.session_id,
+            },
+        )
+        await db_session.commit()
+        logger.debug(
+            f"NCDE: Updated struggle weight for module {update_data.module_number}, "
+            f"section {update_data.section_id}, failure_mode={update_data.failure_mode}"
+        )
+    except Exception as e:
+        logger.error(f"NCDE: Failed to update struggle weight: {e}")
+        # Don't raise - struggle updates are non-critical
+
+
+def update_struggle_weight_sync(
+    db_connection: Any,
+    update_data: StruggleUpdateData,
+) -> None:
+    """
+    Update struggle weights in the database (sync version).
+
+    For use with synchronous database connections.
+
+    Args:
+        db_connection: psycopg2 or similar sync connection
+        update_data: The struggle update data from prepare_struggle_update
+    """
+    try:
+        with db_connection.cursor() as cur:
+            cur.execute(
+                "SELECT update_struggle_from_ncde(%s, %s, %s, %s, %s, %s)",
+                (
+                    update_data.module_number,
+                    update_data.section_id,
+                    update_data.failure_mode,
+                    update_data.accuracy,
+                    update_data.atom_id,
+                    update_data.session_id,
+                ),
+            )
+        db_connection.commit()
+        logger.debug(
+            f"NCDE: Updated struggle weight for module {update_data.module_number}, "
+            f"section {update_data.section_id}"
+        )
+    except Exception as e:
+        logger.error(f"NCDE: Failed to update struggle weight: {e}")
+        db_connection.rollback()

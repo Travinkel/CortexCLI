@@ -7,31 +7,31 @@ Tracks real-time performance metrics during study sessions:
 - Confidence patterns
 - Fatigue signal detection
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional
-
-from loguru import logger
-
 
 # =============================================================================
 # Fatigue Signals
 # =============================================================================
 
+
 class FatigueLevel(Enum):
     """Severity of detected fatigue."""
+
     NONE = "none"
-    MILD = "mild"           # Suggest a short break
-    MODERATE = "moderate"   # Strongly suggest break
-    SEVERE = "severe"       # Recommend ending session
+    MILD = "mild"  # Suggest a short break
+    MODERATE = "moderate"  # Strongly suggest break
+    SEVERE = "severe"  # Recommend ending session
 
 
 @dataclass
 class FatigueSignal:
     """A detected fatigue indicator."""
+
     level: FatigueLevel
     reason: str
     metric_value: float
@@ -53,22 +53,24 @@ class FatigueSignal:
 # Fatigue Detector
 # =============================================================================
 
+
 @dataclass
 class FatigueConfig:
     """Configuration for fatigue detection."""
+
     # Accuracy thresholds
     accuracy_drop_threshold: float = 0.15  # 15% drop triggers alert
-    min_samples_for_accuracy: int = 10     # Need this many before checking
+    min_samples_for_accuracy: int = 10  # Need this many before checking
 
     # Response time thresholds
-    response_time_increase: float = 0.30   # 30% increase triggers alert
+    response_time_increase: float = 0.30  # 30% increase triggers alert
     min_samples_for_timing: int = 5
 
     # Streak thresholds
-    incorrect_streak_threshold: int = 4    # 4 wrong in a row
+    incorrect_streak_threshold: int = 4  # 4 wrong in a row
 
     # Session limits
-    max_session_minutes: int = 45          # Recommend break after this
+    max_session_minutes: int = 45  # Recommend break after this
 
 
 class FatigueDetector:
@@ -82,7 +84,7 @@ class FatigueDetector:
     4. Session duration - time-based limits
     """
 
-    def __init__(self, config: Optional[FatigueConfig] = None):
+    def __init__(self, config: FatigueConfig | None = None):
         """
         Initialize fatigue detector.
 
@@ -93,8 +95,8 @@ class FatigueDetector:
 
     def detect(
         self,
-        telemetry: "SessionTelemetry",
-    ) -> Optional[FatigueSignal]:
+        telemetry: SessionTelemetry,
+    ) -> FatigueSignal | None:
         """
         Check for fatigue signals.
 
@@ -126,7 +128,7 @@ class FatigueDetector:
 
         return None
 
-    def _check_duration(self, telemetry: "SessionTelemetry") -> Optional[FatigueSignal]:
+    def _check_duration(self, telemetry: SessionTelemetry) -> FatigueSignal | None:
         """Check if session has exceeded time limit."""
         duration_minutes = telemetry.duration_minutes
 
@@ -137,11 +139,11 @@ class FatigueDetector:
                 metric_value=duration_minutes,
                 threshold=self.config.max_session_minutes,
                 recommendation=f"You've been studying for {duration_minutes:.0f} minutes. "
-                              "Consider taking a 5-10 minute break.",
+                "Consider taking a 5-10 minute break.",
             )
         return None
 
-    def _check_incorrect_streak(self, telemetry: "SessionTelemetry") -> Optional[FatigueSignal]:
+    def _check_incorrect_streak(self, telemetry: SessionTelemetry) -> FatigueSignal | None:
         """Check for consecutive incorrect answers."""
         streak = telemetry.current_incorrect_streak
 
@@ -152,11 +154,11 @@ class FatigueDetector:
                 metric_value=streak,
                 threshold=self.config.incorrect_streak_threshold,
                 recommendation=f"You've had {streak} incorrect answers in a row. "
-                              "This might be a good time for a break or to review the material.",
+                "This might be a good time for a break or to review the material.",
             )
         return None
 
-    def _check_accuracy_drop(self, telemetry: "SessionTelemetry") -> Optional[FatigueSignal]:
+    def _check_accuracy_drop(self, telemetry: SessionTelemetry) -> FatigueSignal | None:
         """Check for significant accuracy degradation."""
         if telemetry.total_reviews < self.config.min_samples_for_accuracy:
             return None
@@ -176,11 +178,11 @@ class FatigueDetector:
                 metric_value=drop,
                 threshold=self.config.accuracy_drop_threshold,
                 recommendation=f"Your accuracy has dropped by {drop:.0%} since the session started. "
-                              "A short break might help restore focus.",
+                "A short break might help restore focus.",
             )
         return None
 
-    def _check_response_time(self, telemetry: "SessionTelemetry") -> Optional[FatigueSignal]:
+    def _check_response_time(self, telemetry: SessionTelemetry) -> FatigueSignal | None:
         """Check for increasing response times."""
         if telemetry.total_reviews < self.config.min_samples_for_timing:
             return None
@@ -200,7 +202,7 @@ class FatigueDetector:
                 metric_value=increase,
                 threshold=self.config.response_time_increase,
                 recommendation=f"You're taking {increase:.0%} longer to respond than at the start. "
-                              "This is a normal sign of mental fatigue.",
+                "This is a normal sign of mental fatigue.",
             )
         return None
 
@@ -209,15 +211,17 @@ class FatigueDetector:
 # Session Telemetry
 # =============================================================================
 
+
 @dataclass
 class ReviewEvent:
     """A single review event in the session."""
+
     atom_id: str
     grade: int
     response_ms: int
     is_correct: bool
     timestamp: datetime = field(default_factory=datetime.now)
-    confidence: Optional[int] = None
+    confidence: int | None = None
 
 
 class SessionTelemetry:
@@ -243,7 +247,7 @@ class SessionTelemetry:
         atom_id: str,
         grade: int,
         response_ms: int,
-        confidence: Optional[int] = None,
+        confidence: int | None = None,
     ) -> None:
         """
         Record a review event.
@@ -317,7 +321,7 @@ class SessionTelemetry:
     @property
     def initial_accuracy(self) -> float:
         """Accuracy of first N reviews."""
-        initial = self.events[:self.WINDOW_SIZE]
+        initial = self.events[: self.WINDOW_SIZE]
         if not initial:
             return 0.0
         return sum(1 for e in initial if e.is_correct) / len(initial)
@@ -325,7 +329,7 @@ class SessionTelemetry:
     @property
     def recent_accuracy(self) -> float:
         """Accuracy of last N reviews."""
-        recent = self.events[-self.WINDOW_SIZE:]
+        recent = self.events[-self.WINDOW_SIZE :]
         if not recent:
             return 0.0
         return sum(1 for e in recent if e.is_correct) / len(recent)
@@ -333,7 +337,7 @@ class SessionTelemetry:
     @property
     def initial_response_time(self) -> float:
         """Average response time of first N reviews (ms)."""
-        initial = self.events[:self.WINDOW_SIZE]
+        initial = self.events[: self.WINDOW_SIZE]
         if not initial:
             return 0.0
         return sum(e.response_ms for e in initial) / len(initial)
@@ -341,7 +345,7 @@ class SessionTelemetry:
     @property
     def recent_response_time(self) -> float:
         """Average response time of last N reviews (ms)."""
-        recent = self.events[-self.WINDOW_SIZE:]
+        recent = self.events[-self.WINDOW_SIZE :]
         if not recent:
             return 0.0
         return sum(e.response_ms for e in recent) / len(recent)
@@ -390,8 +394,4 @@ class SessionTelemetry:
             if not event.is_correct:
                 failure_counts[event.atom_id] = failure_counts.get(event.atom_id, 0) + 1
 
-        return [
-            atom_id
-            for atom_id, count in failure_counts.items()
-            if count >= min_failures
-        ]
+        return [atom_id for atom_id, count in failure_counts.items() if count >= min_failures]

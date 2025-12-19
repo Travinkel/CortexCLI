@@ -4,6 +4,7 @@ Staging table models for raw Notion data.
 These tables hold the raw JSONB from Notion API responses.
 They are ephemeral and can be rebuilt from Notion at any time.
 """
+
 from __future__ import annotations
 
 from datetime import datetime

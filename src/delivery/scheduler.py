@@ -14,30 +14,31 @@ SM-2 Grade Scale:
 4 - Correct, with some hesitation
 5 - Correct, with perfect recall
 """
+
 from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
-from typing import Optional
 
 from loguru import logger
 
 from .atom_deck import Atom, AtomDeck
-from .state_store import StateStore, SM2State
-
+from .state_store import SM2State, StateStore
 
 # =============================================================================
 # SM-2 Algorithm
 # =============================================================================
 
+
 @dataclass
 class SM2Config:
     """Configuration for SM-2 algorithm."""
+
     initial_easiness: float = 2.5
     minimum_easiness: float = 1.3
-    first_interval: int = 1      # Days for first review
-    second_interval: int = 6     # Days for second review
+    first_interval: int = 1  # Days for first review
+    second_interval: int = 6  # Days for second review
 
 
 class SM2Scheduler:
@@ -51,7 +52,7 @@ class SM2Scheduler:
     - Repetitions: Consecutive correct recalls
     """
 
-    def __init__(self, config: Optional[SM2Config] = None):
+    def __init__(self, config: SM2Config | None = None):
         """
         Initialize SM-2 scheduler.
 
@@ -78,10 +79,7 @@ class SM2Scheduler:
         # Update easiness factor
         # EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
         ef_delta = 0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)
-        new_ef = max(
-            self.config.minimum_easiness,
-            state.easiness_factor + ef_delta
-        )
+        new_ef = max(self.config.minimum_easiness, state.easiness_factor + ef_delta)
 
         # Determine repetitions and interval
         if grade < 3:
@@ -150,9 +148,11 @@ class SM2Scheduler:
 # Interleave Scheduler
 # =============================================================================
 
+
 @dataclass
 class InterleaveConfig:
     """Configuration for interleaved scheduling."""
+
     new_cards_per_session: int = 30
     max_due_cards: int = 100
     max_consecutive_same_module: int = 2
@@ -163,6 +163,7 @@ class InterleaveConfig:
 @dataclass
 class StudySession:
     """A prepared study session."""
+
     due_atoms: list[Atom] = field(default_factory=list)
     new_atoms: list[Atom] = field(default_factory=list)
     interleaved_queue: list[Atom] = field(default_factory=list)
@@ -192,8 +193,8 @@ class InterleaveScheduler:
         self,
         deck: AtomDeck,
         store: StateStore,
-        sm2: Optional[SM2Scheduler] = None,
-        config: Optional[InterleaveConfig] = None,
+        sm2: SM2Scheduler | None = None,
+        config: InterleaveConfig | None = None,
     ):
         """
         Initialize the scheduler.
@@ -336,13 +337,15 @@ class InterleaveScheduler:
             return True
 
         # Check consecutive module constraint
-        recent_modules = [a.module_number for a in queue[-self.config.max_consecutive_same_module:]]
+        recent_modules = [
+            a.module_number for a in queue[-self.config.max_consecutive_same_module :]
+        ]
         if len(recent_modules) >= self.config.max_consecutive_same_module:
             if all(m == atom.module_number for m in recent_modules):
                 return False
 
         # Check consecutive type constraint
-        recent_types = [a.atom_type for a in queue[-self.config.max_consecutive_same_type:]]
+        recent_types = [a.atom_type for a in queue[-self.config.max_consecutive_same_type :]]
         if len(recent_types) >= self.config.max_consecutive_same_type:
             if all(t == atom.atom_type for t in recent_types):
                 return False
@@ -354,7 +357,7 @@ class InterleaveScheduler:
         atom: Atom,
         grade: int,
         response_ms: int,
-        confidence: Optional[int] = None,
+        confidence: int | None = None,
     ) -> SM2State:
         """
         Record a review and update scheduling state.

@@ -1,693 +1,1027 @@
-# CCNA Module 2: Basic Switch and End Device Configuration
+# 17.0 Introduction
 
-**Source:** Cisco Networking Academy — Introduction to Networks v7.0 (ITN)
+Scroll to begin
 
----
+# **17.0.1 Why should I take this module?**
 
-## 2.0.1 Why should I take this module?
+Welcome to Build a Small Network!
 
-Welcome to Basic Switch and End Device Configuration!
+Hooray! You have come to the final module in the Introduction to Networks v7.0 course. You have most of the foundational knowledge needed to set up your own network. Where do you go from here? You build a network, of course. And not only do you build one, you verify that it is working, and even troubleshoot some common network problems. This module has labs and Packet Tracer activities to help you practice your new skills as a network administrator. Let's get going!
 
-As part of your career in networking, you might have to set up a new network or maintain and upgrade an existing one. In either case, you'll configure switches and end devices so that they are secure and perform effectively based on your requirements.
+# **17.0.2 What will I learn to do in this module?**
 
-Out of the box, switches and end devices come with some general configuration. But for your particular network, switches and end devices require your specific information and instructions. In this module, you will learn how to access Cisco IOS network devices. You will learn basic configuration commands and use them to configure and verify a Cisco IOS device and an end device with an IP address.
+**Module Title:** Build a Small Network
 
-Of course, there is much more to network administration, but none of that can happen without first configuring switches and end devices. Let's get started!
+**Module Objective:** Implement a network design for a small network to include a router, a switch, and end devices.
 
----
+|  |  |
+| --- | --- |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
 
-## 2.0.2 What will I learn to do in this module?
+# 17.1 Devices in a Small Network
 
-**Module Title:** Basic Switch and End Device Configuration
+Scroll to begin
 
-**Module Objective:** Implement initial settings including passwords, IP addressing, and default gateway parameters on a network switch and end devices.
+# **17.1.1 Small Network Topologies**
 
----
+The majority of businesses are small; therefore, it is not surprising that the majority of business networks are also small.
 
-# 2.1 Cisco IOS Access
+A small network design is usually simple. The number and type of devices included are significantly reduced compared to that of a larger network.
 
-## 2.1.1 Operating Systems
+For instance, refer to the sample small-business network shown in the figure.
 
-All end devices and network devices require an operating system (OS). As shown in the figure, the portion of the OS that interacts directly with computer hardware is known as the **kernel**. The portion that interfaces with applications and the user is known as the **shell**. The user can interact with the shell using a **command-line interface (CLI)** or a **graphical user interface (GUI)**.
+small network topology with a printer, server, IP phone and attached host, access point and attached laptop, all connected to a switch connected to a router connected to the Internet cloud
 
-**Shell** - The user interface that allows users to request specific tasks from the computer. These requests can be made either through the CLI or GUI interfaces.
+Internet
 
-**Kernel** - Communicates between the hardware and software of a computer and manages how hardware resources are used to meet software requirements.
+This small network requires a router, a switch, and a wireless access point to connect wired and wireless users, an IP phone, a printer, and a server. Small networks typically have a single WAN connection provided by DSL, cable, or an Ethernet connection.
 
-**Hardware** - The physical part of a computer including underlying electronics.
+Large networks require an IT department to maintain, secure, and troubleshoot network devices and to protect organizational data. Managing a small network requires many of the same skills as those required for managing a larger one. Small networks are managed by a local IT technician or by a contracted professional.
 
-When using a CLI, the user interacts directly with the system in a text-based environment by entering commands on the keyboard at a command prompt. The system executes the command, often providing textual output. The CLI requires very little overhead to operate. However, it does require that the user have knowledge of the underlying command structure that controls the system.
+# **17.1.2 Device Selection for a Small Network**
 
-```
-[analyst@secOps ~]$ ls
-Desktop  Downloads  [lab.support](http://lab.support).files  second_drive
-[analyst@secOps ~]$
-```
+Like large networks, small networks require planning and design to meet user requirements. Planning ensures that all requirements, cost factors, and deployment options are given due consideration.
 
----
+One of the first design considerations is the type of intermediary devices to use to support the network.
 
-## 2.1.2 GUI
+Click each button for more information about the factors that must be considered when selecting network devices.
 
-A GUI such as Windows, macOS, Linux KDE, Apple iOS, or Android allows the user to interact with the system using an environment of graphical icons, menus, and windows. The GUI is more user-friendly and requires less knowledge of the underlying command structure that controls the system. For this reason, most users rely on GUI environments.
+CostSpeed and Types of Ports/InterfacesExpandabilityOperating System Features and Services
 
-However, GUIs may not always be able to provide all the features available with the CLI. GUIs can also fail, crash, or simply not operate as specified. For these reasons, network devices are typically accessed through a CLI. The CLI is less resource intensive and very stable when compared to a GUI.
+**Cost**
 
-The family of network operating systems used on many Cisco devices is called the **Cisco Internetwork Operating System (IOS)**. Cisco IOS is used on many Cisco routers and switches regardless of the type or size of the device. Each device router or switch type uses a different version of Cisco IOS. Other Cisco operating systems include IOS XE, IOS XR, and NX-OS.
+The cost of a switch or router is determined by its capacity and features. This includes the number and types of ports available and the backplane speed. Other factors that influence the cost are network management capabilities, embedded security technologies, and optional advanced switching technologies. The expense of cable runs required to connect every device on the network must also be considered. Another key element affecting cost considerations is the amount of redundancy to incorporate into the network.
 
-**Note:** The operating system on home routers is usually called firmware. The most common method for configuring a home router is by using a web browser-based GUI.
+# **17.1.3 IP Addressing for a Small Network**
 
----
+When implementing a network, create an IP addressing scheme and use it. All hosts and devices within an internetwork must have a unique address.
 
-## 2.1.3 Purpose of an OS
+Devices that will factor into the IP addressing scheme include the following:
 
-Network operating systems are similar to a PC operating system. Through a GUI, a PC operating system enables a user to do the following:
+- End user devices - The number and type of connection (i.e., wired, wireless, remote access)
+- Servers and peripherals devices (e.g., printers and security cameras)
+- Intermediary devices including switches and access points
 
-- Use a mouse to make selections and run programs
-- Enter text and text-based commands
-- View output on a monitor
+It is recommended that you plan, document, and maintain an IP addressing scheme based on device type. The use of a planned IP addressing scheme makes it easier to identify a type of device and to troubleshoot problems, as for instance, when troubleshooting network traffic issues with a protocol analyzer.
 
-A CLI-based network operating system (e.g., the Cisco IOS on a switch or router) enables a network technician to do the following:
+For example, refer to the topology of a small to medium sized organization in the figure.
 
-- Use a keyboard to run CLI-based network programs
-- Use a keyboard to enter text and text-based commands
-- View output on a monitor
+network topology consisting of three LANs - 192.168.1.0/24, 192.168.2.0/24, and 192.168.3.0/24 - with various end devices, connected to a router connected to the Internet cloud
 
-Cisco networking devices run particular versions of the Cisco IOS. The IOS version is dependent on the type of device being used and the required features. While all devices come with a default IOS and feature set, it is possible to upgrade the IOS version or feature set to obtain additional capabilities.
+192.168.1.0/24192.168.2.0/24192.168.3.0/24
 
----
+Internet
 
-## 2.1.4 Access Methods
+The organization requires three user LANs (i.e., 192.168.1.0/24, 192.168.2.0/24, and 192.168.3.0/24). The organization has decided to implement a consistent IP addressing scheme for each 192.168.x.0/24 LAN using the following plan:
 
-A switch will forward traffic by default and does not need to be explicitly configured to operate. For example, two configured hosts connected to the same new switch would be able to communicate.
-
-Regardless of the default behavior of a new switch, all switches should be configured and secured.
-
-**Access Methods:**
-
-- **Console** - Physical management port for out-of-band access
-- **SSH/Telnet** - In-band remote access methods
-- **AUX port** (legacy) - Remote access over telephone connection using a modem
-
-**Note:** Some devices, such as routers, may also support a legacy auxiliary port that was used to establish a CLI session remotely over a telephone connection using a modem. Similar to a console connection, the AUX port is out-of-band and does not require networking services to be configured or available.
-
----
-
-## 2.1.5 Terminal Emulation Programs
-
-There are several terminal emulation programs you can use to connect to a networking device either by a serial connection over a console port, or by an SSH/Telnet connection. These programs allow you to enhance your productivity by adjusting window sizes, changing font sizes, and changing color schemes.
-
-**Common terminal emulation programs:**
-
-- **PuTTY**
-- **Tera Term**
-- **SecureCRT**
-
----
-
-# 2.2 IOS Navigation
-
-## 2.2.1 Primary Command Modes
-
-As a security feature, the Cisco IOS software separates management access into the following two command modes:
-
-**User EXEC Mode** - This mode has limited capabilities but is useful for basic operations. It allows only a limited number of basic monitoring commands but does not allow the execution of any commands that might change the configuration of the device. The user EXEC mode is identified by the CLI prompt that ends with the `>` symbol.
-
-**Privileged EXEC Mode** - To execute configuration commands, a network administrator must access privileged EXEC mode. Higher configuration modes, like global configuration mode, can only be reached from privileged EXEC mode. The privileged EXEC mode can be identified by the prompt ending with the `#` symbol.
-
-| Mode | Prompt | Description |
+|  |  |  |
 | --- | --- | --- |
-| User EXEC | `Switch>` | Limited monitoring commands |
-| Privileged EXEC | `Switch#` | Full device access |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
 
----
+The figure displays an example of the 192.168.2.0/24 network devices with assigned IP addresses using the predefined IP addressing scheme.
 
-## 2.2.2 Configuration Mode and Subconfiguration Modes
+The diagram is a small LAN topology with a network address of 192.168.2.0/24. It shows various end devices all connected to a switch, with address .5, connected to a router, at address .1, connected to the Internet cloud. All devices have been assigned an IP address. A printer has an address of .25; server has an address of .17; a PC has an address of .65 connected to an IP phone with an address of .33; and a laptop has an address of .193 connected to an access point with an address of .9.
 
-To configure the device, the user must enter **global configuration mode**, which is commonly called global config mode.
+.193.9.5.33.65.25.17.1192.168.2.0/24
 
-From global config mode, CLI configuration changes are made that affect the operation of the device as a whole. Global configuration mode is identified by a prompt that ends with `(config)#` after the device name, such as `Switch(config)#`.
+Internet
 
-Global configuration mode is accessed before other specific configuration modes. From global config mode, the user can enter different subconfiguration modes. Each of these modes allows the configuration of a particular part or function of the IOS device. Two common subconfiguration modes include:
+For instance, the default gateway IP address is 192.168.2.1/24, the switch is 192.168.2.5/24, the server is 192.168.2.17/24, etc..
 
-**Line Configuration Mode** - Used to configure console, SSH, Telnet, or AUX access. Prompt: `Switch(config-line)#`
+Notice that the assignable IP address ranges were deliberately allocated on subnetnetwork boundaries to simplify summarizing the group type. For instance, assume another switch with IP address 192.168.2.6 is added to the network. To identify all switches in a network policy, the administrator could specify the summarized network address 192.168.x.4/30.
 
-**Interface Configuration Mode** - Used to configure a switch port or router network interface. Prompt: `Switch(config-if)#`
+# **17.1.4 Redundancy in a Small Network**
 
----
+Another important part of network design is reliability. Even small businesses often rely heavily on their network for business operation. A failure of the network can be very costly.
 
-## 2.2.4 Navigate Between IOS Modes
+In order to maintain a high degree of reliability, *redundancy* is required in the network design. Redundancy helps to eliminate single points of failure.
 
-Various commands are used to move in and out of command prompts. To move from user EXEC mode to privileged EXEC mode, use the `enable` command. Use the `disable` privileged EXEC mode command to return to user EXEC mode.
+There are many ways to accomplish redundancy in a network. Redundancy can be accomplished by installing duplicate equipment, but it can also be accomplished by supplying duplicate network links for critical areas, as shown in the figure.
 
-**Note:** Privileged EXEC mode is sometimes called enable mode.
+The diagram illustrates the use of redundant servers, links, switches, and routers in a network. Shown are four layers with an explanation of the redundancy achieved at each. The top layer has three servers and text reads: Redundant servers are available in case of server failure. The next layer shows that each server has two connections leading to two switches and text reads: Redundant links are present to provide alternate paths in case of a link failure. The next layer shows two switches connected to each other with each connected to all three servers above and text reads: Redundant switches are present in case of switch failure. The bottom layer shows two routers connected to each other with each connected to one of the switches and text reads: Redundant routers are available in case of router or route failure.
 
-To move in and out of global configuration mode, use the `configure terminal` privileged EXEC mode command. To return to the privileged EXEC mode, enter the `exit` global config mode command.
+Redundant servers are available in case of server failure.
 
-**Line subconfiguration mode:**
+Redundant links are present to provide alternate paths in case of a link failure.
 
-```
-Switch(config)# line console 0
-Switch(config-line)# exit
-Switch(config)#
-```
+Redundant switches are present in case of switch failure.
 
-To move from any subconfiguration mode to the privileged EXEC mode, enter the `end` command or enter the key combination **Ctrl+Z**.
+Redundant routers are available in case of router or route failure.
 
-```
-Switch(config-line)# end
-Switch#
-```
+Small networks typically provide a single exit point toward the internet via one or more default gateways. If the router fails, the entire network loses connectivity to the internet. For this reason, it may be advisable for a small business to pay for a second service provider as backup.
 
-You can also move directly from one subconfiguration mode to another:
+# **17.1.5 Traffic Management**
 
-```
-Switch(config-line)# interface FastEthernet 0/1
-Switch(config-if)#
-```
+The goal for a good network design, even for a small network, is to enhance the productivity of the employees and minimize network downtime. The network administrator should consider the various types of traffic and their treatment in the network design.
 
----
+The routers and switches in a small network should be configured to support real-time traffic, such as voice and video, in an appropriate manner relative to other data traffic. In fact, a good network design will implement quality of service (QoS) to classify traffic carefully according to priority during times of congestion, as shown in the figure.
 
-# 2.3 The Command Structure
+The diagram shows how a router prioritizes network traffic. An arrow shows that traffic is sent to a router without any priority. The router then sends traffic to the backbone in order of priority. The router has layers of different traffic with varying levels of priority, the highest priority at the top. Voice is listed first with high priority, then SMTP with medium priority, then instant messaging with normal priority, and lastly FTP with low priority.
 
-## 2.3.1 Basic IOS Command Structure
+# 17.2 Small Network Applications and Protocols
 
-A Cisco IOS device supports many commands. Each IOS command has a specific format, or syntax, and can only be executed in the appropriate mode. The general syntax for a command is the command followed by any appropriate keywords and arguments.
+Scroll to begin
 
-**General syntax:**
+# **17.2.1 Common Applications**
 
-```
-Prompt Command [keyword | argument]
-```
+The previous topic discussed the components of a small network, as well as some of the design considerations. These considerations are necessary when you are just setting up a network. After you have set it up, your network still needs certain types of applications and protocols in order to work.
 
-**Examples:**
+The network is only as useful as the applications that are on it. There are two forms of software programs or processes that provide access to the network: network applications and application layer services.
 
-```
-Switch> show ip protocols
-Switch> ping 192.168.10.5
-```
+**Network Applications**
 
-- **Keyword** - This is a specific parameter defined in the operating system (e.g., `ip protocols`)
-- **Argument** - This is not predefined; it is a value or variable defined by the user (e.g., `192.168.10.5`)
+Applications are the software programs used to communicate over the network. Some end-user applications are network-aware, meaning that they implement application layer protocols and are able to communicate directly with the lower layers of the protocol stack. Email clients and web browsers are examples of this type of application.
 
-After entering each complete command, including any keywords and arguments, press the **Enter** key to submit the command to the command interpreter.
+**Application Layer Services**
 
----
+Other programs may need the assistance of application layer services to use network resources like file transfer or network print spooling. Though transparent to an employee, these services are the programs that interface with the network and prepare the data for transfer. Different types of data, whether text, graphics or video, require different network services to ensure that they are properly prepared for processing by the functions occurring at the lower layers of the OSI model.
 
-## 2.3.2 IOS Command Syntax Check
+Each application or network service uses protocols, which define the standards and data formats to be used. Without protocols, the data network would not have a common way to format and direct data. In order to understand the function of various network services, it is necessary to become familiar with the underlying protocols that govern their operation.
 
-A command might require one or more arguments. To determine the keywords and arguments required for a command, refer to the command syntax. The syntax provides the pattern, or format, that must be used when entering a command.
+Use the Task Manager to view the current applications, processes, and services running on a Windows PC, as shown in the figure.
 
-**Syntax conventions:**
+![](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.2.1-image-1.jpg)
 
-- **Boldface text** - Commands and keywords entered as shown
-- **Italic text** - Arguments for which the user provides the value
+# **17.2.2 Common Protocols**
 
-**Examples:**
+Most of a technician’s work, in either a small or a large network, will in some way be involved with network protocols. Network protocols support the applications and services used by employees in a small network.
 
-- `ping ip-address` - The command is `ping` and the user-defined argument is the ip-address of the destination device. For example, `ping 10.10.10.5`.
-- `traceroute ip-address` - The command is `traceroute` and the user-defined argument is the ip-address of the destination device. For example, `traceroute 192.168.254.254`.
+Network administrators commonly require access to network devices and servers. The two most common remote access solutions are Telnet and Secure Shell (SSH). SSH service is a secure alternative to Telnet. When connected, administrators can access the SSH server device as though they were logged in locally.
 
-If a command is complex with multiple arguments, you may see it represented like this:
+SSH is used to establish a secure remote access connection between an SSH client and other SSH-enabled devices:
 
-```
-Switch(config-if)# switchport port-security aging { static | time time | type {absolute | inactivity}
-```
+- **Network device** - The network device (e.g., router, switch, access point, etc.) must support SSH to provide remote access SSH server services to clients.
+- **Server** - The server (e.g., web server, email server, etc.) must support remote access SSH server services to clients.
 
-The Cisco IOS Command Reference is the ultimate source of information for a particular IOS command.
+Network administrators must also support common network servers and their required related network protocols, as shown in the figure.
 
----
+Web Server
 
-## 2.3.3 IOS Help Features
+Email Server
 
-The IOS has two forms of help available: **context-sensitive help** and **command syntax check**.
+FTP Server
 
-**Context-sensitive help** enables you to quickly find answers to these questions:
+DHCP Server
 
-- Which commands are available in each command mode?
-- Which commands start with specific characters or group of characters?
-- Which arguments and keywords are available to particular commands?
+DNS Server
 
-To access context-sensitive help, simply enter a question mark, `?`, at the CLI.
+Click each button for more information about common network servers and their required related network protocols.
 
-**Command syntax check** verifies that a valid command was entered by the user. When a command is entered, the command line interpreter evaluates the command from left to right. If the interpreter understands the command, the requested action is executed, and the CLI returns to the appropriate prompt. However, if the interpreter cannot understand the command being entered, it will provide feedback describing what is wrong with the command.
+Web ServerEmail ServerFTP ServerDHCP ServerDNS Server
 
----
+**Web Server**
 
-## 2.3.5 Hot Keys and Shortcuts
+- Web clients and web servers exchange web traffic using the Hypertext Transfer Protocol (HTTP).
+- Hypertext Transfer Protocol Secure (HTTPS) is used for secure web communication.
 
-The IOS CLI provides hot keys and shortcuts that make configuring, monitoring, and troubleshooting easier.
+**Note:** A server could provide multiple network services. For instance, a server could be an email, FTP, and SSH server.
 
-Commands and keywords can be shortened to the minimum number of characters that identify a unique selection. For example, the `configure` command can be shortened to `conf` because configure is the only command that begins with conf. An even shorter version, `con`, will not work because more than one command begins with con. Keywords can also be shortened.
+These network protocols comprise the fundamental toolset of a network professional. Each of these network protocols define:
 
-**Common keyboard shortcuts:**
+- Processes on either end of a communication session
+- Types of messages
+- Syntax of the messages
+- Meaning of informational fields
+- How messages are sent and the expected response
+- Interaction with the next lower layer
 
-| Key | Function |
+Many companies have established a policy of using secure versions (e.g., SSH, SFTP, and HTTPS) of these protocols whenever possible.
+
+# **17.2.3 Voice and Video Applications**
+
+Businesses today are increasingly using IP telephony and streaming media to communicate with customers and business partners. Many organizations are enabling their employees to work remotely. As the figure shows, many of their users still require access to corporate software and files, as well as support for voice and video applications.
+
+![](https://www.netacad.com/content/itn/1.0/_assets/media/2e89c550-1c25-11ea-a010-eb2108469056/2e89ec61-1c25-11ea-81a0-ffc2c49b96bc.jpg)
+
+![](https://www.netacad.com/content/itn/1.0/_assets/media/2e89c550-1c25-11ea-a010-eb2108469056/2e89ec62-1c25-11ea-81a0-ffc2c49b96bc.jpg)
+
+![](https://www.netacad.com/content/itn/1.0/_assets/media/2e89c550-1c25-11ea-a010-eb2108469056/2e89ec63-1c25-11ea-81a0-ffc2c49b96bc.jpg)
+
+The network administrator must ensure the proper equipment is installed in the network and that the network devices are configured to ensure priority delivery.
+
+Click each button for more information about the factors that a small network administrator must consider when supporting real-time applications.
+
+InfrastructureVoIPIP TelephonyReal-Time Applications
+
+**Infrastructure**
+
+- The network infrastructure must support the real-time applications.
+- Existing devices and cabling must be tested and validated.
+- Newer networking products may be required.
+
+# arrow_back_ios
+
+Q1 Q2 Result Page
+
+# arrow_forward_ios
+
+## 17.2.4 Check Your Understanding - Small Network Applications and Protocols
+
+**Instructions:**
+
+![](https://www.netacad.com/content/itn/1.0/assets/icons8-info-16.svg)
+
+- The exam consists of **2** questions and **70**% is required to pass.
+- You have **unlimited attempts** to pass the exam.
+- You have **no** time limit per attempt to pass the exam.
+
+Start
+
+# **Question 1**
+
+What are two forms of software programs or processes that provide access to the network? (Choose two.)
+
+- [ ]
+
+    Antivirus software
+
+- [ ]
+
+    Application layer services
+
+- [ ]
+
+    Gaming software
+
+- [ ]
+
+    **done**Network applications
+
+- [ ]
+
+    Productivity software
+
+- [ ]
+
+    **close**Virtual machine software
+
+
+# **Question 2**
+
+Which two network protocols are used to establish a remote access network connection to a device? (Choose two.)
+
+- [ ]
+
+    File Transfer Protocol (FTP)
+
+- [ ]
+
+    Hypertext Transfer Protocol (HTTP)
+
+- [ ]
+
+    **close**Remote Connect (RC)
+
+- [ ]
+
+    Secure Shell (SSH)
+
+- [ ]
+
+    Simple Mail Transfer Protocol (SMTP)
+
+- [ ]
+
+    **done**Telnet
+
+
+# **0%**
+
+You have scored **0%**.
+
+You have not passed the exam.
+
+Select Reset to retake the exam. Remember that you can return to the module for reference or to retake the exam at any time.
+
+Reset
+
+# 17.4 Verify Connectivity
+
+Scroll to begin
+
+# **17.4.1 Verify Connectivity with Ping**
+
+Whether your network is small and new, or you are scaling an existing network, you will always want to be able to verify that your components are properly connected to each other and to the internet. This topic discusses some utilities that you can use to ensure that your network is connected.
+
+The **ping** command is the most effective way to quickly test Layer 3 connectivity between a source and destination IP address. The command also displays various round-trip time statistics.
+
+Specifically, the **ping** command uses the Internet Control Message Protocol (ICMP) echo request (ICMP Type 8) and echo reply (ICMP Type 0) messages. The **ping** command is available in most operating systems including Windows, Linux, macOS, and Cisco IOS.
+
+On a Windows 10 host, the **ping** command sends four consecutive ICMP echo request messages and expects four consecutive ICMP echo replies from the destination.
+
+For example, assume PC A pings PC B. As shown in the figure, the PC A Windows host sends four consecutive ICMP echo request messages. sometimes referred to as an ICMP echo, to PC B (i.e., 203.0.113.8).
+
+The diagram shows host PC A, at address 192.168.10.10, using the ping ping 203.0.113.8 command from the command prompt to send four ICMP echo messages with a source IP of 198.168.10.10 (should read 192.168.10.10) and a destination IP of ping 203.0.113.8, which is host PC B on another network.
+
+192.168.10.10PC APC BC:\>ping 203.0.113.8203.0.113.8
+
+Internet
+
+The destination host receives and processes the ICMP echos. As shown in the figure, PC B responds by sending four ICMP echo reply messages to PC A.
+
+The diagram shows host PC B, at address 203.0.113.8, sending four ICMP echo replies with source IP 203.0.113.8 and destination IP 198.168.10.10 (should read 192.168.10.10) in response to a ping from host PC A at address 192.168.10.10.
+
+PC APC BC:\>ping 203.0.113.8203.0.113.8192.168.10.10
+
+Internet
+
+As shown in the command output, PC A has received echo replies from PC-B verifying the Layer 3 network connection.
+
+`C:\Users\PC-A> **ping 10.1.1.10**Pinging 10.1.1.10 with 32 bytes of data:Reply from 10.1.1.10: bytes=32 time=47ms TTL=51Reply from 10.1.1.10: bytes=32 time=60ms TTL=51Reply from 10.1.1.10: bytes=32 time=53ms TTL=51Reply from 10.1.1.10: bytes=32 time=50ms TTL=51Ping statistics for 10.1.1.10:    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),Approximate round trip times in milli-seconds:    Minimum = 47ms, Maximum = 60ms, Average = 52msC:\Users\PC-A>`
+
+The output validates Layer 3 connectivity between PC A and PC B.
+
+A Cisco IOS **ping** command output varies from a Windows host. For instance, the IOS ping sends five ICMP echo messages, as shown in the output.
+
+`R1# **ping 10.1.1.10**Type escape sequence to abort.Sending 5, 100-byte ICMP Echos to 10.1.1.10, timeout is 2 seconds:!!!!!Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 msR1#`
+
+Notice the **!!!!!** output characters. The IOS **ping** command displays an indicator for each ICMP echo reply received. The table lists the most common output characters from the **ping** command.
+
+**IOS Ping Indicators**
+
+|  |  |
 | --- | --- |
-| Tab | Completes partial command |
-| Ctrl+A | Moves to beginning of line |
-| Ctrl+E | Moves to end of line |
-| Ctrl+R | Redisplays line |
-| Ctrl+Z | Exits configuration mode |
-| Ctrl+C | Aborts current command |
-| Ctrl+Shift+6 | All-purpose break sequence |
+|  |  |
+|  |  |
+|  |  |
 
-**"--More--" prompt controls:**
+**Note:** Other possible ping replies include Q, M, ?, or &. However, the meaning of these are out of scope for this module.
 
-| Key | Function |
+# **17.4.2 Extended Ping**
+
+A standard **ping** uses the IP address of the interface closest to the destination network as the source of the **ping**. The source IP address of the **ping 10.1.1.10** command on R1 would be that of the G0/0/0 interface (i.e., 209.165.200.225), as illustrated in the example.
+
+The diagram shows how a router uses a standard ping to ping a host by sending four consecutive ICMP echo messages sourced from the interface closest to the destination. Router R1 is connected to two networks: on the left is 192.168.10.0/24 on interface G0/0/1 with address .1 and on the right is network 209.165.200.224/30 on interface G0/0/0 with address .225. The latter network is connected to R2 which is connected to network 10.1.1.0/24 on which host PC B is attached with address .10. R1 is sending PC B four ICMP echo messages with a source IP of 209.165.200.225 and a destination IP of 10.1.1.10.
+
+R2.10.1G0/0/0.10209.165.200.224 /30192.168.10.0 /2410.1.1.0/24.225G0/0/1PC APC BR1
+
+The Cisco IOS offers an "extended" mode of the **ping** command. This mode enables the user to create special type of pings by adjusting parameters related to the command operation.
+
+Extended ping is entered in privileged EXEC mode by typing **ping** without a destination IP address. You will then be given several prompts to customize the extended **ping**.
+
+**Note:** Pressing **Enter** accepts the indicated default values.
+
+For example, assume you wanted to test connectivity from the R1 LAN (i.e., 192.168.10.0/24) to the 10.1.1.0 LAN. This could be verified from the PC A. However, an extended **ping** could be configured on R1 to specify a different source address.
+
+As illustrated in the example, the source IP address of the extended **ping** command on R1 could be configured to use the G0/0/1 interface IP address (i.e., 192.168.10.1).
+
+The diagram shows how a router uses an extended ping command to ping a host by sending four consecutive ICMP echo messages with a specified source IP address. Router R1 is connected to two networks: on the left is 192.168.10.0/24 on interface G0/0/1 with address .1 and on the right is network 209.165.200.224/30 on interface G0/0/0 with address .225. The latter network is connected to R2 which is connected to network 10.1.1.0/24 on which host PC B is attached with address .10. R1 is sending PC B four ICMP echo messages with a source IP of 192.168.10.1 and a destination IP of 10.1.1.10.
+
+R2.10.1G0/0/0.10209.165.200.224 /30192.168.10.0 /2410.1.1.0/24.225G0/0/1PC APC BR1
+
+The following command output configures an extended **ping** on R1 and specifies the source IP address to be that of the G0/0/1 interface (i.e., 192.168.10.1).
+
+`R1# **ping**Protocol [ip]:Target IP address: **10.1.1.10**Repeat count [5]:Datagram size [100]:Timeout in seconds [2]:Extended commands [n]: **y**Ingress ping [n]:Source address or interface: **192.168.10.1**DSCP Value [0]:Type of service [0]:Set DF bit in IP header? [no]:Validate reply data? [no]:Data pattern [0x0000ABCD]:Loose, Strict, Record, Timestamp, Verbose[none]:Sweep range of sizes [n]:Type escape sequence to abort.Sending 5, 100-byte ICMP Echos to 10.1.1.1, timeout is 2 seconds:Packet sent with a source address of 192.168.10.1!!!!!Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 msR1#`
+
+**Note:** The **ping ipv6** command is used for IPv6 extended pings.
+
+# **17.4.3 Verify Connectivity with Traceroute**
+
+The **ping** command is useful to quickly determine if there is a Layer 3 connectivity problem. However, it does not identify where the problem is located along the path.
+
+Traceroute can help locate Layer 3 problem areas in a network. A trace returns a list of hops as a packet is routed through a network. It could be used to identify the point along the path where the problem can be found.
+
+The syntax of the trace command varies between operating systems, as illustrated in the figure.
+
+# **Windows and Cisco IOS Trace Commands**
+
+The diagram shows the difference between the trace command as issued from a Windows host versus a Cisco IOS router. The network topology consists of a host PC A connected to a switch connected to router R1 connected to router R2 connected to router R3 connected to a switch connected to host PC B. PC A, at IP address 192.168.10.10, is issuing the following command from a Windows command prompt: C:\>:tracert 10.1.1.10. R1 is issuing the following command from the Cisco IOS CLI: R#traceroute 10.1.1.10.
+
+PC APC B10.1.1.10192.168.10.10.1R3R2R1
+
+Trace from Windows host
+
+C:\>:
+
+**tracert 10.1.1.10**
+
+Trace from a Cisco IOS router
+
+R# **traceroute 10.1.1.10**
+
+The following is a sample output of **tracert** command on a Windows 10 host.
+
+`C:\Users\PC-A> **tracert 10.1.1.10**Tracing route to 10.1.10 over a maximum of 30 hops:  1     2 ms     2 ms     2 ms  192.168.10.1  2     *        *        *     Request timed out.  3     *        *        *     Request timed out.  4     *        *        *     Request timed out.^CC:\Users\PC-A>`
+
+**Note:** Use **Ctrl-C** to interrupt a **tracert** in Windows.
+
+The only successful response was from the gateway on R1. Trace requests to the next hop timed out as indicated by the asterisk (*), meaning that the next hop router did not respond. The timed out requests indicate that there is a failure in the internetwork beyond the LAN, or that these routers have been configured to not respond to echo requests used in the trace. In this example there appears to be a problem between R1 and R2.
+
+A Cisco IOS **traceroute** command output varies from the Windows **tracert** command. For instance, refer to the following topology.
+
+The diagram shows a network topology with the IP addressing of router interfaces and a traceroute command issued from a Cisco IOS router. The topology consists of the following devices and networks, from left to right. A switch on network 192.168.10.0/24 is connected to router R1 at an interface with an address of .1. R1 is connected to router R2 by network 209.165.200.224/30. The interface on R1 has an address of .225 and the interface on R2 has an address of .226. R2 is connected to router R3 by network 209.165.200.228/30. The interface on R2 has an address of .229 and the interface on R3 has an address of .230. R3 is connected to a switch which is connected to host PC B with address 10.1.1.10. R1 is issuing the following trace command from the CLI: R1# traceroute 10.1.1.10.
+
+PC B10.1.1.10192.168.10.0 /24.1R3R1.225.226.229R2.230209.165.200.224 /30209.165.200.228 /30R1
+
+Trace from a Cisco IOS router
+
+R1#
+
+**traceroute 10.1.1.10**
+
+The following is a sample output of traceroute command from R1.
+
+`R1# **traceroute 10.1.1.10**Type escape sequence to abort.Tracing the route to 10.1.1.10VRF info: (vrf in name/id, vrf out name/id)  1 209.165.200.226 1 msec 0 msec 1 msec  2 209.165.200.230 1 msec 0 msec 1 msec  3 10.1.1.10 1 msec 0 msecR1#`
+
+In this example, the trace validated that it could successfully reach PC B.
+
+Timeouts indicate a potential problem. For instance, if the 10.1.1.10 host was not available, the **traceroute** command would display the following output.
+
+`R1# **traceroute 10.1.1.10**Type escape sequence to abort.Tracing the route to 10.1.1.10VRF info: (vrf in name/id, vrf out name/id)  1 209.165.200.226 1 msec 0 msec 1 msec  2 209.165.200.230 1 msec 0 msec 1 msec  3  *  *  *  4  *  *  *  5  *`
+
+Use **Ctrl-Shift-6** to interrupt a **traceroute** in Cisco IOS.
+
+**Note:** Windows implementation of traceroute (tracert) sends ICMP Echo Requests. Cisco IOS and Linux use UDP with an invalid port number. The final destination will return an ICMP port unreachable message.
+
+# **17.4.4 Extended Traceroute**
+
+Like the extended **ping** command, there is also an extended **traceroute** command. It allows the administrator to adjust parameters related to the command operation. This is helpful in locating the problem when troubleshooting routing loops, determining the exact next-hop router, or determining where packets are getting dropped or denied by a router or firewall.
+
+The Windows **tracert** command allows the input of several parameters through options in the command line. However, it is not guided like the extended traceroute IOS command. The following output displays the available options for the Windows **tracert** command.
+
+`C:\Users\PC-A> **tracert /?**Usage: tracert [-d] [-h maximum_hops] [-j host-list] [-w timeout]               [-R] [-S srcaddr] [-4] [-6] target_nameOptions:    -d                 Do not resolve addresses to hostnames.    -h maximum_hops    Maximum number of hops to search for target.    -j host-list       Loose source route along host-list (IPv4-only).    -w timeout         Wait timeout milliseconds for each reply.    -R                 Trace round-trip path (IPv6-only).    -S srcaddr         Source address to use (IPv6-only).    -4                 Force using IPv4.    -6                 Force using IPv6.C:\Users\PC-A>`
+
+The Cisco IOS extended **traceroute** option enables the user to create a special type of trace by adjusting parameters related to the command operation. Extended traceroute is entered in privileged EXEC mode by typing **traceroute** without a destination IP address. IOS will guide you through the command options by presenting a number of prompts related to the setting of all the different parameters.
+
+**Note:** Pressing **Enter** accepts the indicated default values.
+
+For example, assume you want to test connectivity to PC B from the R1 LAN. Although this could be verified from PC A, an extended **traceroute** could be configured on R1 to specify a different source address.
+
+The diagram shows a network topology with the IP addressing of router interfaces and an extended traceroute command issued from a Cisco IOS router. The topology consists of the following devices and networks, from left to right. A switch on network 192.168.10.0/24 is connected to router R1 at an interface with an address of .1. R1 is connected to router R2 by network 209.165.200.224/30. The interface on R1 has an address of .225 and the interface on R2 has an address of .226. R2 is connected to router R3 by network 209.165.200.228/30. The interface on R2 has an address of .229 and the interface on R3 has an address of .230. R3 is connected to a switch which is connected to host PC B with address 10.1.1.10. R1 is issuing the following trace command from the CLI: R1# traceroute.
+
+PC B192.168.10.0/24209.165.200.224/30209.165.200.228/3010.1.1.10R1R3R2.1.225.226.229.230
+
+Extended trace from a Cisco IOS router
+
+R1# **traceroute**
+
+As illustrated in the example, the source IP address of the extended **traceroute** command on R1 could be configured to use the R1 LAN interface IP address (i.e., 192.168.10.1).
+
+`R1# **traceroute**Protocol [ip]:Target IP address: **10.1.1.10**Ingress traceroute [n]:Source address: **192.168.10.1**DSCP Value [0]:Numeric display [n]:Timeout in seconds [3]:Probe count [3]:Minimum Time to Live [1]:Maximum Time to Live [30]:Port Number [33434]:Loose, Strict, Record, Timestamp, Verbose[none]:Type escape sequence to abort.Tracing the route to 192.168.10.10VRF info: (vrf in name/id, vrf out name/id)  1 209.165.200.226 1 msec 1 msec 1 msec  2 209.165.200.230 0 msec 1 msec 0 msec  3  *    10.1.1.10 2 msec 2 msecR1#`
+
+# **17.4.5 Network Baseline**
+
+One of the most effective tools for monitoring and troubleshooting network performance is to establish a network baseline. Creating an effective network performance baseline is accomplished over a period of time. Measuring performance at varying times and loads will assist in creating a better picture of overall network performance.
+
+The output derived from network commands contributes data to the network baseline. One method for starting a baseline is to copy and paste the results from an executed **ping**, **trace**, or other relevant commands into a text file. These text files can be time stamped with the date and saved into an archive for later retrieval and comparison.
+
+Among items to consider are error messages and the response times from host to host. If there is a considerable increase in response times, there may be a latency issue to address.
+
+For example, the following **ping** output was captured and pasted into a text file.
+
+**August 19, 2019 at 08:14:43**
+
+`C:\Users\PC-A> **ping 10.1.1.10**Pinging 10.1.1.10 with 32 bytes of data:Reply from 10.1.1.10: bytes=32 time<1ms TTL=64Reply from 10.1.1.10: bytes=32 time<1ms TTL=64Reply from 10.1.1.10: bytes=32 time<1ms TTL=64Reply from 10.1.1.10: bytes=32 time<1ms TTL=64Ping statistics for 10.1.1.10:    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),Approximate round trip times in milli-seconds:    Minimum = 0ms, Maximum = 0ms, Average = 0msC:\Users\PC-A>`
+
+Notice the **ping** round-trip times are less than 1 ms.
+
+A month later, the ping is repeated and captured.
+
+**September 19, 2019 at 10:18:21**
+
+`C:\Users\PC-A> **ping 10.1.1.10**Pinging 10.1.1.10 with 32 bytes of data:Reply from 10.1.1.10: bytes=32 time=50ms TTL=64Reply from 10.1.1.10: bytes=32 time=49ms TTL=64Reply from 10.1.1.10: bytes=32 time=46ms TTL=64Reply from 10.1.1.10: bytes=32 time=47ms TTL=64Ping statistics for 10.1.1.10:    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),Approximate round trip times in milli-seconds:    Minimum = 46ms, Maximum = 50ms, Average = 48msC:\Users\PC-A>`
+
+Notice this time that the **ping** round-trip times are much longer indicating a potential problem.
+
+Corporate networks should have extensive baselines; more extensive than we can describe in this course. Professional-grade software tools are available for storing and maintaining baseline information. In this course, we cover a few basic techniques and discuss the purpose of baselines.
+
+Cisco’s best practices for baseline processes can be found by searching the internet for “Baseline Process Best Practices”.
+
+# **17.4.6 Lab - Test Network Latency with Ping and Traceroute**
+
+In this lab, you will complete the following objectives:
+
+- Part 1: Use Ping to Document Network Latency
+- Part 2: Use Traceroute to Document Network Latency
+
+**description**Test Network Latency with Ping and Traceroute
+
+# 17.5 Host and IOS Commands
+
+Scroll to begin
+
+# **17.5.1 IP Configuration on a Windows Host**
+
+If you have used any of the tools in the previous topic to verify connectivity and found that some part of your network is not working as it should, now is the time to use some commands to troubleshoot your devices. Host and IOS commands can help you determine if the problem is with the IP addressing of your devices, which is a common network problem.
+
+Checking the IP addressing on host devices is a common practice in networking for verifying and troubleshooting end-to-end connectivity. In Windows 10, you can access the IP address details from the **Network and Sharing Center**, as shown in the figure, to quickly view the four important settings: address, mask, router, and DNS.
+
+![](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.5.1-image-1.jpg)
+
+However, network administrators typically view the IP addressing information on a Windows host by issuing the **ipconfig** command at the command line of a Windows computer, as shown in the sample output.
+
+`C:\Users\PC-A> **ipconfig**Windows IP Configuration(Output omitted)Wireless LAN adapter Wi-Fi:   Connection-specific DNS Suffix  . :   Link-local IPv6 Address . . . . . : fe80::a4aa:2dd1:ae2d:a75e%16     IPv4 Address. . . . . . . . . . . : 192.168.10.10     Subnet Mask . . . . . . . . . . . : 255.255.255.0   Default Gateway . . . . . . . . . : 192.168.10.1(Output omitted)`
+
+Use the **ipconfig /all** command to view the MAC address, as well as a number of details regarding the Layer 3 addressing of the device, as shown in the example output.
+
+`C:\Users\PC-A> **ipconfig /all**Windows IP Configuration   Host Name . . . . . . . . . . . . : PC-A-00H20   Primary Dns Suffix  . . . . . . . : cisco.com   Node Type . . . . . . . . . . . . : Hybrid   IP Routing Enabled. . . . . . . . : No   WINS Proxy Enabled. . . . . . . . : No   DNS Suffix Search List. . . . . . : cisco.com(Output omitted)Wireless LAN adapter Wi-Fi:   Connection-specific DNS Suffix  . :   Description . . . . . . . . . . . : Intel(R) Dual Band Wireless-AC 8265   Physical Address. . . . . . . . . : F8-94-C2-E4-C5-0A   DHCP Enabled. . . . . . . . . . . : Yes   Autoconfiguration Enabled . . . . : Yes   Link-local IPv6 Address . . . . . : fe80::a4aa:2dd1:ae2d:a75e%16(Preferred)   IPv4 Address. . . . . . . . . . . : 192.168.10.10(Preferred)   Subnet Mask . . . . . . . . . . . : 255.255.255.0   Lease Obtained. . . . . . . . . . : August 17, 2019 1:20:17 PM   Lease Expires . . . . . . . . . . : August 18, 2019 1:20:18 PM   Default Gateway . . . . . . . . . : 192.168.10.1   DHCP Server . . . . . . . . . . . : 192.168.10.1   DHCPv6 IAID . . . . . . . . . . . : 100177090   DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-21-F3-76-75-54-E1-AD-DE-DA-9A   DNS Servers . . . . . . . . . . . : 192.168.10.1   NetBIOS over Tcpip. . . . . . . . : Enabled`
+
+If a host is configured as a DHCP client, the IP address configuration can be renewed using the **ipconfig /release** and **ipconfig /renew** commands, as shown in the sample output.
+
+`C:\Users\PC-A> **ipconfig /release**(Output omitted)Wireless LAN adapter Wi-Fi:   Connection-specific DNS Suffix  . :   Link-local IPv6 Address . . . . . : fe80::a4aa:2dd1:ae2d:a75e%16   Default Gateway . . . . . . . . . :(Output omitted)C:\Users\PC-A> **ipconfig /renew**(Output omitted)Wireless LAN adapter Wi-Fi:   Connection-specific DNS Suffix  . :   Link-local IPv6 Address . . . . . : fe80::a4aa:2dd1:ae2d:a75e%16   IPv4 Address. . . . . . . . . . . : 192.168.1.124   Subnet Mask . . . . . . . . . . . : 255.255.255.0   Default Gateway . . . . . . . . . : 192.168.1.1(Output omitted)C:\Users\PC-A>`
+
+The DNS Client service on Windows PCs also optimizes the performance of DNS name resolution by storing previously resolved names in memory. The **ipconfig /displaydns** command displays all of the cached DNS entries on a Windows computer system, as shown in the example output.
+
+`C:\Users\PC-A> **ipconfig /displaydns**Windows IP Configuration(Output omitted)    netacad.com    ----------------------------------------    Record Name . . . . . : netacad.com    Record Type . . . . . : 1    Time To Live  . . . . : 602    Data Length . . . . . : 4    Section . . . . . . . : Answer    A (Host) Record . . . : 54.165.95.219(Output omitted)`
+
+# **17.5.2 IP Configuration on a Linux Host**
+
+Verifying IP settings using the GUI on a Linux machine will differ depending on the Linux distribution (distro) and desktop interface. The figure shows the **Connection Information** dialog box on the Ubuntu distro running the Gnome desktop.
+
+![](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.5.2-image-1.jpg)
+
+On the command line, network administrators use the **ifconfig** command to display the status of the currently active interfaces and their IP configuration, as shown in the output.
+
+`[analyst@secOps ~]$ **ifconfig**enp0s3    Link encap:Ethernet  HWaddr 08:00:27:b5:d6:cb            inet addr: 10.0.2.15  Bcast:10.0.2.255  Mask: 255.255.255.0          inet6 addr: fe80::57c6:ed95:b3c9:2951/64 Scope:Link          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1          RX packets:1332239 errors:0 dropped:0 overruns:0 frame:0          TX packets:105910 errors:0 dropped:0 overruns:0 carrier:0          collisions:0 txqueuelen:1000          RX bytes:1855455014 (1.8 GB)  TX bytes:13140139 (13.1 MB)lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536        inet 127.0.0.1  netmask 255.0.0.0        inet6 ::1  prefixlen 128  scopeid 0x10<host>        loop  txqueuelen 1000  (Local Loopback)        RX packets 0  bytes 0 (0.0 B)        RX errors 0  dropped 0  overruns 0  frame 0        TX packets 0  bytes 0 (0.0 B)        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0`
+
+The Linux **ip address** command is used to display addresses and their properties. It can also be used to add or delete IP addresses.
+
+**Note:** The output displayed may vary depending on the Linux distribution.
+
+# **17.5.3 IP Configuration on a macOS Host**
+
+In the GUI of a Mac host, open **Network Preferences > Advanced** to get the IP addressing information, as shown in the figure.
+
+![](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.5.3-image-1.jpeg)
+
+However, the **ifconfig** command can also be used to verify the interface IP configuration a shown in the output.
+
+`MacBook-Air:~ Admin$ **ifconfig en0**en0: flags=8863 mtu 1500        ether c4:b3:01:a0:64:98        inet6 fe80::c0f:1bf4:60b1:3adb%en0 prefixlen 64 secured scopeid 0x5        inet 10.10.10.113 netmask 0xffffff00 broadcast 10.10.10.255        nd6 options=201        media: autoselect        status: activeMacBook-Air:~ Admin$`
+
+Other useful macOS commands to verify the host IP settings include **networksetup -listallnetworkservices** and the **networksetup -getinfo <***network service***>,** as shown in the following output.
+
+`MacBook-Air:~ Admin$ **networksetup -listallnetworkservices**An asterisk (*) denotes that a network service is disabled.iPhone USBWi-FiBluetooth PANThunderbolt BridgeMacBook-Air:~ Admin$MacBook-Air:~ Admin$ **networksetup -getinfo Wi-Fi**DHCP ConfigurationIP address: 10.10.10.113Subnet mask: 255.255.255.0Router: 10.10.10.1Client ID:IPv6: AutomaticIPv6 IP address: noneIPv6 Router: noneWi-Fi ID: c4:b3:01:a0:64:98MacBook-Air:~ Admin$`
+
+# **17.5.4 The arp Command**
+
+The **arp** command is executed from the Windows, Linux, or Mac command prompt. The command lists all devices currently in the ARP cache of the host, which includes the IPv4 address, physical address, and the type of addressing (static/dynamic), for each device.
+
+For instance, refer to the topology in the figure.
+
+![five hosts with IP addresses 10.0.0.1/24, 10.0.0.2/24, 10.0.0.3/24, 10.0.0.4/24, and 10.0.0.5/24 are connected to a switch connected to a router with an IP address of 10.0.0.254/24](https://www.netacad.com/content/itn/1.0/_assets/media/2e8f1c80-1c25-11ea-a010-eb2108469056/2e8f1c83-1c25-11ea-81a0-ffc2c49b96bc.svg)
+
+The output of the **arp -a** command on the Windows PC-A host is displayed.
+
+`C:\Users\PC-A> **arp -a**Interface: 192.168.93.175 --- 0xc  Internet Address      Physical Address      Type  10.0.0.2              d0-67-e5-b6-56-4b     dynamic  10.0.0.3              78-48-59-e3-b4-01     dynamic  10.0.0.4              00-21-b6-00-16-97     dynamic  10.0.0.254            00-15-99-cd-38-d9     dynamic`
+
+The **arp -a** command displays the known IP address and MAC address binding. Notice how IP address 10.0.0.5 is not included in the list. This is because the ARP cache only displays information from devices that have been recently accessed.
+
+To ensure that the ARP cache is populated, **ping** a device so that it will have an entry in the ARP table. For instance, if PC-A pinged 10.0.0.5, then the ARP cache would contain an entry for that IP address.
+
+The cache can be cleared by using the **netsh interface ip delete arpcache** command in the event the network administrator wants to repopulate the cache with updated information.
+
+**Note:** You may need administrator access on the host to be able to use the **netsh interface ip delete arpcache** command.
+
+# **17.5.5 Common show Commands Revisited**
+
+In the same way that commands and utilities are used to verify a host configuration, commands can be used to verify the interfaces of intermediary devices. The Cisco IOS provides commands to verify the operation of router and switch interfaces.
+
+The Cisco IOS CLI **show** commands display relevant information about the configuration and operation of the device. Network technicians use **show** commands extensively for viewing configuration files, checking the status of device interfaces and processes, and verifying the device operational status. The status of nearly every process or function of the router can be displayed using a **show** command.
+
+Commonly used **show** commands and when to use them are listed in the table.
+
+|  |  |
 | --- | --- |
-| Enter | Displays next line |
-| Space | Displays next screen |
-| Any other key | Ends display string |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
 
-**Note:** While the Delete key typically deletes the character to the right of the prompt, the IOS command structure does not recognize the Delete key.
+Click the buttons to see example output from each of these show commands.Note: The output of some commands has been edited to focus on pertinent settings and reduce content.
 
----
+show running-configshow interfacesshow ip interfaceshow arpshow ip routeshow protocolsshow version
 
-# 2.4 Basic Device Configuration
+**show running-config**
 
-## 2.4.1 Device Names
-
-The first configuration command on any device should be to give it a unique device name or hostname. By default, all devices are assigned a factory default name. For example, a Cisco IOS switch is "Switch."
-
-The problem is if all switches in a network were left with their default names, it would be difficult to identify a specific device. For instance, how would you know that you are connected to the right device when accessing it remotely using SSH? The hostname provides confirmation that you are connected to the correct device.
-
-The default name should be changed to something more descriptive. By choosing names wisely, it is easier to remember, document, and identify network devices. Here are some important naming guidelines for hosts:
-
-- Start with a letter
-- Contain no spaces
-- End with a letter or digit
-- Use only letters, digits, and dashes
-- Be less than 64 characters in length
-
-An organization must choose a naming convention that makes it easy and intuitive to identify a specific device.
-
-**Configuration example:**
+Verifies the current configuration and settings
 
 ```
-Switch# configure terminal
-Switch(config)# hostname Sw-Floor-1
-Sw-Floor-1(config)#
-```
-
-**Note:** To return the switch to the default prompt, use the `no hostname` global config command.
-
-Always make sure the documentation is updated each time a device is added or modified. Identify devices in the documentation by their location, purpose, and address.
-
----
-
-## 2.4.2 Password Guidelines
-
-The use of weak or easily guessed passwords continues to be the biggest security concern of organizations. Network devices, including home wireless routers, should always have passwords configured to limit administrative access.
-
-Cisco IOS can be configured to use hierarchical mode passwords to allow different access privileges to a network device.
-
-All networking devices should limit administrative access by securing privileged EXEC, user EXEC, and remote Telnet access with passwords. In addition, all passwords should be encrypted and legal notifications provided.
-
-When choosing passwords, use strong passwords that are not easily guessed. There are some key points to consider when choosing passwords:
-
-- Use passwords that are more than eight characters in length.
-- Use a combination of upper and lowercase letters, numbers, special characters, and/or numeric sequences.
-- Avoid using the same password for all devices.
-- Do not use common words because they are easily guessed.
-
-**Note:** Most of the labs in this course use simple passwords such as cisco or class. These passwords are considered weak and easily guessable and should be avoided in production environments. We only use these passwords for convenience in a classroom setting, or to illustrate configuration examples.
-
----
-
-## 2.4.3 Configure Passwords
-
-**Console password configuration:**
-
-```
-Sw-Floor-1# configure terminal
-Sw-Floor-1(config)# line console 0
-Sw-Floor-1(config-line)# password cisco
-Sw-Floor-1(config-line)# login
-Sw-Floor-1(config-line)# end
-Sw-Floor-1#
-```
-
-Console access will now require a password before allowing access to the user EXEC mode.
-
-**Privileged EXEC password configuration:**
-
-```
-Sw-Floor-1# configure terminal
-Sw-Floor-1(config)# enable secret class
-Sw-Floor-1(config)# exit
-Sw-Floor-1#
-```
-
-**VTY lines password configuration:**
-
-Virtual terminal (VTY) lines enable remote access using Telnet or SSH to the device. Many Cisco switches support up to 16 VTY lines that are numbered 0 to 15.
-
-```
-Sw-Floor-1# configure terminal
-Sw-Floor-1(config)# line vty 0 15
-Sw-Floor-1(config-line)# password cisco
-Sw-Floor-1(config-line)# login
-Sw-Floor-1(config-line)# end
-Sw-Floor-1#
-```
-
----
-
-## 2.4.4 Encrypt Passwords
-
-The startup-config and running-config files display most passwords in plaintext. This is a security threat because anyone can discover the passwords if they have access to these files.
-
-To encrypt all plaintext passwords, use the `service password-encryption` global config command:
-
-```
-Sw-Floor-1# configure terminal
-Sw-Floor-1(config)# service password-encryption
-Sw-Floor-1(config)#
-```
-
-The command applies weak encryption to all unencrypted passwords. This encryption applies only to passwords in the configuration file, not to passwords as they are sent over the network. The purpose of this command is to keep unauthorized individuals from viewing passwords in the configuration file.
-
-Use the `show running-config` command to verify that passwords are now encrypted:
-
-```
-Sw-Floor-1(config)# end
-Sw-Floor-1# show running-config
-!
-(Output omitted)
-!
-line con 0
- password 7 094F471A1A0A
- login
-!
-line vty 0 4
- password 7 094F471A1A0A
- login
-line vty 5 15
- password 7 094F471A1A0A
- login
-!
-!
-end
-```
-
----
-
-## 2.4.5 Banner Messages
-
-Although requiring passwords is one way to keep unauthorized personnel out of a network, it is vital to provide a method for declaring that only authorized personnel should attempt to access the device. To do this, add a banner to the device output. Banners can be an important part of the legal process in the event that someone is prosecuted for breaking into a device. Some legal systems do not allow prosecution, or even the monitoring of users, unless a notification is visible.
-
-To create a banner message of the day on a network device, use the `banner motd # the message of the day #` global config command. The "#" in the command syntax is called the delimiting character. It is entered before and after the message. The delimiting character can be any character as long as it does not occur in the message. For this reason, symbols such as the "#" are often used. After the command is executed, the banner will be displayed on all subsequent attempts to access the device until the banner is removed.
-
-**Example:**
-
-```
-Sw-Floor-1# configure terminal
-Sw-Floor-1(config)# banner motd #Authorized Access Only#
-```
-
----
-
-# 2.5 Save Configurations
-
-## 2.5.1 Configuration Files
-
-There are two system files that store the device configuration:
-
-**startup-config** - This is the saved configuration file that is stored in NVRAM. It contains all the commands that will be used by the device upon startup or reboot. Flash does not lose its contents when the device is powered off.
-
-**running-config** - This is stored in Random Access Memory (RAM). It reflects the current configuration. Modifying a running configuration affects the operation of a Cisco device immediately. RAM is volatile memory. It loses all of its content when the device is powered off or restarted.
-
-The `show running-config` privileged EXEC mode command is used to view the running config:
-
-```
-Sw-Floor-1# show running-config
-Building configuration...
-Current configuration : 1351 bytes
-!
-! Last configuration change at 00:01:20 UTC Mon Mar 1 1993
-!
-version 15.0
-no service pad
+R1#show running-config(Output omitted)!
+version 15.5
 service timestamps debug datetime msec
 service timestamps log datetime msec
 service password-encryption
 !
-hostname Sw-Floor-1
+hostname R1
 !
-(output omitted)
+interface GigabitEthernet0/0/0
+ description Link to R2
+ ip address 209.165.200.225 255.255.255.252
+ negotiation auto
+!
+interface GigabitEthernet0/0/1
+ description Link to LAN
+ ip address 192.168.10.1 255.255.255.0
+ negotiation auto
+!
+router ospf 10
+ network 192.168.10.0 0.0.0.255 area 0
+ network 209.165.200.224 0.0.0.3 area 0
+!
+banner motd ^C Authorized access only! ^C
+!
+line con 0
+ password 7 14141B180F0B
+ login
+line vty 0 4
+ password 7 00071A150754
+ login
+ transport input telnet ssh
+!
+end
+R1#
 ```
 
-To view the startup configuration file, use the `show startup-config` privileged EXEC command.
+# **17.5.6 The show cdp neighbors Command**
 
-If power to the device is lost, or if the device is restarted, all configuration changes will be lost unless they have been saved. To save changes made to the running configuration to the startup configuration file, use the `copy running-config startup-config` privileged EXEC mode command.
+There are several other IOS commands that are useful. The Cisco Discovery Protocol (CDP) is a Cisco proprietary protocol that runs at the data link layer. Because CDP operates at the data link layer, two or more Cisco network devices, such as routers that support different network layer protocols, can learn about each other even if Layer 3 connectivity has not been established.
 
----
+When a Cisco device boots, CDP starts by default. CDP automatically discovers neighboring Cisco devices running CDP, regardless of which Layer 3 protocol or suites are running. CDP exchanges hardware and software device information with its directly connected CDP neighbors.
 
-## 2.5.2 Alter the Running Configuration
+CDP provides the following information about each CDP neighbor device:
 
-If changes made to the running config do not have the desired effect and the running-config has not yet been saved, you can restore the device to its previous configuration. Remove the changed commands individually, or reload the device using the `reload` privileged EXEC mode command to restore the startup-config.
+- **Device identifiers** - The configured host name of a switch, router, or other device
+- **Address list** - Up to one network layer address for each protocol supported
+- **Port identifier** - The name of the local and remote port in the form of an ASCII character string, such as FastEthernet 0/0
+- **Capabilities list** - For example, whether a specific device is a Layer 2 switch or a Layer 3 switch
+- **Platform** - The hardware platform of the device--for example, a Cisco 1841 series router.
 
-The downside to using the reload command to remove an unsaved running config is the brief amount of time the device will be offline, causing network downtime.
+Refer to the topology and the **show cdp neighbor** command output.
 
-When a reload is initiated, the IOS will detect that the running config has changes that were not saved to the startup configuration. A prompt will appear to ask whether to save the changes. To discard the changes, enter **n** or **no**.
+![router R3 is connected via interface G0/0/1 to switch S3 at port F0/5 which is connected to switch S4](https://www.netacad.com/content/itn/1.0/_assets/media/2e8fb8c1-1c25-11ea-a010-eb2108469056/2e8fdfd2-1c25-11ea-81a0-ffc2c49b96bc.svg)
 
-Alternatively, if undesired changes were saved to the startup config, it may be necessary to clear all the configurations. This requires erasing the startup config and restarting the device. The startup config is removed by using the `erase startup-config` privileged EXEC mode command. After the command is issued, the switch will prompt you for confirmation. Press **Enter** to accept.
+`R3# **show cdp neighbors**Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone,                  D - Remote, C - CVTA, M - Two-port Mac RelayDevice ID        Local Intrfce     Holdtme    Capability  Platform  Port IDS3               Gig 0/0/1         122              S I   WS-C2960+ Fas 0/5Total cdp entries displayed : 1R3#`
 
-After removing the startup config from NVRAM, reload the device to remove the current running config file from RAM. On reload, a switch will load the default startup config that originally shipped with the device.
+The output displays that the R3 GigabitEthernet 0/0/1 interface is connected to the FastEthernet 0/5 interface of S3, which is a Cisco Catalyst 2960+ switch. Notice that R3 has not gathered information about S4. This is because CDP can only discover directly connected Cisco devices. S4 is not directly connected to R3 and therefore is not listed in the output.
 
----
+The **show cdp neighbors detail** command reveals the IP address of a neighboring device, as shown in the output. CDP will reveal the IP address of the neighbor regardless of whether or not you can ping that neighbor. This command is very helpful when two Cisco routers cannot route across their shared data link. The **show cdp neighbors detail** command will help determine if one of the CDP neighbors has an IP configuration error.
 
-## 2.5.4 Capture Configuration to a Text File
+As helpful as CDP is, it can also be a security risk because it can provide useful network infrastructure information to threat actors. For example, by default many IOS versions send CDP advertisements out all enabled ports. However, best practices suggest that CDP should be enabled only on interfaces that are connecting to other infrastructure Cisco devices. CDP advertisements should be disabled on user-facing ports.
 
-Configuration files can also be saved and archived to a text document. This sequence of steps ensures that a working copy of the configuration file is available for editing or reuse later.
+Because some IOS versions send out CDP advertisements by default, it is important to know how to disable CDP. To disable CDP globally, use the global configuration command **no cdp run**. To disable CDP on an interface, use the interface command **no cdp enable**.
 
-For example, assume that a switch has been configured, and the running config has been saved on the device.
+# **17.5.7 The show ip interface brief Command**
 
-**Step 1.** Open terminal emulation software, such as PuTTY or Tera Term, that is already connected to a switch.
+One of the most frequently used commands is the **show ip interface brief** command. This command provides a more abbreviated output than the **show ip interface** command. It provides a summary of the key information for all the network interfaces on a router.
 
-**Step 2.** Enable logging in the terminal software and assign a name and file location to save the log file. All session output will be captured to the file specified.
+For example, the **show ip interface brief** output displays all interfaces on the router, the IP address assigned to each interface, if any, and the operational status of the interface.
 
-**Step 3.** Execute the `show running-config` or `show startup-config` command at the privileged EXEC prompt. Text displayed in the terminal window will be placed into the chosen file.
+`R1# **show ip interface brief**Interface              IP-Address      OK? Method Status                ProtocolGigabitEthernet0/0/0   209.165.200.225 YES manual up                    upGigabitEthernet0/0/1   192.168.10.1    YES manual up                    upSerial0/1/0            unassigned      NO  unset  down                  downSerial0/1/1            unassigned      NO  unset  down                  downGigabitEthernet0       unassigned      YES unset  administratively down downR1#`
 
-```
-Sw-Floor-1# show running-config
-Building configuration...
-(output omitted)
-```
+**Verify Switch Interfaces**
 
-**Step 4.** Disable logging in the terminal software.
+The **show ip interface brief** command can also be used to verify the status of the switch interfaces, as shown in the output.
 
-The text file created can be used as a record of how the device is currently implemented. The file could require editing before being used to restore a saved configuration to a device.
+`S1# **show ip interface brief**Interface              IP-Address      OK? Method Status                ProtocolVlanl                  192.168.254.250 YES manual up                    upFastEthernet0/l        unassigned      YES unset  down                  downFastEthernet0/2        unassigned      YES unset  up                    upFastEthernet0/3        unassigned      YES unset  up                    up`
 
-**To restore a configuration file to a device:**
+The VLAN1 interface is assigned an IPv4 address of 192.168.254.250, has been enabled, and is operational.
 
-**Step 1.** Enter global configuration mode on the device.
+The output also shows that the FastEthernet0/1 interface is down. This indicates that either no device is connected to the interface or the device that is connected has a network interface that is not operational.
 
-**Step 2.** Copy and paste the text file into the terminal window connected to the switch.
+In contrast, the output shows that the FastEthernet0/2 and FastEthernet0/3 interfaces are operational. This is indicated by both the status and protocol being shown as up.
 
-The text in the file will be applied as commands in the CLI and become the running configuration on the device. This is a convenient method of manually configuring a device.
+# **17.5.8 Video - The show version Command**
 
----
+The **show version** command can be used to verify and troubleshoot some of the basic hardware and software components used during the boot process. Click Play to view a video from earlier in the course, which reviews an explanation of the **show version** command.
 
-# 2.6 Ports and Addresses
+# **17.5.9 Packet Tracer - Interpret show Command Output**
 
-## 2.6.1 IP Addresses
+This activity is designed to reinforce the use of router **show** commands. You are not required to configure, but rather examine, the output of several show commands.
 
-The use of IP addresses is the primary means of enabling devices to locate one another and establish end-to-end communication on the internet. Each end device on a network must be configured with an IP address. Examples of end devices include:
+**description**Interpret show Command Output[**file_download**Interpret show Command Output](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.5.9-packet-tracer---interpret-show-command-output.pka)
 
-- Computers (work stations, laptops, file servers, web servers)
-- Network printers
-- VoIP phones
-- Security cameras
-- Smart phones
-- Mobile handheld devices (such as wireless barcode scanners)
+# 17.6 Troubleshooting Methodologies
 
-The structure of an IPv4 address is called **dotted decimal notation** and is represented by four decimal numbers between 0 and 255. IPv4 addresses are assigned to individual devices connected to a network.
+Scroll to begin
 
-**Note:** IP in this course refers to both the IPv4 and IPv6 protocols. IPv6 is the most recent version of IP and is replacing the more common IPv4.
+# **17.6.1 Basic Troubleshooting Approaches**
 
-With the IPv4 address, a **subnet mask** is also necessary. An IPv4 subnet mask is a 32-bit value that differentiates the network portion of the address from the host portion. Coupled with the IPv4 address, the subnet mask determines to which subnet the device is a member.
+In the previous two topics, you learned about some utilities and commands that you can use to help identify problem areas in your network. This is an important part of troubleshooting. There are many ways to troubleshoot a network problem. This topic details a structured troubleshooting process that can help you to become a better network administrator. It also provides a few more commands to help you resolve problems. Network problems can be simple or complex, and can result from a combination of hardware, software, and connectivity issues. Technicians must be able to analyze the problem and determine the cause of the error before they can resolve the network issue. This process is called troubleshooting.
 
-The **default gateway** address is the IP address of the router that the host will use to access remote networks, including the internet.
+A common and efficient troubleshooting methodology is based on the scientific method.
 
-**IPv6 addresses** are 128 bits in length and written as a string of hexadecimal values. Every four bits is represented by a single hexadecimal digit; for a total of 32 hexadecimal values. Groups of four hexadecimal digits are separated by a colon (:). IPv6 addresses are not case-sensitive and can be written in either lowercase or uppercase.
+The table shows the six main steps in the troubleshooting process.
 
----
+|  |  |
+| --- | --- |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
 
-## 2.6.2 Interfaces and Ports
+To assess the problem, determine how many devices on the network are experiencing the problem. If there is a problem with one device on the network, start the troubleshooting process at that device. If there is a problem with all devices on the network, start the troubleshooting process at the device where all other devices are connected. You should develop a logical and consistent method for diagnosing network problems by eliminating one problem at a time.
 
-Network communications depend on end user device interfaces, networking device interfaces, and the cables that connect them. Each physical interface has specifications, or standards, that define it. A cable connecting to the interface must be designed to match the physical standards of the interface. Types of network media include:
+# **17.6.2 Resolve or Escalate?**
 
-- **Twisted-pair copper cables**
-- **Fiber-optic cables**
-- **Coaxial cables**
-- **Wireless**
+In some situations, it may not be possible to resolve the problem immediately. A problem should be escalated when it requires a manager decision, some specific expertise, or network access level unavailable to the troubleshooting technician.
 
-Different types of network media have different features and benefits. Not all network media have the same characteristics. These are some of the differences between various types of media:
+For example, after troubleshooting, the technician concludes a router module should be replaced. This problem should be escalated for manager approval. The manager may have to escalate the problem again as it may require the approval of the financial department before a new module can be purchased.
 
-- Distance the media can successfully carry a signal
-- Environment in which the media is to be installed
-- Amount of data and the speed at which it must be transmitted
-- Cost of the media and installation
+A company policy should clearly state when and how a technician should escalate a problem.
 
-Not only does each link on the internet require a specific network media type, but each link also requires a particular network technology. For example, **Ethernet** is the most common local-area network (LAN) technology used today. Ethernet ports are found on end-user devices, switch devices, and other networking devices that can physically connect to the network using a cable.
+# **17.6.3 The debug Command**
 
-Cisco IOS Layer 2 switches have physical ports for devices to connect. These ports do not support Layer 3 IP addresses. Therefore, switches have one or more **switch virtual interfaces (SVIs)**. These are virtual interfaces because there is no physical hardware on the device associated with it. An SVI is created in software.
+OS processes, protocols, mechanisms and events generate messages to communicate their status. These messages can provide valuable information when troubleshooting or verifying system operations. The IOS **debug** command allows the administrator to display these messages in real-time for analysis. It is a very important tool for monitoring events on a Cisco IOS device.
 
-The virtual interface lets you remotely manage a switch over a network using IPv4 and IPv6. Each switch comes with one SVI appearing in the default configuration "out-of-the-box." The default SVI is interface VLAN1.
+All **debug** commands are entered in privileged EXEC mode. The Cisco IOS allows for narrowing the output of **debug** to include only the relevant feature or subfeature. This is important because debugging output is assigned high priority in the CPU process and it can render the system unusable. For this reason, use **debug** commands only to troubleshoot specific problems.
 
-**Note:** A Layer 2 switch does not need an IP address. The IP address assigned to the SVI is used to remotely access the switch. An IP address is not necessary for the switch to perform its operations.
+For example, to monitor the status of ICMP messages in a Cisco router, use **debug ip icmp**, as shown in the example.
 
----
+`R1# **debug ip icmp**ICMP packet debugging is onR1#R1# **ping 10.1.1.1**Type escape sequence to abort.Sending 5, 100-byte ICMP Echos to 10.1.1.1, timeout is 2 seconds:!!!!!Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 msR1#*Aug 20 14:18:59.605: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0*Aug 20 14:18:59.606: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0*Aug 20 14:18:59.608: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0*Aug 20 14:18:59.609: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0*Aug 20 14:18:59.611: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0R1#`
 
-# 2.7 Configure IP Addressing
+To list a brief description of all the debugging command options, use the **debug ?** command in privileged EXEC mode at the command line.
 
-## 2.7.1 Manual IP Address Configuration for End Devices
+To turn off a specific debugging feature, add the **no** keyword in front of the **debug** command:
 
-IPv4 address information can be entered into end devices manually, or automatically using **Dynamic Host Configuration Protocol (DHCP)**.
+`Router# **no debug ip icmp**`
 
-To manually configure an IPv4 address on a Windows host, open the **Control Panel > Network Sharing Center > Change adapter settings** and choose the adapter. Next right-click and select **Properties** to display the Local Area Connection Properties.
+Alternatively, you can enter the **undebug** form of the command in privileged EXEC mode:
 
-Highlight **Internet Protocol Version 4 (TCP/IPv4)** and click **Properties** to open the Internet Protocol Version 4 (TCP/IPv4) Properties window. Configure the IPv4 address and subnet mask information, and default gateway.
+`Router# **undebug ip icmp**`
 
-**Note:** IPv6 addressing and configuration options are similar to IPv4.
+To turn off all active debug commands at once, use the **undebug all** command:
 
-**Note:** The DNS server addresses are the IPv4 and IPv6 addresses of the Domain Name System (DNS) servers, which are used to translate IP addresses to domain names, such as [www.cisco.com](http://www.cisco.com).
+`Router# **undebug all**`
 
----
+Be cautious using some **debug** command. Commands such as **debug all** and **debug ip packet** generate a substantial amount of output and can use a large portion of system resources. The router could get so busy displaying **debug** messages that it would not have enough processing power to perform its network functions, or even listen to commands to turn off debugging. For this reason, using these command options is not recommended and should be avoided.
 
-## 2.7.2 Automatic IP Address Configuration for End Devices
+# **17.6.4 The terminal monitor Command**
 
-End devices typically default to using DHCP for automatic IPv4 address configuration. DHCP is a technology that is used in almost every network. The best way to understand why DHCP is so popular is by considering all the extra work that would have to take place without it.
+Connections to grant access to the IOS command line interface can be established in the following two ways:
 
-In a network, DHCP enables automatic IPv4 address configuration for every end device that is DHCP-enabled. Imagine the amount of time it would take if every time you connected to the network, you had to manually enter the IPv4 address, the subnet mask, the default gateway, and the DNS server. Multiply that by every user and every device in an organization and you see the problem. Manual configuration also increases the chance of misconfiguration by duplicating another device's IPv4 address.
+- **Locally** - Local connections (i.e., console connection) require physical access to the router or switch console port using a rollover cable.
+- **Remotely** - Remote connections require the use of Telnet or SSH to establish a connection to an IP configured device.
 
-To configure DHCP on a Windows PC, you only need to select **Obtain an IP address automatically** and **Obtain DNS server address automatically**. Your PC will search out a DHCP server and be assigned the address settings necessary to communicate on the network.
+Certain IOS messages are automatically displayed on a console connection but not on a remote connection. For instance, **debug** output is displayed by default on console connections. However, **debug** output is not automatically displayed on remote connections. This is because **debug** messages are log messages which are prevented from being displayed on vty lines.
 
-**Note:** IPv6 uses DHCPv6 and SLAAC (Stateless Address Autoconfiguration) for dynamic address allocation.
+In the following output for instance, the user established a remote connection using Telnet from R2 to R1. The user then issued the **debug ip icmp** command. However, the command failed to display **debug** output.
 
----
+`R2# **telnet 209.165.200.225**Trying 209.165.200.225 ... OpenAuthorized access only!User Access VerificationPassword:R1> **enable**Password:R1# **debug ip icmp**ICMP packet debugging is onR1# **ping 10.1.1.1**Type escape sequence to abort.Sending 5, 100-byte ICMP Echos to 10.1.1.1, timeout is 2 seconds:!!!!!Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 msR1#! No debug output displayed>`
 
-## 2.7.4 Switch Virtual Interface Configuration
+To display log messages on a terminal (virtual console), use the **terminal monitor** privileged EXEC command. To stop logging messages on a terminal, use the **terminal no monitor** privileged EXEC command.
 
-To access the switch remotely, an IP address and a subnet mask must be configured on the SVI. To configure an SVI on a switch, use the `interface vlan 1` global configuration command. Vlan 1 is not an actual physical interface but a virtual one. Next assign an IPv4 address using the `ip address ip-address subnet-mask` interface configuration command. Finally, enable the virtual interface using the `no shutdown` interface configuration command.
+For instance, notice how the **terminal monitor** command has now been entered and the **ping** command displays the **debug** output.
 
-After these commands are configured, the switch has all the IPv4 elements ready for communication over the network.
+`R1# **terminal monitor**R1# **ping 10.1.1.1**Type escape sequence to abort.Sending 5, 100-byte ICMP Echos to 10.1.1.1, timeout is 2 seconds:!!!!!Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 msR1#*Aug 20 16:03:49.735: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0**Aug 20 16:03:49.737: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0**Aug 20 16:03:49.738: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0**Aug 20 16:03:49.740: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0**Aug 20 16:03:49.741: ICMP: echo reply rcvd, src 10.1.1.1, dst 209.165.200.225,topology BASE, dscp 0 topoid 0R1# **no debug ip icmp**ICMP packet debugging is offR1#`
 
-**Note:** Similar to a Windows hosts, switches configured with an IPv4 address will typically also need to have a default gateway assigned. This can be done using the `ip default-gateway ip-address` global configuration command. The ip-address parameter would be the IPv4 address of the local router on the network. However, in this module you will only be configuring a network with switches and hosts. Routers will be introduced later.
+**Note:** The intent of the **debug** command is to capture live output for a short period of time (i.e., a few seconds to a minute or so). Always disable **debug** when not required.
 
-**Configuration example:**
+## 17.6.5 Check Your Understanding - Troubleshooting Methodologies
 
-```
-Sw-Floor-1# configure terminal
-Sw-Floor-1(config)# interface vlan 1
-Sw-Floor-1(config-if)# ip address 192.168.1.20 255.255.255.0
-Sw-Floor-1(config-if)# no shutdown
-Sw-Floor-1(config-if)# exit
-Sw-Floor-1(config)# ip default-gateway 192.168.1.1
-```
+**Instructions:**
 
----
+![](https://www.netacad.com/content/itn/1.0/assets/icons8-info-16.svg)
 
-# 2.8 Verify Connectivity
+- The exam consists of **4** questions and **70**% is required to pass.
+- You have **unlimited attempts** to pass the exam.
+- You have **no** time limit per attempt to pass the exam.
 
-## 2.8.1 Test the Interface Assignment
+# 17.7 Troubleshooting Scenarios
 
-In the same way that you use commands and utilities like `ipconfig` to verify the network configuration of a PC host, you also use commands to verify the interfaces and address settings of intermediary devices like switches and routers.
+Scroll to begin
 
-The `show ip interface brief` command is useful for verifying the condition of the switch interfaces. This command displays:
+# **17.7.1 Duplex Operation and Mismatch Issues**
 
-- Interface name
-- IP address
-- Status (up/down)
-- Protocol status
+Many common network problems can be identified and resolved with little effort. Now that you have the tools and the process for troubleshooting a network, this topic reviews some common networking issues that you are likely to find as a network administrator.
 
-**Windows PC command:**
+In data communications, *duplex* refers to the direction of data transmission between two devices.
 
-```
-C:\> ipconfig
-```
+There are two duplex communication modes:
 
-Displays the IP configuration of the Windows host including:
+- **Half-duplex** - Communication is restricted to the exchange of data in one direction at a time.
+- **Full-duplex** - Communications is permitted to be sent and received simultaneously.
 
-- IPv4 address
-- Subnet mask
-- Default gateway
+The figure illustrates how each duplex method operates.
 
-**Switch command:**
+The figure is a comparison of half-duplex versus full-duplex communications. The top diagram shows half-duplex communication. Switch S1 is connected to switch S2 with an arrow flowing from S1 to S2 indicating a device can send or receive. The bottom diagram shows-full duplex communication. Switch S1 is connected to switch S2 with arrows pointing in both directions indicating a device can send AND receive simultaneously.
 
-```
-Switch# show ip interface brief
-```
+S2S1S2S1
 
-Displays the status and IP configuration of all switch interfaces.
+**Full-Duplex Communication**
 
----
+**Half-Duplex Communication**
 
-## 2.8.2 Test End-to-End Connectivity
+Send **OR** receive
 
-The `ping` command can be used to test connectivity to another device on the network or a website on the internet.
+Send **AND** receive simultaneously
 
-The ping command sends out a request to a specified IP address. When a host receives a ping message, it responds with a ping reply. The ping command calculates elapsed time and determines whether all packets were successfully received.
+Interconnecting Ethernet interfaces must operate in the same duplex mode for best communication performance and to avoid inefficiency and latency on the link.
 
-**Usage examples:**
+The Ethernet autonegotiation feature facilitates configuration, minimizes problems and maximizes link performance between two interconnecting Ethernet links. The connected devices first announce their supported capabilities and then choose the highest performance mode supported by both ends. For example, the switch and router in the figure have successfully autonegotiated full-duplex mode.
 
-```
-Switch# ping 192.168.1.1
-```
+S1R1
 
-Tests connectivity to the default gateway.
+**I can operate in full-duplex ...**
 
-```
-C:\> ping 192.168.1.20
-```
+**I can operate in full-duplex ...**
 
-Tests connectivity from a Windows PC to a switch.
+F0/5
 
-**Ping success indicators:**
+G0/0/1
 
-- `!` = successful reply
-- `.` = timeout waiting for reply
-- `U` = destination unreachable
+If one of the two connected devices is operating in full-duplex and the other is operating in half-duplex, a duplex mismatch occurs. While data communication will occur through a link with a duplex mismatch, link performance will be very poor.
 
----
+Duplex mismatches are typically caused by a misconfigured interface or in rare instances by a failed autonegotiation. Duplex mismatches may be difficult to troubleshoot as the communication between devices still occurs.
 
-## Module Summary
+# **17.7.2 IP Addressing Issues on IOS Devices**
 
-In this module, you learned how to:
+IP address-related problems will likely keep remote network devices from communicating. Because IP addresses are hierarchical, any IP address assigned to a network device must conform to that range of addresses in that network. Wrongly assigned IP addresses create a variety of issues, including IP address conflicts and routing problems.
 
-✅ Access Cisco IOS through console, SSH, and Telnet connections
+Two common causes of incorrect IPv4 assignment are manual assignment mistakes or DHCP-related issues.
 
-✅ Navigate between different IOS command modes
+Network administrators often have to manually assign IP addresses to devices such as servers and routers. If a mistake is made during the assignment, then communications issues with the device are very likely to occur.
 
-✅ Use context-sensitive help and command shortcuts
+On an IOS device, use the **show ip interface** or **show ip interface brief** commands to verify what IPv4 addresses are assigned to the network interfaces. For example, issuing the **show ip interface** **brief** command as shown would validate the interface status on R1.
 
-✅ Configure device names, passwords, and banner messages
+`R1# **show ip interface brief**Interface              IP-Address      OK? Method Status                ProtocolGigabitEthernet0/0/0   209.165.200.225 YES manual up                    upGigabitEthernet0/0/1   192.168.10.1    YES manual up                    upSerial0/1/0            unassigned      NO  unset  down                  downSerial0/1/1            unassigned      NO  unset  down                  downGigabitEthernet0       unassigned      YES unset  administratively down downR1#`
 
-✅ Save and manage configuration files
+# **17.7.3 IP Addressing Issues on End Devices**
 
-✅ Understand IP addressing and network interfaces
+In Windows-based machines, when the device cannot contact a DHCP server, Windows will automatically assign an address belonging to the 169.254.0.0/16 range. This feature is called Automatic Private IP Addressing (APIPA) and is designed to facilitate communication within the local network. Think of it as Windows saying, “I will use this address from the 169.254.0.0/16 range because I could not get any other address”.
 
-✅ Configure IP addresses on switch virtual interfaces
+Often, a computer with an APIPA address will not be able to communicate with other devices in the network because those devices will most likely not belong to the 169.254.0.0/16 network. This situation indicates an automatic IPv4 address assignment problem that should be fixed.
 
-✅ Verify connectivity using `ping` and `show` commands
+**Note:** Other operating systems, such Linux and OS X, will not assign an IPv4 address to the network interface if communication with a DHCP server fails.
 
-**Key commands covered:**
+Most end devices are configured to rely on a DHCP server for automatic IPv4 address assignment. If the device is unable to communicate with the DHCP server, then the server cannot assign an IPv4 address for the specific network and the device will not be able to communicate.
 
-- `enable` / `disable` - Enter/exit privileged EXEC mode
-- `configure terminal` - Enter global configuration mode
-- `hostname` - Set device name
-- `enable secret` - Set privileged EXEC password
-- `line console 0` / `line vty 0 15` - Configure line access
-- `service password-encryption` - Encrypt passwords
-- `banner motd` - Configure login banner
-- `copy running-config startup-config` - Save configuration
-- `show running-config` / `show startup-config` - View configurations
-- `interface vlan 1` - Configure switch virtual interface
-- `ip address` - Assign IP address
-- `show ip interface brief` - Verify interface status
-- `ping` - Test connectivity
+To verify the IP addresses assigned to a Windows-based computer, use the **ipconfig** command, as shown in the output.
 
----
+`C:\Users\PC-A> **ipconfig**Windows IP Configuration(Output omitted)Wireless LAN adapter Wi-Fi:   Connection-specific DNS Suffix  . :   Link-local IPv6 Address . . . . . : fe80::a4aa:2dd1:ae2d:a75e%16   IPv4 Address. . . . . . . . . . . : 192.168.10.10   Subnet Mask . . . . . . . . . . . : 255.255.255.0   Default Gateway . . . . . . . . . : 192.168.10.1(Output omitted)`
 
-**Next Module:** Module 3 will cover protocols and models used in network communication.
+# **17.7.4 Default Gateway Issues**
+
+The default gateway for an end device is the closest networking device that can forward traffic to other networks. If a device has an incorrect or nonexistent default gateway address, it will not be able to communicate with devices in remote networks. Because the default gateway is the path to remote networks, its address must belong to the same network as the end device.
+
+The address of the default gateway can be manually set or obtained from a DHCP server. Similar to IPv4 addressing issues, default gateway problems can be related to misconfiguration (in the case of manual assignment) or DHCP problems (if automatic assignment is in use).
+
+To solve misconfigured default gateway issues, ensure that the device has the correct default gateway configured. If the default address was manually set but is incorrect, simply replace it with the proper address. If the default gateway address was automatically set, ensure the device can communicate with the DHCP server. It is also important to verify that the proper IPv4 address and subnet mask were configured on the interface of the router and that the interface is active.
+
+To verify the default gateway on Windows-based computers, use the **ipconfig** command as shown.
+
+`C:\Users\PC-A> **ipconfig**Windows IP Configuration(Output omitted)Wireless LAN adapter Wi-Fi:   Connection-specific DNS Suffix  . :   Link-local IPv6 Address . . . . . : fe80::a4aa:2dd1:ae2d:a75e%16   IPv4 Address. . . . . . . . . . . : 192.168.10.10   Subnet Mask . . . . . . . . . . . : 255.255.255.0   Default Gateway . . . . . . . . . : 192.168.10.1(Output omitted)`
+
+On a router, use the **show ip route** command to list the routing table and verify that the default gateway, known as a default route, has been set. This route is used when the destination address of the packet does not match any other routes in its routing table.
+
+For example, the output verifies that R1 has a default gateway (i.e., Gateway of last resort) configured pointing to IP address 209.168.200.226.
+
+`R1# **show ip route | begin Gateway**Gateway of last resort is 209.165.200.226 to network 0.0.0.0O*E2  0.0.0.0/0 [110/1] via 209.165.200.226, 02:19:50, GigabitEthernet0/0/0      10.0.0.0/24 is subnetted, 1 subnetsO        10.1.1.0 [110/3] via 209.165.200.226, 02:05:42, GigabitEthernet0/0/0      192.168.10.0/24 is variably subnetted, 2 subnets, 2 masksC        192.168.10.0/24 is directly connected, GigabitEthernet0/0/1L        192.168.10.1/32 is directly connected, GigabitEthernet0/0/1      209.165.200.0/24 is variably subnetted, 3 subnets, 2 masksC        209.165.200.224/30 is directly connected, GigabitEthernet0/0/0L        209.165.200.225/32 is directly connected, GigabitEthernet0/0/0O        209.165.200.228/30           [110/2] via 209.165.200.226, 02:07:19, GigabitEthernet0/0/0R1#`
+
+The first highlighted line basically states that the gateway to any (i.e., 0.0.0.0) should be sent to IP address 209.165.200.226. The second highlighted displays how R1 learned about the default gateway. In this case, R1 received the information from another OSPF-enabled router.
+
+# **17.7.5 Troubleshooting DNS Issues**
+
+Domain Name System (DNS) defines an automated service that matches names, such as [www.cisco.com](http://www.cisco.com/), with the IP address. Although DNS resolution is not crucial to device communication, it is very important to the end user.
+
+It is common for users to mistakenly relate the operation of an internet link to the availability of the DNS. User complaints such as “the network is down” or “the internet is down” are often caused by an unreachable DNS server. While packet routing and all other network services are still operational, DNS failures often lead the user to the wrong conclusion. If a user types in a domain name such as [www.cisco.com](http://www.cisco.com/) in a web browser and the DNS server is unreachable, the name will not be translated into an IP address and the website will not display.
+
+DNS server addresses can be manually or automatically assigned. Network administrators are often responsible for manually assigning DNS server addresses on servers and other devices, while DHCP is used to automatically assign DNS server addresses to clients.
+
+Although it is common for companies and organizations to manage their own DNS servers, any reachable DNS server can be used to resolve names. Small office and home office (SOHO) users often rely on the DNS server maintained by their ISP for name resolution. ISP-maintained DNS servers are assigned to SOHO customers via DHCP. Additionally, Google maintains a public DNS server that can be used by anyone and it is very useful for testing. The IPv4 address of Google’s public DNS server is 8.8.8.8 and 2001:4860:4860::8888 for its IPv6 DNS address.
+
+Cisco offers OpenDNS which provides secure DNS service by filtering phishing and some malware sites. You can change your DNS address to 208.67.222.222 and 208.67.220.220 in the Preferred DNS server and Alternate DNS server fields. Advanced features such as web content filtering and security are available to families and businesses.
+
+Use the **ipconfig /all** as shown to verify which DNS server is in use by the Windows computer.
+
+`C:\Users\PC-A> **ipconfig /all**(Output omitted)Wireless LAN adapter Wi-Fi:   Connection-specific DNS Suffix  . :   Description . . . . . . . . . . . : Intel(R) Dual Band Wireless-AC 8265   Physical Address. . . . . . . . . : F8-94-C2-E4-C5-0A   DHCP Enabled. . . . . . . . . . . : Yes   Autoconfiguration Enabled . . . . : Yes   Link-local IPv6 Address . . . . . : fe80::a4aa:2dd1:ae2d:a75e%16(Preferred)   IPv4 Address. . . . . . . . . . . : 192.168.10.10(Preferred)   Subnet Mask . . . . . . . . . . . : 255.255.255.0   Lease Obtained. . . . . . . . . . : August 17, 2019 1:20:17 PM   Lease Expires . . . . . . . . . . : August 18, 2019 1:20:18 PM   Default Gateway . . . . . . . . . : 192.168.10.1   DHCP Server . . . . . . . . . . . : 192.168.10.1   DHCPv6 IAID . . . . . . . . . . . : 100177090   DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-21-F3-76-75-54-E1-AD-DE-DA-9A   DNS Servers . . . . . . . . . . . : 208.67.222.222   NetBIOS over Tcpip. . . . . . . . : Enabled(Output omitted)`
+
+The **nslookup** command is another useful DNS troubleshooting tool for PCs. With **nslookup** a user can manually place DNS queries and analyze the DNS response. The **nslookup** command shows the output for a query for [www.cisco.com](http://www.cisco.com/). Notice you can also simply enter an IP address and **nslookup** will resolve the name.
+
+**Note:** It is not always possible to type an IP address in **nslookup** and receive the domain name. One of the most common reasons for this is that most websites run on servers that support multiple sites.
+
+`C:\Users\PC-A> **nslookup**Default Server:  Home-NetAddress:  192.168.1.1> **cisco.com**Server:  Home-NetAddress:  192.168.1.1Non-authoritative answer:Name:    cisco.comAddresses:  2001:420:1101:1::185          72.163.4.185> **8.8.8.8**Server:  Home-NetAddress:  192.168.1.1Name:    dns.googleAddress:  8.8.8.8>> **208.67.222.222**Server:  Home-NetAddress:  192.168.1.1Name:    resolver1.opendns.comAddress:  208.67.222.222>`
+
+# **17.7.6 Packet Tracer - Troubleshoot Connectivity Issues**
+
+The objective of this Packet Tracer activity is to troubleshoot and resolve connectivity issues, if possible. Otherwise, the issues should be clearly documented and so they can be escalated.
+
+**description**Troubleshoot Connectivity Issues[**file_download**Troubleshoot Connectivity Issues](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.7.6-packet-tracer---troubleshoot-connectivity-issues.pka)
+
+# **17.7.7 Lab - Troubleshoot Connectivity Issues**
+
+### Skills Practice Opportunity
+
+You have the opportunity to practice the following skills:
+
+- Part 1: Identify the Problem
+- Part 2: Implement Network Changes
+- Part 3: Verify Full Functionality
+- Part 4: Document Findings and Configuration Changes
+
+You can practice these skills using the Packet Tracer or lab equipment, if available.
+
+**Packet Tracer - Physical Mode (PTPM)**
+
+**description**Troubleshoot Connectivity Issues - Physical Mode[**file_download**Troubleshoot Connectivity Issues - Physical Mode](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.7.7-packet-tracer---troubleshoot-connectivity-issues---physical-mode.pka)
+
+**Lab Equipment**
+
+**description**Troubleshoot Connectivity Issues
+
+# 17.8 Module Practice and Quiz
+
+Scroll to begin
+
+# **17.8.1 Lab - Design and Build a Small Business Network**
+
+### Skills Practice Opportunity
+
+You have the opportunity to practice designing and building a network from scratch. Your design must include a minimum of one Cisco 4321 router, two Cisco 2960 switches, and two PCs. Fully configure the network and use IPv4 or IPv6 (subnetting must be included as a part of your addressing scheme). Verify the network using at least five **show** commands. Secure the network using SSH, secure passwords, and console passwords (minimum).
+
+You can practice these skills using the Packet Tracer or lab equipment, if available.
+
+**Packet Tracer - Physical Mode (PTPM)**
+
+**description**Design and Build a Small Network - Physical Mode[**file_download**Design and Build a Small Network - Physical Mode](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.8.1-packet-tracer---design-and-build-a-small-network---physical-mode.pka)
+
+**Lab Equipment**
+
+**description**Design and Build a Small Network
+
+# **17.8.2 Packet Tracer - Skills Integration Challenge**
+
+In this Packet Tracer activity, you will use all the skills you have acquired over throughout this course.
+
+**description**Skills Integration Challenge[**file_download**Skills Integration Challenge](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.8.2-packet-tracer---skills-integration-challenge.pka)
+
+# **17.8.3 Packet Tracer - Troubleshooting Challenge**
+
+In this Packet Tracer activity, you will troubleshoot and resolve a number of issues in an existing network.
+
+**description**Troubleshooting Challenge[**file_download**Troubleshooting Challenge](https://www.netacad.com/content/itn/1.0/courses/content/m17/en-US/assets/17.8.3-packet-tracer---troubleshooting-challenge.pka)
+
+# **17.8.4 What did I learn in this module?**
+
+**Devices in a Small Network**
+
+Small networks typically have a single WAN connection provided by DSL, cable, or an Ethernet connection. Small networks are managed by a local IT technician or by a contracted professional. Factors to consider when selecting network devices for a small network are cost, speed and types of ports/interfaces, expandability, and OS features and services. When implementing a network, create an IP addressing scheme and use it on end devices, servers and peripherals, and intermediary devices. Redundancy can be accomplished by installing duplicate equipment, but it can also be accomplished by supplying duplicate network links for critical areas. The routers and switches in a small network should be configured to support real-time traffic, such as voice and video, in an appropriate manner relative to other data traffic. In fact, a good network design will implement quality of service (QoS) to classify traffic carefully according to priority.
+
+**Small Network Applications and Protocols**
+
+There are two forms of software programs or processes that provide access to the network: network applications and application layer services. Some end-user applications implement application layer protocols and are able to communicate directly with the lower layers of the protocol stack. Email clients and web browsers are examples of this type of application. Other programs may need the assistance of application layer services to use network resources like file transfer or network print spooling. These are the programs that interface with the network and prepare the data for transfer. The two most common remote access solutions are Telnet and Secure Shell (SSH). SSH service is a secure alternative to Telnet. Network administrators must also support common network servers and their required related network protocols such as web server, email server, FTP server, DHCP server, and DNS server. Businesses today are increasingly using IP telephony and streaming media to communicate with customers and business partners. These are real-time applications. The network infrastructure must support VoIP, IP telephony, and other real-time applications.
+
+**Scale to Larger Networks**
+
+To scale a network, several elements are required: network documentation, device inventory, budget, and traffic analysis. Know the type of traffic that is crossing the network as well as the current traffic flow. Capture traffic during peak utilization times to get a good representation of the different traffic types and perform the capture on different network segments and devices as some traffic will be local to a particular segment. Network administrators must know how network use is changing. Usage details of employee computers can be captured in a ‘snapshot’ with such tools as the Windows Task Manager, Event Viewer, and Data Usage.
+
+**Verify Connectivity**
+
+The **ping** command is the most effective way to quickly test Layer 3 connectivity between a source and destination IP address. The command also displays various round-trip time statistics. The Cisco IOS offers an "extended" mode of the ping command which lets the user create special types of pings by adjusting parameters related to the command operation. Extended ping is entered in privileged EXEC mode by typing ping without a destination IP address. Traceroute can help locate Layer 3 problem areas in a network. A trace returns a list of hops as a packet is routed through a network. It is used to identify the point along the path where the problem can be found. In Windows, the command is **tracert**. In Cisco IOS the command is **traceroute**. There is also an extended **traceroute** command. It allows the administrator to adjust parameters related to the command operation. The output derived from network commands contributes data to the network baseline. One method for starting a baseline is to copy and paste the results from an executed ping, trace, or other relevant commands into a text file. These text files can be time stamped with the date and saved into an archive for later retrieval and comparison.
+
+**Host and IOS Commands**
+
+Network administrators view the IP addressing information (address, mask, router, and DNS) on a Windows host by issuing the **ipconfig** command. Other necessary commands are **ipconfig /all**, **ipconfig /release** and **ipconfig /renew**, and **ipconfig /displaydns**. Verifying IP settings by using the GUI on a Linux machine will differ depending on the Linux distribution (distro) and desktop interface. Necessary commands are **ifconfig**, and **ip address**. In the GUI of a Mac host, open Network Preferences > Advanced to get the IP addressing information. Other IP addressing commands for Mac are **ifconfig**, and **networksetup -listallnetworkservices** and **networksetup -getinfo** <*network service*>. The **arp** command is executed from the Windows, Linux, or Mac command prompt. The command lists all devices currently in the ARP cache of the host, which includes the IPv4 address, physical address, and the type of addressing (static/dynamic), for each device. The **arp -a** command displays the known IP address and MAC address binding. Common **show** commands are **show running-config**, **show interfaces**, **show ip address**, **show arp**, **show ip route**, **show protocols**, and **show version**. The **show cdp neighbor** command provides the following information about each CDP neighbor device: identifiers, address list, port identifier, capabilities list, and platform. The **show cdp neighbors detail** command will help determine if one of the CDP neighbors has an IP configuration error. The **show ip interface brief** command output displays all interfaces on the router, the IP address assigned to each interface, if any, and the operational status of the interface.
+
+**Troubleshooting Methodologies**
+
+Step 1. Identify the problem.
+
+Step 2. Establish a theory of probably causes.
+
+Step 3. Test the theory to determine the cause.
+
+Step 4. Establish a plan of action and implement the solution.
+
+Step 5. Verify the solution and implement preventive measures.
+
+Step 6. Document findings, actions, and outcomes.
+
+A problem should be escalated when it requires a the decision of a manager, some specific expertise, or network access level unavailable to the troubleshooting technician. OS processes, protocols, mechanisms and events generate messages to communicate their status. The IOS **debug** command allows the administrator to display these messages in real-time for analysis. To display log messages on a terminal (virtual console), use the **terminal monitor** privileged EXEC command.
+
+**Troubleshooting Scenarios**
+
+There are two duplex communication modes: half-duplex and full-duplex. If one of the two connected devices is operating in full-duplex and the other is operating in half-duplex, a duplex mismatch occurs. While data communication will occur through a link with a duplex mismatch, link performance will be very poor.
+
+Wrongly assigned IP addresses create a variety of issues, including IP address conflicts and routing problems. Two common causes of incorrect IPv4 assignment are manual assignment mistakes or DHCP-related issues. Most end devices are configured to rely on a DHCP server for automatic IPv4 address assignment. If the device is unable to communicate with the DHCP server, then the server cannot assign an IPv4 address for the specific network and the device will not be able to communicate.
+
+The default gateway for an end device is the closest networking device that can forward traffic to other networks. If a device has an incorrect or nonexistent default gateway address, it will not be able to communicate with devices in remote networks. Because the default gateway is the path to remote networks, its address must belong to the same network as the end device.
+
+DNS failures often lead the user to conclude that the network is down. If a user types in a domain name such as [www.cisco.com](http://www.cisco.com/) in a web browser and the DNS server is unreachable, the name will not be translated into an IP address and the website will not display.
+
+## Module Quiz - Build a Small Network
+
+**Instructions:**
+
+![](https://www.netacad.com/content/itn/1.0/assets/icons8-info-16.svg)
+
+- The exam consists of **15** questions and **70**% is required to pass.
+- You have **unlimited attempts** to pass the exam.
+- You have **no** time limit per attempt to pass the exam.

@@ -5,10 +5,11 @@ This module provides tools for hierarchical parsing of CCNA module content,
 breaking down large documents into semantically meaningful chunks that are
 optimal for LLM processing and learning atom generation.
 """
+
 from .chunker import (
     CCNAChunker,
-    ChunkType,
     ChunkingStats,
+    ChunkType,
     SourceTag,
     TextChunk,
     analyze_chunks,

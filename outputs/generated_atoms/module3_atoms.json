@@ -1,0 +1,582 @@
+[
+  {
+    "card_id": "3.6-FC-001",
+    "front": "A user sends an email. At the Application layer, what PDU is the email considered?",
+    "back": "At the Application layer, the email is considered data. The Application layer is where user applications interact with the network.",
+    "tags": [
+      "pdu",
+      "application layer",
+      "data"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-002",
+    "front": "A TCP connection is established. What is the Transport layer PDU called?",
+    "back": "With TCP, the Transport layer PDU is called a segment. TCP provides reliable, connection-oriented data transfer using segments.",
+    "tags": [
+      "pdu",
+      "transport layer",
+      "tcp",
+      "segment"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-003",
+    "front": "A DNS request is sent using UDP. What is the Transport layer PDU named?",
+    "back": "Using UDP, the Transport layer PDU is called a datagram. UDP is connectionless and faster, so DNS often uses datagrams.",
+    "tags": [
+      "pdu",
+      "transport layer",
+      "udp",
+      "datagram"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-004",
+    "front": "An IP address is added to a TCP segment. What is the resulting PDU called?",
+    "back": "When the Network layer adds an IP header, the PDU becomes a packet. Packets are used for routing across networks.",
+    "tags": [
+      "pdu",
+      "network layer",
+      "packet",
+      "ip"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-005",
+    "front": "An Ethernet header and trailer are added. What's the Data Link layer PDU called?",
+    "back": "At the Data Link layer, the PDU is called a frame. Frames contain physical addressing information for local network delivery.",
+    "tags": [
+      "pdu",
+      "data link layer",
+      "frame",
+      "ethernet"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-006",
+    "front": "A network card transmits data over a wire. What is the Physical layer PDU?",
+    "back": "At the Physical layer, the PDU is simply bits. The Physical layer deals with the physical transmission of electrical or light signals.",
+    "tags": [
+      "pdu",
+      "physical layer",
+      "bits"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-007",
+    "front": "A file is downloaded. What PDU is presented to the user's application?",
+    "back": "The Application layer presents the raw data. After de-encapsulation, the original data is available to the application.",
+    "tags": [
+      "pdu",
+      "application layer",
+      "data",
+      "de-encapsulation"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-008",
+    "front": "What PDU is created when an IP header encapsulates a UDP DNS query?",
+    "back": "The encapsulated PDU at the Network layer is called a packet. It now contains source/destination IP addresses for routing.",
+    "tags": [
+      "pdu",
+      "network layer",
+      "packet",
+      "udp"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-009",
+    "front": "What PDU is created when a Frame is converted to an electrical signal?",
+    "back": "The Physical Layer is responsible for converting the frame to bits, transmitted as an electrical signal.",
+    "tags": [
+      "pdu",
+      "physical layer",
+      "bits",
+      "frame"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-FC-010",
+    "front": "After receiving a packet, what layer removes the IP header?",
+    "back": "The Network layer removes the IP header. The PDU is then passed to the Transport layer as a segment or datagram.",
+    "tags": [
+      "pdu",
+      "network layer",
+      "packet",
+      "de-encapsulation"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.6.3",
+        "section_title": "Protocol Data Units"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "conceptual"
+    },
+    "module": 3,
+    "atom_type": "flashcard"
+  },
+  {
+    "card_id": "3.6-MCQ-001",
+    "front": "A computer on your network is receiving data from the internet. At which layer does the device first process the frame header and trailer?",
+    "correct_answer": "Data Link layer (Layer 2) - The frame is processed first",
+    "distractors": [
+      "Network layer (Layer 3) - the packet is processed first",
+      "Transport layer (Layer 4) - the segment is processed first",
+      "Physical layer (Layer 1) - This layer doesn't process headers"
+    ],
+    "explanation": "When receiving data, the Data Link layer processes the frame header and trailer first. The Physical Layer only handles bits.",
+    "source_refs": [
+      {
+        "section_id": "3.6.5",
+        "section_title": "De-encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.6-MCQ-002",
+    "front": "During the encapsulation process, a web server adds a TCP header to the data. What information is added at this layer?",
+    "correct_answer": "Port numbers - Used to identify the application",
+    "distractors": [
+      "IP addresses - Used to identify source and destination hosts",
+      "MAC addresses - Used to identify devices on the same network",
+      "HTTP headers - Used to format the web page"
+    ],
+    "explanation": "The Transport layer (TCP) adds port numbers to specify the application or service. IP addresses are added at the Network Layer.",
+    "source_refs": [
+      {
+        "section_id": "3.6.4",
+        "section_title": "Encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.6-MCQ-003",
+    "front": "A computer sends data to a web server. Which of the following is the correct order of encapsulation?",
+    "correct_answer": "Data -> Segment -> Packet -> Frame -> Bits",
+    "distractors": [
+      "Data -> Packet -> Segment -> Frame -> Bits",
+      "Data -> Frame -> Packet -> Segment -> Bits",
+      "Data -> Bits -> Frame -> Packet -> Segment"
+    ],
+    "explanation": "Encapsulation adds headers/trailers in the order: Transport (Segment), Network (Packet), Data Link (Frame), and finally converts it to Bits for physical transmission.",
+    "source_refs": [
+      {
+        "section_id": "3.6.4",
+        "section_title": "Encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 4,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.6-MCQ-004",
+    "front": "A router receives a frame. After de-encapsulation of the Ethernet header, what is the next header the router will process?",
+    "correct_answer": "IP header - The Network Layer header",
+    "distractors": [
+      "TCP header - The Transport Layer header",
+      "HTTP header - The Application Layer header",
+      "Data - The original data"
+    ],
+    "explanation": "After the Data Link layer removes the Ethernet header/trailer, the Network layer (IP) header is processed next during de-encapsulation.",
+    "source_refs": [
+      {
+        "section_id": "3.6.5",
+        "section_title": "De-encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.6-MCQ-005",
+    "front": "Which layer is responsible for converting data into bits for transmission over the physical medium?",
+    "correct_answer": "Physical layer (Layer 1) - Converts data into bits",
+    "distractors": [
+      "Data Link layer (Layer 2) - Adds MAC addresses",
+      "Network layer (Layer 3) - Adds IP addresses",
+      "Transport layer (Layer 4) - Adds port numbers"
+    ],
+    "explanation": "The Physical layer is responsible for the actual transmission of data as bits over the physical medium (cable, wireless, etc.).",
+    "source_refs": [
+      {
+        "section_id": "3.6.4",
+        "section_title": "Encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.6-MCQ-006",
+    "front": "During de-encapsulation, a receiving host removes the TCP header. What information does this header contain that is used at this point?",
+    "correct_answer": "Port numbers - To identify the application for the data",
+    "distractors": [
+      "IP addresses - Used for routing the data",
+      "MAC addresses - Used for local delivery",
+      "Sequence numbers - No longer relevant at this stage"
+    ],
+    "explanation": "The TCP header contains port numbers that are used to identify which application on the receiving host should receive the data.",
+    "source_refs": [
+      {
+        "section_id": "3.6.5",
+        "section_title": "De-encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.6-MCQ-007",
+    "front": "What is the correct order of de-encapsulation on a receiving host?",
+    "correct_answer": "Bits -> Frame -> Packet -> Segment -> Data",
+    "distractors": [
+      "Bits -> Packet -> Frame -> Segment -> Data",
+      "Bits -> Segment -> Packet -> Frame -> Data",
+      "Bits -> Data -> Segment -> Packet -> Frame"
+    ],
+    "explanation": "De-encapsulation removes headers/trailers in reverse order: Data Link (Frame), Network (Packet), Transport (Segment), and finally reveals the Data.",
+    "source_refs": [
+      {
+        "section_id": "3.6.5",
+        "section_title": "De-encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 4,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.6-MCQ-008",
+    "front": "A sending computer needs to send data to a computer on the same local network. Which layer adds the destination MAC address?",
+    "correct_answer": "Data Link layer (Layer 2) - Adds MAC addresses",
+    "distractors": [
+      "Network layer (Layer 3) - Adds IP addresses",
+      "Transport layer (Layer 4) - Adds port numbers",
+      "Application layer (Layer 7) - Adds application data"
+    ],
+    "explanation": "The Data Link layer adds the destination MAC address so that the frame can be delivered to the correct device on the local network.",
+    "source_refs": [
+      {
+        "section_id": "3.6.4",
+        "section_title": "Encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 3,
+      "knowledge_type": "procedural"
+    },
+    "module": 3,
+    "atom_type": "mcq"
+  },
+  {
+    "card_id": "3.5-MAT-001",
+    "front": "Match each OSI layer to its PRIMARY function:",
+    "pairs": [
+      {
+        "left": "Layer 7 - Application",
+        "right": "Provides the interface between applications and the network"
+      },
+      {
+        "left": "Layer 4 - Transport",
+        "right": "Segments data and provides reliable/unreliable delivery"
+      },
+      {
+        "left": "Layer 3 - Network",
+        "right": "Handles logical addressing and routing decisions"
+      },
+      {
+        "left": "Layer 2 - Data Link",
+        "right": "Manages MAC addressing and frame delivery"
+      }
+    ],
+    "tags": [
+      "osi",
+      "layers",
+      "function"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.5",
+        "section_title": "Reference Models"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "factual"
+    },
+    "module": 3,
+    "atom_type": "matching"
+  },
+  {
+    "card_id": "3.5-MAT-002",
+    "front": "Match each OSI layer to the corresponding PDU (Protocol Data Unit) name:",
+    "pairs": [
+      {
+        "left": "Application Layer",
+        "right": "Data"
+      },
+      {
+        "left": "Transport Layer",
+        "right": "Segment or Datagram"
+      },
+      {
+        "left": "Network Layer",
+        "right": "Packet"
+      },
+      {
+        "left": "Data Link Layer",
+        "right": "Frame"
+      },
+      {
+        "left": "Physical Layer",
+        "right": "Bits"
+      }
+    ],
+    "tags": [
+      "osi",
+      "layers",
+      "pdu"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.5",
+        "section_title": "Reference Models"
+      },
+      {
+        "section_id": "3.6",
+        "section_title": "Data Encapsulation"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "factual"
+    },
+    "module": 3,
+    "atom_type": "matching"
+  },
+  {
+    "card_id": "3.5-MAT-003",
+    "front": "Match each protocol to the OSI layer it primarily operates at:",
+    "pairs": [
+      {
+        "left": "HTTP",
+        "right": "Application Layer (Layer 7)"
+      },
+      {
+        "left": "TCP",
+        "right": "Transport Layer (Layer 4)"
+      },
+      {
+        "left": "IP",
+        "right": "Network Layer (Layer 3)"
+      },
+      {
+        "left": "Ethernet",
+        "right": "Data Link Layer (Layer 2)"
+      }
+    ],
+    "tags": [
+      "osi",
+      "layers",
+      "protocols"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.5",
+        "section_title": "Reference Models"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "factual"
+    },
+    "module": 3,
+    "atom_type": "matching"
+  },
+  {
+    "card_id": "3.5-MAT-004",
+    "front": "Match each function to the OSI Layer that primarily performs it:",
+    "pairs": [
+      {
+        "left": "Bit transmission",
+        "right": "Physical Layer"
+      },
+      {
+        "left": "Logical Addressing",
+        "right": "Network Layer"
+      },
+      {
+        "left": "Reliable data transfer",
+        "right": "Transport Layer"
+      },
+      {
+        "left": "Process to process communication",
+        "right": "Application Layer"
+      },
+      {
+        "left": "Physical Addressing",
+        "right": "Data Link Layer"
+      }
+    ],
+    "tags": [
+      "osi",
+      "layers",
+      "protocols"
+    ],
+    "source_refs": [
+      {
+        "section_id": "3.5",
+        "section_title": "Reference Models"
+      }
+    ],
+    "metadata": {
+      "difficulty": 2,
+      "knowledge_type": "factual"
+    },
+    "module": 3,
+    "atom_type": "matching"
+  }
+]

@@ -25,29 +25,29 @@ Based on research from:
 Author: Cortex System
 Version: 2.0.0 (Neuromorphic Architecture)
 """
+
 from __future__ import annotations
 
 import math
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
-from uuid import UUID, uuid4
+from typing import Any
+from uuid import uuid4
 
 from loguru import logger
+
+from src.adaptive.knowledge_graph import KnowledgeGraph, LearningAtom
 
 # Import from our modules
 from src.adaptive.neuro_model import (
     CognitiveDiagnosis,
     CognitiveState,
-    FailMode,
     compute_cognitive_load,
     compute_learning_reward,
 )
 from src.adaptive.persona_service import LearnerPersona
-from src.adaptive.knowledge_graph import LearningAtom, KnowledgeGraph
-
 
 # =============================================================================
 # CONFIGURATION
@@ -78,29 +78,33 @@ PREREQUISITE_THRESHOLD = 0.65
 # ENUMERATIONS
 # =============================================================================
 
+
 class SchedulerAction(str, Enum):
     """Actions the scheduler can take."""
-    PRESENT_ATOM = "present_atom"         # Show next atom
+
+    PRESENT_ATOM = "present_atom"  # Show next atom
     FORCE_PREREQUISITE = "force_prerequisite"  # Force Z backtracking
-    SUGGEST_BREAK = "suggest_break"       # Cognitive fatigue
-    END_SESSION = "end_session"           # Session complete
-    SWITCH_MODALITY = "switch_modality"   # Change atom type
-    PLM_DRILL = "plm_drill"               # Perceptual learning drill
-    INTERLEAVE = "interleave"             # Switch topic for interleaving
+    SUGGEST_BREAK = "suggest_break"  # Cognitive fatigue
+    END_SESSION = "end_session"  # Session complete
+    SWITCH_MODALITY = "switch_modality"  # Change atom type
+    PLM_DRILL = "plm_drill"  # Perceptual learning drill
+    INTERLEAVE = "interleave"  # Switch topic for interleaving
 
 
 class GoalType(str, Enum):
     """Types of learning goals."""
-    MASTER_CONCEPT = "master_concept"     # Full mastery of a concept
-    REVIEW_DUE = "review_due"             # Review due items
-    STRENGTHEN_WEAK = "strengthen_weak"   # Strengthen weak areas
-    EXPLORE_NEW = "explore_new"           # Learn new material
-    MAINTAIN = "maintain"                 # Maintenance mode
+
+    MASTER_CONCEPT = "master_concept"  # Full mastery of a concept
+    REVIEW_DUE = "review_due"  # Review due items
+    STRENGTHEN_WEAK = "strengthen_weak"  # Strengthen weak areas
+    EXPLORE_NEW = "explore_new"  # Learn new material
+    MAINTAIN = "maintain"  # Maintenance mode
 
 
 # =============================================================================
 # STATE REPRESENTATION
 # =============================================================================
+
 
 @dataclass
 class SchedulerState:
@@ -113,6 +117,7 @@ class SchedulerState:
     - Session context (duration, items seen)
     - Calendar context (available time)
     """
+
     # Knowledge state
     concept_mastery: dict[str, float] = field(default_factory=dict)
     atom_due_count: int = 0
@@ -128,13 +133,13 @@ class SchedulerState:
 
     # Session context
     session_duration_minutes: float = 0.0
-    session_start: Optional[datetime] = None
-    last_break: Optional[datetime] = None
+    session_start: datetime | None = None
+    last_break: datetime | None = None
 
     # Calendar context
     available_minutes: float = 60.0
     is_peak_hour: bool = False
-    next_calendar_event: Optional[datetime] = None
+    next_calendar_event: datetime | None = None
 
     # Recent history
     recent_atoms: list[str] = field(default_factory=list)
@@ -161,9 +166,10 @@ class SchedulerState:
 @dataclass
 class SchedulerDecision:
     """A decision made by the scheduler."""
+
     action: SchedulerAction
-    atom_id: Optional[str] = None
-    atom: Optional[LearningAtom] = None
+    atom_id: str | None = None
+    atom: LearningAtom | None = None
     reason: str = ""
     confidence: float = 0.5
     expected_reward: float = 0.0
@@ -174,15 +180,17 @@ class SchedulerDecision:
 # GOAL HIERARCHY
 # =============================================================================
 
+
 @dataclass
 class LearningGoal:
     """A learning goal at any level of the hierarchy."""
+
     goal_id: str
     goal_type: GoalType
     target: str  # Concept ID or "review" etc.
     target_mastery: float = MASTERY_THRESHOLD
     priority: int = 1  # 1 = highest
-    deadline: Optional[datetime] = None
+    deadline: datetime | None = None
     progress: float = 0.0
     status: str = "active"  # active, completed, abandoned
 
@@ -194,6 +202,7 @@ class LearningGoal:
 # =============================================================================
 # META-CONTROLLER (Weekly Planning)
 # =============================================================================
+
 
 class MetaController:
     """
@@ -224,38 +233,41 @@ class MetaController:
 
         # Goal 1: Review due items (always important)
         if due_atoms > 0:
-            goals.append(LearningGoal(
-                goal_id=str(uuid4()),
-                goal_type=GoalType.REVIEW_DUE,
-                target="due_items",
-                target_mastery=0.85,
-                priority=1,
-            ))
+            goals.append(
+                LearningGoal(
+                    goal_id=str(uuid4()),
+                    goal_type=GoalType.REVIEW_DUE,
+                    target="due_items",
+                    target_mastery=0.85,
+                    priority=1,
+                )
+            )
 
         # Goal 2: Strengthen weak concepts
-        weak_concepts = [
-            cid for cid, mastery in concept_mastery.items()
-            if mastery < 0.65
-        ]
+        weak_concepts = [cid for cid, mastery in concept_mastery.items() if mastery < 0.65]
         if weak_concepts:
             # Pick weakest
             weakest = min(weak_concepts, key=lambda c: concept_mastery[c])
-            goals.append(LearningGoal(
-                goal_id=str(uuid4()),
-                goal_type=GoalType.STRENGTHEN_WEAK,
-                target=weakest,
-                target_mastery=0.65,
-                priority=2,
-            ))
+            goals.append(
+                LearningGoal(
+                    goal_id=str(uuid4()),
+                    goal_type=GoalType.STRENGTHEN_WEAK,
+                    target=weakest,
+                    target_mastery=0.65,
+                    priority=2,
+                )
+            )
 
         # Goal 3: Explore new (if at peak hour and time available)
         if is_peak_hour and available_minutes > 30:
-            goals.append(LearningGoal(
-                goal_id=str(uuid4()),
-                goal_type=GoalType.EXPLORE_NEW,
-                target="new_material",
-                priority=3,
-            ))
+            goals.append(
+                LearningGoal(
+                    goal_id=str(uuid4()),
+                    goal_type=GoalType.EXPLORE_NEW,
+                    target="new_material",
+                    priority=3,
+                )
+            )
 
         # Sort by priority
         goals.sort(key=lambda g: g.priority)
@@ -278,6 +290,7 @@ class MetaController:
 # =============================================================================
 # MICRO-CONTROLLER (Atom-by-Atom Selection)
 # =============================================================================
+
 
 class MicroController:
     """
@@ -381,7 +394,7 @@ class MicroController:
             alternative_actions=self._get_alternatives(scored_atoms[:5]),
         )
 
-    def _check_termination(self, state: SchedulerState) -> Optional[SchedulerDecision]:
+    def _check_termination(self, state: SchedulerState) -> SchedulerDecision | None:
         """Check if session should end."""
         # Time limit
         if state.session_duration_minutes >= MAX_SESSION_MINUTES:
@@ -407,7 +420,7 @@ class MicroController:
         self,
         state: SchedulerState,
         available_atoms: list[LearningAtom],
-    ) -> Optional[SchedulerDecision]:
+    ) -> SchedulerDecision | None:
         """
         Check if "Force Z" backtracking is needed.
 
@@ -446,7 +459,7 @@ class MicroController:
         self,
         state: SchedulerState,
         atoms: list[LearningAtom],
-        goal: Optional[LearningGoal],
+        goal: LearningGoal | None,
     ) -> list[tuple[LearningAtom, float, str]]:
         """
         Score all atoms for selection.
@@ -518,7 +531,7 @@ class MicroController:
         self,
         scored_atoms: list[tuple[LearningAtom, float, str]],
         state: SchedulerState,
-    ) -> Optional[tuple[LearningAtom, float, str]]:
+    ) -> tuple[LearningAtom, float, str] | None:
         """
         Select atom with exploration/exploitation balance.
 
@@ -585,6 +598,7 @@ class MicroController:
 # MAIN SCHEDULER
 # =============================================================================
 
+
 class HRLScheduler:
     """
     Main Hierarchical RL Scheduler.
@@ -614,8 +628,8 @@ class HRLScheduler:
     def start_session(
         self,
         available_minutes: float = 60,
-        is_peak_hour: Optional[bool] = None,
-        concept_mastery: Optional[dict[str, float]] = None,
+        is_peak_hour: bool | None = None,
+        concept_mastery: dict[str, float] | None = None,
         due_atoms: int = 0,
     ) -> list[LearningGoal]:
         """
@@ -721,10 +735,13 @@ class HRLScheduler:
 
         # Update cognitive state
         self.state.current_state = diagnosis.cognitive_state
-        self.state.cognitive_load = compute_cognitive_load(
-            session_history=[],  # Would include real history
-            session_duration_seconds=int(self.state.session_duration_minutes * 60),
-        ).load_percent / 100
+        self.state.cognitive_load = (
+            compute_cognitive_load(
+                session_history=[],  # Would include real history
+                session_duration_seconds=int(self.state.session_duration_minutes * 60),
+            ).load_percent
+            / 100
+        )
 
         # Update fatigue estimate
         self._update_fatigue(diagnosis)
@@ -767,8 +784,7 @@ class HRLScheduler:
         # EMA update
         alpha = 0.2
         self.state.fatigue_level = (
-            self.state.fatigue_level * (1 - alpha) +
-            max(0, min(1, new_fatigue)) * alpha
+            self.state.fatigue_level * (1 - alpha) + max(0, min(1, new_fatigue)) * alpha
         )
 
     def end_session(self) -> dict[str, Any]:
@@ -783,17 +799,15 @@ class HRLScheduler:
             "correct": self.state.correct_this_session,
             "accuracy": (
                 self.state.correct_this_session / self.state.atoms_seen_this_session
-                if self.state.atoms_seen_this_session > 0 else 0
+                if self.state.atoms_seen_this_session > 0
+                else 0
             ),
             "total_reward": sum(self.total_rewards),
             "avg_reward": (
-                sum(self.total_rewards) / len(self.total_rewards)
-                if self.total_rewards else 0
+                sum(self.total_rewards) / len(self.total_rewards) if self.total_rewards else 0
             ),
             "final_fatigue": self.state.fatigue_level,
-            "goals_completed": [
-                g.target for g in self.meta.completed_goals
-            ],
+            "goals_completed": [g.target for g in self.meta.completed_goals],
             "decisions_count": len(self.decisions),
         }
 
@@ -834,12 +848,14 @@ class HRLScheduler:
 
             block_minutes = min(OPTIMAL_SESSION_MINUTES, remaining_minutes)
 
-            suggestions.append({
-                "hour": hour,
-                "duration_minutes": block_minutes,
-                "expected_performance": round(score, 2),
-                "task_type": "deep_work" if score > 0.8 else "review",
-            })
+            suggestions.append(
+                {
+                    "hour": hour,
+                    "duration_minutes": block_minutes,
+                    "expected_performance": round(score, 2),
+                    "task_type": "deep_work" if score > 0.8 else "review",
+                }
+            )
 
             remaining_minutes -= block_minutes
 
@@ -851,12 +867,12 @@ class HRLScheduler:
 # =============================================================================
 
 # Global scheduler instance
-_scheduler: Optional[HRLScheduler] = None
+_scheduler: HRLScheduler | None = None
 
 
 def get_scheduler(
-    knowledge_graph: Optional[KnowledgeGraph] = None,
-    persona: Optional[LearnerPersona] = None,
+    knowledge_graph: KnowledgeGraph | None = None,
+    persona: LearnerPersona | None = None,
 ) -> HRLScheduler:
     """Get or create the global scheduler."""
     global _scheduler
@@ -875,7 +891,7 @@ def should_force_z(
     target_concept: str,
     concept_mastery: dict[str, float],
     prerequisite_map: dict[str, list[str]],
-) -> Optional[str]:
+) -> str | None:
     """
     Quick check if Force Z backtracking is needed.
 

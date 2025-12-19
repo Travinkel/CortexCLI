@@ -4,19 +4,29 @@ Canonical table models for clean, validated output.
 These tables contain the trusted data that has passed through the cleaning pipeline.
 They are the source of truth for all consumers (personal use, Anki, right-learning).
 """
+
 from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import List
 from uuid import UUID
 
-from sqlalchemy import JSON, ARRAY, Boolean, Date, ForeignKey, Integer, LargeBinary, Numeric, Text, func
+from sqlalchemy import (
+    ARRAY,
+    JSON,
+    Boolean,
+    Date,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    Numeric,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-
 
 # ========================================
 # KNOWLEDGE HIERARCHY
@@ -28,7 +38,9 @@ class CleanConceptArea(Base):
 
     __tablename__ = "clean_concept_areas"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     notion_id: Mapped[str | None] = mapped_column(Text, unique=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
@@ -38,7 +50,7 @@ class CleanConceptArea(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    clusters: Mapped[list["CleanConceptCluster"]] = relationship(back_populates="concept_area")
+    clusters: Mapped[list[CleanConceptCluster]] = relationship(back_populates="concept_area")
 
 
 class CleanConceptCluster(Base):
@@ -46,9 +58,13 @@ class CleanConceptCluster(Base):
 
     __tablename__ = "concept_clusters"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     notion_id: Mapped[str | None] = mapped_column(Text, unique=True)
-    concept_area_id: Mapped[UUID | None] = mapped_column(ForeignKey("clean_concept_areas.id", ondelete="SET NULL"))
+    concept_area_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("clean_concept_areas.id", ondelete="SET NULL")
+    )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     exam_weight: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
@@ -57,8 +73,8 @@ class CleanConceptCluster(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    concept_area: Mapped["CleanConceptArea | None"] = relationship(back_populates="clusters")
-    concepts: Mapped[list["CleanConcept"]] = relationship(back_populates="cluster")
+    concept_area: Mapped[CleanConceptArea | None] = relationship(back_populates="clusters")
+    concepts: Mapped[list[CleanConcept]] = relationship(back_populates="cluster")
 
 
 class CleanConcept(Base):
@@ -66,9 +82,13 @@ class CleanConcept(Base):
 
     __tablename__ = "concepts"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     notion_id: Mapped[str | None] = mapped_column(Text, unique=True)
-    cluster_id: Mapped[UUID | None] = mapped_column(ForeignKey("concept_clusters.id", ondelete="SET NULL"))
+    cluster_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("concept_clusters.id", ondelete="SET NULL")
+    )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     definition: Mapped[str | None] = mapped_column(Text)
     domain: Mapped[str | None] = mapped_column(Text)
@@ -86,29 +106,27 @@ class CleanConcept(Base):
     embedding_generated_at: Mapped[datetime | None] = mapped_column()
 
     # Relationships
-    cluster: Mapped["CleanConceptCluster | None"] = relationship(back_populates="concepts")
-    atoms: Mapped[list["CleanAtom"]] = relationship(back_populates="concept")
-    inferred_as_prerequisite: Mapped[list["InferredPrerequisite"]] = relationship(
-        back_populates="target_concept",
-        foreign_keys="InferredPrerequisite.target_concept_id"
+    cluster: Mapped[CleanConceptCluster | None] = relationship(back_populates="concepts")
+    atoms: Mapped[list[CleanAtom]] = relationship(back_populates="concept")
+    inferred_as_prerequisite: Mapped[list[InferredPrerequisite]] = relationship(
+        back_populates="target_concept", foreign_keys="InferredPrerequisite.target_concept_id"
     )
     # Explicit Prerequisites (Phase 3) - concept as source
-    prerequisites_as_source: Mapped[list["ExplicitPrerequisite"]] = relationship(
+    prerequisites_as_source: Mapped[list[ExplicitPrerequisite]] = relationship(
         "ExplicitPrerequisite",
         back_populates="source_concept",
-        foreign_keys="ExplicitPrerequisite.source_concept_id"
+        foreign_keys="ExplicitPrerequisite.source_concept_id",
     )
     # Explicit Prerequisites (Phase 3) - concept as target
-    prerequisites_as_target: Mapped[list["ExplicitPrerequisite"]] = relationship(
+    prerequisites_as_target: Mapped[list[ExplicitPrerequisite]] = relationship(
         "ExplicitPrerequisite",
         back_populates="target_concept",
-        foreign_keys="ExplicitPrerequisite.target_concept_id"
+        foreign_keys="ExplicitPrerequisite.target_concept_id",
     )
 
     # Adaptive Learning (Phase 5) - learner mastery states
-    learner_mastery_states: Mapped[list["LearnerMasteryState"]] = relationship(
-        "LearnerMasteryState",
-        back_populates="concept"
+    learner_mastery_states: Mapped[list[LearnerMasteryState]] = relationship(
+        "LearnerMasteryState", back_populates="concept"
     )
 
 
@@ -122,7 +140,9 @@ class CleanProgram(Base):
 
     __tablename__ = "clean_programs"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     notion_id: Mapped[str | None] = mapped_column(Text, unique=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
@@ -133,7 +153,7 @@ class CleanProgram(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    tracks: Mapped[list["CleanTrack"]] = relationship(back_populates="program")
+    tracks: Mapped[list[CleanTrack]] = relationship(back_populates="program")
 
 
 class CleanTrack(Base):
@@ -141,9 +161,13 @@ class CleanTrack(Base):
 
     __tablename__ = "clean_tracks"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     notion_id: Mapped[str | None] = mapped_column(Text, unique=True)
-    program_id: Mapped[UUID | None] = mapped_column(ForeignKey("clean_programs.id", ondelete="SET NULL"))
+    program_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("clean_programs.id", ondelete="SET NULL")
+    )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     display_order: Mapped[int] = mapped_column(Integer, default=0)
@@ -151,8 +175,8 @@ class CleanTrack(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    program: Mapped["CleanProgram | None"] = relationship(back_populates="tracks")
-    modules: Mapped[list["CleanModule"]] = relationship(back_populates="track")
+    program: Mapped[CleanProgram | None] = relationship(back_populates="tracks")
+    modules: Mapped[list[CleanModule]] = relationship(back_populates="track")
 
 
 class CleanModule(Base):
@@ -160,9 +184,13 @@ class CleanModule(Base):
 
     __tablename__ = "learning_modules"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     notion_id: Mapped[str | None] = mapped_column(Text, unique=True)
-    track_id: Mapped[UUID | None] = mapped_column(ForeignKey("clean_tracks.id", ondelete="SET NULL"))
+    track_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("clean_tracks.id", ondelete="SET NULL")
+    )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     week_order: Mapped[int | None] = mapped_column(Integer)
@@ -171,8 +199,8 @@ class CleanModule(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    track: Mapped["CleanTrack | None"] = relationship(back_populates="modules")
-    atoms: Mapped[list["CleanAtom"]] = relationship(back_populates="module")
+    track: Mapped[CleanTrack | None] = relationship(back_populates="modules")
+    atoms: Mapped[list[CleanAtom]] = relationship(back_populates="module")
 
 
 # ========================================
@@ -185,7 +213,9 @@ class CleanAtom(Base):
 
     __tablename__ = "learning_atoms"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     notion_id: Mapped[str | None] = mapped_column(Text)
     card_id: Mapped[str | None] = mapped_column(Text, unique=True)  # e.g., "NET-M1-015-DEC"
 
@@ -193,10 +223,15 @@ class CleanAtom(Base):
     atom_type: Mapped[str] = mapped_column(Text, nullable=False, default="flashcard")
     front: Mapped[str] = mapped_column(Text, nullable=False)
     back: Mapped[str | None] = mapped_column(Text)
+    media_type: Mapped[str | None] = mapped_column(Text)
+    media_code: Mapped[str | None] = mapped_column(Text)
+    derived_from_visual: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Relationships
     concept_id: Mapped[UUID | None] = mapped_column(ForeignKey("concepts.id", ondelete="SET NULL"))
-    module_id: Mapped[UUID | None] = mapped_column(ForeignKey("learning_modules.id", ondelete="SET NULL"))
+    module_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("learning_modules.id", ondelete="SET NULL")
+    )
 
     # Quality metadata
     quality_score: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
@@ -250,45 +285,36 @@ class CleanAtom(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    concept: Mapped["CleanConcept | None"] = relationship(back_populates="atoms")
-    module: Mapped["CleanModule | None"] = relationship(back_populates="atoms")
+    concept: Mapped[CleanConcept | None] = relationship(back_populates="atoms")
+    module: Mapped[CleanModule | None] = relationship(back_populates="atoms")
 
     # Semantic relationships (Phase 2.5)
-    duplicate_pairs_as_first: Mapped[list["SemanticDuplicate"]] = relationship(
-        back_populates="atom_1",
-        foreign_keys="SemanticDuplicate.atom_id_1"
+    duplicate_pairs_as_first: Mapped[list[SemanticDuplicate]] = relationship(
+        back_populates="atom_1", foreign_keys="SemanticDuplicate.atom_id_1"
     )
-    duplicate_pairs_as_second: Mapped[list["SemanticDuplicate"]] = relationship(
-        back_populates="atom_2",
-        foreign_keys="SemanticDuplicate.atom_id_2"
+    duplicate_pairs_as_second: Mapped[list[SemanticDuplicate]] = relationship(
+        back_populates="atom_2", foreign_keys="SemanticDuplicate.atom_id_2"
     )
-    inferred_prerequisites: Mapped[list["InferredPrerequisite"]] = relationship(
-        back_populates="source_atom",
-        foreign_keys="InferredPrerequisite.source_atom_id"
+    inferred_prerequisites: Mapped[list[InferredPrerequisite]] = relationship(
+        back_populates="source_atom", foreign_keys="InferredPrerequisite.source_atom_id"
     )
-    cluster_memberships: Mapped[list["KnowledgeClusterMember"]] = relationship(
-        back_populates="atom"
-    )
+    cluster_memberships: Mapped[list[KnowledgeClusterMember]] = relationship(back_populates="atom")
 
     # Explicit Prerequisites (Phase 3) - atom as source
-    explicit_prerequisites: Mapped[list["ExplicitPrerequisite"]] = relationship(
+    explicit_prerequisites: Mapped[list[ExplicitPrerequisite]] = relationship(
         "ExplicitPrerequisite",
         back_populates="source_atom",
-        foreign_keys="ExplicitPrerequisite.source_atom_id"
+        foreign_keys="ExplicitPrerequisite.source_atom_id",
     )
 
     # Quiz Question (Phase 3) - one-to-one with quiz_questions table
-    quiz_question: Mapped["QuizQuestion | None"] = relationship(
-        "QuizQuestion",
-        back_populates="atom",
-        uselist=False
+    quiz_question: Mapped[QuizQuestion | None] = relationship(
+        "QuizQuestion", back_populates="atom", uselist=False
     )
 
     # Adaptive Learning (Phase 5) - suitability scores
-    suitability: Mapped["AtomTypeSuitability | None"] = relationship(
-        "AtomTypeSuitability",
-        back_populates="atom",
-        uselist=False
+    suitability: Mapped[AtomTypeSuitability | None] = relationship(
+        "AtomTypeSuitability", back_populates="atom", uselist=False
     )
 
 
@@ -302,19 +328,25 @@ class ReviewQueueItem(Base):
 
     __tablename__ = "review_queue"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
 
     # Content
     atom_type: Mapped[str] = mapped_column(Text, nullable=False, default="flashcard")
     front: Mapped[str] = mapped_column(Text, nullable=False)
     back: Mapped[str | None] = mapped_column(Text)
     concept_id: Mapped[UUID | None] = mapped_column(ForeignKey("concepts.id", ondelete="SET NULL"))
-    module_id: Mapped[UUID | None] = mapped_column(ForeignKey("learning_modules.id", ondelete="SET NULL"))
+    module_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("learning_modules.id", ondelete="SET NULL")
+    )
 
     # Original (before rewrite)
     original_front: Mapped[str | None] = mapped_column(Text)
     original_back: Mapped[str | None] = mapped_column(Text)
-    original_atom_id: Mapped[UUID | None] = mapped_column(ForeignKey("learning_atoms.id", ondelete="SET NULL"))
+    original_atom_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("learning_atoms.id", ondelete="SET NULL")
+    )
 
     # Review workflow
     status: Mapped[str] = mapped_column(Text, default="pending")
@@ -328,7 +360,9 @@ class ReviewQueueItem(Base):
 
     # After approval
     approved_at: Mapped[datetime | None] = mapped_column()
-    approved_atom_id: Mapped[UUID | None] = mapped_column(ForeignKey("learning_atoms.id", ondelete="SET NULL"))
+    approved_atom_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("learning_atoms.id", ondelete="SET NULL")
+    )
     reviewer_notes: Mapped[str | None] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(default=func.now())
@@ -344,7 +378,9 @@ class SyncLog(Base):
 
     __tablename__ = "sync_log"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
     sync_type: Mapped[str] = mapped_column(Text, nullable=False)
     started_at: Mapped[datetime] = mapped_column(default=func.now())
     completed_at: Mapped[datetime | None] = mapped_column()
@@ -362,8 +398,12 @@ class CleaningLog(Base):
 
     __tablename__ = "cleaning_log"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    atom_id: Mapped[UUID | None] = mapped_column(ForeignKey("learning_atoms.id", ondelete="CASCADE"))
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
+    atom_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("learning_atoms.id", ondelete="CASCADE")
+    )
     operation: Mapped[str] = mapped_column(Text, nullable=False)
     old_value: Mapped[dict | None] = mapped_column(JSON)
     new_value: Mapped[dict | None] = mapped_column(JSON)
@@ -380,11 +420,17 @@ class SemanticDuplicate(Base):
 
     __tablename__ = "semantic_duplicates"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
 
     # Atom pair (ordered: atom_id_1 < atom_id_2)
-    atom_id_1: Mapped[UUID] = mapped_column(ForeignKey("learning_atoms.id", ondelete="CASCADE"), nullable=False)
-    atom_id_2: Mapped[UUID] = mapped_column(ForeignKey("learning_atoms.id", ondelete="CASCADE"), nullable=False)
+    atom_id_1: Mapped[UUID] = mapped_column(
+        ForeignKey("learning_atoms.id", ondelete="CASCADE"), nullable=False
+    )
+    atom_id_2: Mapped[UUID] = mapped_column(
+        ForeignKey("learning_atoms.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Similarity metrics
     similarity_score: Mapped[Decimal] = mapped_column(Numeric(5, 4), nullable=False)
@@ -397,19 +443,19 @@ class SemanticDuplicate(Base):
     review_notes: Mapped[str | None] = mapped_column(Text)
 
     # Merge tracking
-    merged_into_atom_id: Mapped[UUID | None] = mapped_column(ForeignKey("learning_atoms.id", ondelete="SET NULL"))
+    merged_into_atom_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("learning_atoms.id", ondelete="SET NULL")
+    )
 
     created_at: Mapped[datetime] = mapped_column(default=func.now())
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    atom_1: Mapped["CleanAtom"] = relationship(
-        back_populates="duplicate_pairs_as_first",
-        foreign_keys=[atom_id_1]
+    atom_1: Mapped[CleanAtom] = relationship(
+        back_populates="duplicate_pairs_as_first", foreign_keys=[atom_id_1]
     )
-    atom_2: Mapped["CleanAtom"] = relationship(
-        back_populates="duplicate_pairs_as_second",
-        foreign_keys=[atom_id_2]
+    atom_2: Mapped[CleanAtom] = relationship(
+        back_populates="duplicate_pairs_as_second", foreign_keys=[atom_id_2]
     )
 
 
@@ -418,13 +464,19 @@ class InferredPrerequisite(Base):
 
     __tablename__ = "inferred_prerequisites"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
 
     # The atom that needs this prerequisite
-    source_atom_id: Mapped[UUID] = mapped_column(ForeignKey("learning_atoms.id", ondelete="CASCADE"), nullable=False)
+    source_atom_id: Mapped[UUID] = mapped_column(
+        ForeignKey("learning_atoms.id", ondelete="CASCADE"), nullable=False
+    )
 
     # The concept suggested as prerequisite
-    target_concept_id: Mapped[UUID] = mapped_column(ForeignKey("concepts.id", ondelete="CASCADE"), nullable=False)
+    target_concept_id: Mapped[UUID] = mapped_column(
+        ForeignKey("concepts.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Similarity and confidence
     similarity_score: Mapped[Decimal] = mapped_column(Numeric(5, 4), nullable=False)
@@ -445,13 +497,11 @@ class InferredPrerequisite(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    source_atom: Mapped["CleanAtom"] = relationship(
-        back_populates="inferred_prerequisites",
-        foreign_keys=[source_atom_id]
+    source_atom: Mapped[CleanAtom] = relationship(
+        back_populates="inferred_prerequisites", foreign_keys=[source_atom_id]
     )
-    target_concept: Mapped["CleanConcept"] = relationship(
-        back_populates="inferred_as_prerequisite",
-        foreign_keys=[target_concept_id]
+    target_concept: Mapped[CleanConcept] = relationship(
+        back_populates="inferred_as_prerequisite", foreign_keys=[target_concept_id]
     )
 
 
@@ -460,7 +510,9 @@ class KnowledgeCluster(Base):
 
     __tablename__ = "knowledge_clusters"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
 
     # Metadata
     name: Mapped[str | None] = mapped_column(Text)
@@ -474,7 +526,9 @@ class KnowledgeCluster(Base):
     cluster_params: Mapped[dict | None] = mapped_column(JSON)
 
     # Scope
-    concept_area_id: Mapped[UUID | None] = mapped_column(ForeignKey("clean_concept_areas.id", ondelete="SET NULL"))
+    concept_area_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("clean_concept_areas.id", ondelete="SET NULL")
+    )
 
     # Quality metrics
     silhouette_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
@@ -486,8 +540,8 @@ class KnowledgeCluster(Base):
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     # Relationships
-    concept_area: Mapped["CleanConceptArea | None"] = relationship()
-    members: Mapped[list["KnowledgeClusterMember"]] = relationship(back_populates="cluster")
+    concept_area: Mapped[CleanConceptArea | None] = relationship()
+    members: Mapped[list[KnowledgeClusterMember]] = relationship(back_populates="cluster")
 
 
 class KnowledgeClusterMember(Base):
@@ -496,12 +550,10 @@ class KnowledgeClusterMember(Base):
     __tablename__ = "knowledge_cluster_members"
 
     cluster_id: Mapped[UUID] = mapped_column(
-        ForeignKey("knowledge_clusters.id", ondelete="CASCADE"),
-        primary_key=True
+        ForeignKey("knowledge_clusters.id", ondelete="CASCADE"), primary_key=True
     )
     atom_id: Mapped[UUID] = mapped_column(
-        ForeignKey("learning_atoms.id", ondelete="CASCADE"),
-        primary_key=True
+        ForeignKey("learning_atoms.id", ondelete="CASCADE"), primary_key=True
     )
 
     # Distance metrics
@@ -514,8 +566,8 @@ class KnowledgeClusterMember(Base):
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
     # Relationships
-    cluster: Mapped["KnowledgeCluster"] = relationship(back_populates="members")
-    atom: Mapped["CleanAtom"] = relationship(back_populates="cluster_memberships")
+    cluster: Mapped[KnowledgeCluster] = relationship(back_populates="members")
+    atom: Mapped[CleanAtom] = relationship(back_populates="cluster_memberships")
 
 
 class EmbeddingGenerationLog(Base):
@@ -523,7 +575,9 @@ class EmbeddingGenerationLog(Base):
 
     __tablename__ = "embedding_generation_log"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
 
     # Batch identification
     batch_id: Mapped[str] = mapped_column(Text, nullable=False)
@@ -555,7 +609,11 @@ class EmbeddingGenerationLog(Base):
 # Forward references for Phase 3 & 5 models (resolved at runtime)
 # These imports must be at the end to avoid circular imports
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
-    from .prerequisites import ExplicitPrerequisite, PrerequisiteWaiver, QuestionPool
-    from .quiz import QuizQuestion, QuizDefinition, QuizPassage
-    from .adaptive import LearnerMasteryState, LearningPathSession, SessionAtomResponse, AtomTypeSuitability, RemediationEvent
+    from .adaptive import (
+        AtomTypeSuitability,
+        LearnerMasteryState,
+    )
+    from .prerequisites import ExplicitPrerequisite
+    from .quiz import QuizQuestion

@@ -8,30 +8,31 @@ Provides portable persistence for:
 
 Database location: ~/.cortex/state.db
 """
+
 from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime, date
+from datetime import date, datetime
 from pathlib import Path
-from typing import Optional
 
 from loguru import logger
-
 
 # =============================================================================
 # Data Classes
 # =============================================================================
 
+
 @dataclass
 class SM2State:
     """SM-2 algorithm state for a single atom."""
+
     atom_id: str
     easiness_factor: float = 2.5  # EF starts at 2.5
-    interval_days: int = 1        # Days until next review
-    repetitions: int = 0          # Consecutive correct answers
-    next_review: Optional[date] = None
-    last_reviewed: Optional[datetime] = None
+    interval_days: int = 1  # Days until next review
+    repetitions: int = 0  # Consecutive correct answers
+    next_review: date | None = None
+    last_reviewed: datetime | None = None
 
     @property
     def is_due(self) -> bool:
@@ -52,20 +53,22 @@ class SM2State:
 @dataclass
 class ReviewRecord:
     """A single review event."""
+
     id: int
     atom_id: str
     reviewed_at: datetime
-    grade: int              # 0-5 SM-2 scale
-    response_ms: int        # Time to answer
-    confidence: Optional[int] = None  # Self-reported 1-5
+    grade: int  # 0-5 SM-2 scale
+    response_ms: int  # Time to answer
+    confidence: int | None = None  # Self-reported 1-5
 
 
 @dataclass
 class SessionRecord:
     """A study session summary."""
+
     id: int
     started_at: datetime
-    ended_at: Optional[datetime]
+    ended_at: datetime | None
     atoms_reviewed: int
     accuracy: float
     fatigue_detected: bool
@@ -74,6 +77,7 @@ class SessionRecord:
 # =============================================================================
 # State Store
 # =============================================================================
+
 
 class StateStore:
     """
@@ -87,7 +91,7 @@ class StateStore:
 
     DEFAULT_DB_PATH = Path.home() / ".cortex" / "state.db"
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Path | None = None):
         """
         Initialize the state store.
 
@@ -97,7 +101,7 @@ class StateStore:
         self.db_path = db_path or self.DEFAULT_DB_PATH
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        self._conn: Optional[sqlite3.Connection] = None
+        self._conn: sqlite3.Connection | None = None
         self._init_schema()
 
         logger.info(f"StateStore initialized at {self.db_path}")
@@ -107,8 +111,7 @@ class StateStore:
         """Get or create database connection."""
         if self._conn is None:
             self._conn = sqlite3.connect(
-                str(self.db_path),
-                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
+                str(self.db_path), detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
             )
             self._conn.row_factory = sqlite3.Row
         return self._conn
@@ -182,10 +185,7 @@ class StateStore:
             SM2State (default values if not found)
         """
         cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT * FROM sm2_state WHERE atom_id = ?",
-            (atom_id,)
-        )
+        cursor.execute("SELECT * FROM sm2_state WHERE atom_id = ?", (atom_id,))
         row = cursor.fetchone()
 
         if row is None:
@@ -208,7 +208,8 @@ class StateStore:
             state: SM2State to persist
         """
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO sm2_state (
                 atom_id, easiness_factor, interval_days,
                 repetitions, next_review, last_reviewed
@@ -219,14 +220,16 @@ class StateStore:
                 repetitions = excluded.repetitions,
                 next_review = excluded.next_review,
                 last_reviewed = excluded.last_reviewed
-        """, (
-            state.atom_id,
-            state.easiness_factor,
-            state.interval_days,
-            state.repetitions,
-            state.next_review,
-            state.last_reviewed,
-        ))
+        """,
+            (
+                state.atom_id,
+                state.easiness_factor,
+                state.interval_days,
+                state.repetitions,
+                state.next_review,
+                state.last_reviewed,
+            ),
+        )
         self.conn.commit()
 
     def get_due_atom_ids(self, limit: int = 100) -> list[str]:
@@ -242,12 +245,15 @@ class StateStore:
         cursor = self.conn.cursor()
         today = date.today()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT atom_id FROM sm2_state
             WHERE next_review <= ?
             ORDER BY next_review ASC, interval_days ASC
             LIMIT ?
-        """, (today, limit))
+        """,
+            (today, limit),
+        )
 
         return [row["atom_id"] for row in cursor.fetchall()]
 
@@ -266,10 +272,7 @@ class StateStore:
         """Count atoms due for review today."""
         cursor = self.conn.cursor()
         today = date.today()
-        cursor.execute(
-            "SELECT COUNT(*) as cnt FROM sm2_state WHERE next_review <= ?",
-            (today,)
-        )
+        cursor.execute("SELECT COUNT(*) as cnt FROM sm2_state WHERE next_review <= ?", (today,))
         return cursor.fetchone()["cnt"]
 
     # =========================================================================
@@ -281,7 +284,7 @@ class StateStore:
         atom_id: str,
         grade: int,
         response_ms: int,
-        confidence: Optional[int] = None,
+        confidence: int | None = None,
     ) -> int:
         """
         Log a review event.
@@ -296,10 +299,13 @@ class StateStore:
             Review record ID
         """
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO review_log (atom_id, grade, response_ms, confidence)
             VALUES (?, ?, ?, ?)
-        """, (atom_id, grade, response_ms, confidence))
+        """,
+            (atom_id, grade, response_ms, confidence),
+        )
         self.conn.commit()
         return cursor.lastrowid
 
@@ -319,12 +325,15 @@ class StateStore:
             List of ReviewRecords, most recent first
         """
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT * FROM review_log
             WHERE atom_id = ?
             ORDER BY reviewed_at DESC
             LIMIT ?
-        """, (atom_id, limit))
+        """,
+            (atom_id, limit),
+        )
 
         return [
             ReviewRecord(
@@ -341,11 +350,14 @@ class StateStore:
     def get_recent_reviews(self, limit: int = 50) -> list[ReviewRecord]:
         """Get most recent reviews across all atoms."""
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT * FROM review_log
             ORDER BY reviewed_at DESC
             LIMIT ?
-        """, (limit,))
+        """,
+            (limit,),
+        )
 
         return [
             ReviewRecord(
@@ -371,10 +383,13 @@ class StateStore:
             Session ID
         """
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO session_history (started_at, atoms_reviewed, accuracy)
             VALUES (?, 0, 0.0)
-        """, (datetime.now(),))
+        """,
+            (datetime.now(),),
+        )
         self.conn.commit()
         return cursor.lastrowid
 
@@ -395,24 +410,30 @@ class StateStore:
             fatigue_detected: Whether fatigue signals were detected
         """
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE session_history SET
                 ended_at = ?,
                 atoms_reviewed = ?,
                 accuracy = ?,
                 fatigue_detected = ?
             WHERE id = ?
-        """, (datetime.now(), atoms_reviewed, accuracy, fatigue_detected, session_id))
+        """,
+            (datetime.now(), atoms_reviewed, accuracy, fatigue_detected, session_id),
+        )
         self.conn.commit()
 
     def get_session_history(self, limit: int = 30) -> list[SessionRecord]:
         """Get recent session history."""
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT * FROM session_history
             ORDER BY started_at DESC
             LIMIT ?
-        """, (limit,))
+        """,
+            (limit,),
+        )
 
         return [
             SessionRecord(
@@ -445,10 +466,7 @@ class StateStore:
 
         # Due atoms
         today = date.today()
-        cursor.execute(
-            "SELECT COUNT(*) as cnt FROM sm2_state WHERE next_review <= ?",
-            (today,)
-        )
+        cursor.execute("SELECT COUNT(*) as cnt FROM sm2_state WHERE next_review <= ?", (today,))
         due_atoms = cursor.fetchone()["cnt"]
 
         # Total reviews
@@ -464,9 +482,7 @@ class StateStore:
         avg_grade = cursor.fetchone()["avg_grade"] or 0
 
         # Sessions completed
-        cursor.execute(
-            "SELECT COUNT(*) as cnt FROM session_history WHERE ended_at IS NOT NULL"
-        )
+        cursor.execute("SELECT COUNT(*) as cnt FROM session_history WHERE ended_at IS NOT NULL")
         sessions = cursor.fetchone()["cnt"]
 
         # Retention rate (grade >= 3 is passing)
@@ -489,7 +505,7 @@ class StateStore:
             "sessions_completed": sessions,
         }
 
-    def reset(self, module_filter: Optional[int] = None, force: bool = False) -> int:
+    def reset(self, module_filter: int | None = None, force: bool = False) -> int:
         """
         Reset review state (for testing or fresh start).
 
@@ -570,7 +586,7 @@ class StateStore:
         print(f"✓ Reset complete: {cursor.rowcount} records deleted")
         return cursor.rowcount
 
-    def restore(self, backup_file: Optional[str] = None) -> int:
+    def restore(self, backup_file: str | None = None) -> int:
         """
         Restore progress from a backup file.
 
@@ -600,7 +616,7 @@ class StateStore:
             print(f"Backup file not found: {backup_file}")
             return 0
 
-        with open(backup_file, "r") as f:
+        with open(backup_file) as f:
             backup = json.load(f)
 
         cursor = self.conn.cursor()
@@ -608,46 +624,55 @@ class StateStore:
 
         # Restore SM-2 state
         for record in backup.get("sm2_state", []):
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT OR REPLACE INTO sm2_state
                 (atom_id, easiness, interval, repetitions, next_review, last_review)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                record["atom_id"],
-                record["easiness"],
-                record["interval"],
-                record["repetitions"],
-                record.get("next_review"),
-                record.get("last_review"),
-            ))
+            """,
+                (
+                    record["atom_id"],
+                    record["easiness"],
+                    record["interval"],
+                    record["repetitions"],
+                    record.get("next_review"),
+                    record.get("last_review"),
+                ),
+            )
             restored += 1
 
         # Restore review log
         for record in backup.get("review_log", []):
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO review_log (atom_id, grade, reviewed_at, response_time_ms)
                 VALUES (?, ?, ?, ?)
-            """, (
-                record["atom_id"],
-                record["grade"],
-                record["reviewed_at"],
-                record.get("response_time_ms"),
-            ))
+            """,
+                (
+                    record["atom_id"],
+                    record["grade"],
+                    record["reviewed_at"],
+                    record.get("response_time_ms"),
+                ),
+            )
 
         # Restore session history
         for record in backup.get("session_history", []):
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO session_history
                 (session_id, started_at, ended_at, atoms_reviewed, correct_count, mode)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                record["session_id"],
-                record["started_at"],
-                record.get("ended_at"),
-                record["atoms_reviewed"],
-                record["correct_count"],
-                record.get("mode", "adaptive"),
-            ))
+            """,
+                (
+                    record["session_id"],
+                    record["started_at"],
+                    record.get("ended_at"),
+                    record["atoms_reviewed"],
+                    record["correct_count"],
+                    record.get("mode", "adaptive"),
+                ),
+            )
 
         self.conn.commit()
         print(f"✓ Restored {restored} SM-2 records from {backup_file.name}")

@@ -1,0 +1,320 @@
+# CCNA Struggle Map v2.1
+# Comprehensive struggle map based on cognitive pattern analysis
+#
+# Schema version 2.1 features:
+#   - Wildcard patterns: "11.x" expands to all module 11 sections
+#   - Subsection wildcards: "3.2.x" expands to all 3.2.* subsections
+#   - Structured failure_modes with primary/secondary
+#   - Atom type preferences per failure mode
+#   - Expanded section coverage based on confusion pattern analysis
+#
+# Severity levels:
+#   critical - Cannot proceed without mastering (4x priority)
+#   high     - Major gaps affecting progress (3x priority)
+#   medium   - Needs improvement (2x priority)
+#   low      - Minor weakness (1x priority)
+#
+# Failure Modes (FM):
+#   FM1 - Confusions: Similar terms/concepts mixed up
+#   FM2 - Process: Multi-step procedures forgotten or misordered
+#   FM3 - Calculation: Numeric/binary/hex computation errors
+#   FM4 - Application: Cannot apply concept to new scenarios
+#   FM5 - Vocabulary: Terminology recall failure
+#   FM6 - Comparison: Cannot distinguish related concepts
+#   FM7 - Troubleshooting: Cannot diagnose from symptoms
+
+schema_version: "2.1"
+
+struggles:
+  # ==========================================================================
+  # Module 2: Basic Switch and End Device Configuration
+  # Key struggles: Access methods, command modes, passwords, interfaces
+  # ==========================================================================
+  - module: 2
+    sections:
+      - "2.1.4"   # Access methods (console/VTY/AUX)
+      - "2.1.5"   # Terminal programs
+      - "2.2.1"   # Cisco IOS modes
+      - "2.2.2"   # Primary command modes
+      - "2.2.4"   # Navigation between modes
+      - "2.3.1"   # Basic device naming
+      - "2.3.2"   # Password guidelines
+      - "2.3.3"   # Configure passwords
+      - "2.3.5"   # Banner messages
+      - "2.4.2"   # Save configurations
+      - "2.4.3"   # Alter running config
+      - "2.4.5"   # Capture to text file
+      - "2.6.2"   # Ports and addresses
+      - "2.7.1"   # Manual IP config
+      - "2.7.4"   # Verify connectivity
+      - "2.8.1"   # Interface verification
+      - "2.8.2"   # End device config
+    severity: high
+    failure_modes:
+      primary: FM2
+      secondary: [FM5, FM1]
+    notes: "Command modes, access methods, password config sequences"
+
+  # ==========================================================================
+  # Module 3: Protocols and Models
+  # Key struggles: OSI/TCP-IP mapping, encapsulation, PDU names
+  # ==========================================================================
+  - module: 3
+    sections:
+      - "3.1.2"   # Protocol suites
+      - "3.1.3"   # TCP/IP protocol suite
+      - "3.2.x"   # OSI model layers (all subsections)
+      - "3.3.x"   # Encapsulation (all subsections)
+    severity: critical
+    failure_modes:
+      primary: FM1
+      secondary: [FM6, FM4]
+    notes: "OSI vs TCP/IP mapping, PDU names, encapsulation/decapsulation"
+
+  # ==========================================================================
+  # Module 4: Physical Layer
+  # Key struggles: Cable types, standards, encoding
+  # ==========================================================================
+  - module: 4
+    sections:
+      - "4.1.x"   # Physical layer purpose
+      - "4.2.1"   # Physical layer characteristics
+      - "4.2.2"   # Bandwidth
+      - "4.2.3"   # Throughput
+      - "4.3.x"   # Copper cabling (UTP, STP, coaxial)
+    severity: medium
+    failure_modes:
+      primary: FM1
+      secondary: [FM5, FM6]
+    notes: "Cable types, standards, bandwidth vs throughput"
+
+  # ==========================================================================
+  # Module 5: Number Systems (CRITICAL)
+  # Key struggles: Binary/decimal/hex conversions, positional notation
+  # ==========================================================================
+  - module: 5
+    sections:
+      - "5.1.1"   # Binary and IPv4
+      - "5.1.2"   # Binary positional notation
+      - "5.1.4"   # Binary to decimal
+      - "5.1.5"   # Decimal to binary
+      - "5.2.1"   # Binary addresses
+      - "5.2.2"   # Binary AND operation
+      - "5.2.3"   # Network/host portions
+      - "5.3.1"   # Hexadecimal basics
+      - "5.3.2"   # Hex to decimal
+      - "5.3.3"   # Decimal to hex
+      - "5.4.1"   # IPv6 addresses
+      - "5.4.2"   # Binary to hex
+    severity: critical
+    failure_modes:
+      primary: FM3
+      secondary: [FM2]
+    notes: "Binary/decimal/hex conversions, AND operations, positional notation"
+
+  # ==========================================================================
+  # Module 6: Data Link Layer
+  # Key struggles: Frame format, MAC vs LLC sublayers
+  # ==========================================================================
+  - module: 6
+    sections:
+      - "6.1.x"   # Data link layer purpose
+      - "6.2.x"   # Topologies
+      - "6.3.x"   # Data link frame
+    severity: high
+    failure_modes:
+      primary: FM1
+      secondary: [FM6, FM5]
+    notes: "Frame structure, MAC vs LLC sublayers, broadcast vs collision domains"
+
+  # ==========================================================================
+  # Module 7: Ethernet Switching
+  # Key struggles: CAM table, switch forwarding, frame processing
+  # ==========================================================================
+  - module: 7
+    sections:
+      - "7.1.2"   # Ethernet encapsulation
+      - "7.1.3"   # MAC addresses
+      - "7.1.4"   # Frame processing
+      - "7.2.1"   # Switch fundamentals
+      - "7.2.2"   # Switch forwarding methods
+      - "7.2.3"   # Cut-through switching
+      - "7.2.4"   # Memory buffering
+      - "7.2.5"   # Duplex settings
+      - "7.2.6"   # Auto-MDIX
+    severity: high
+    failure_modes:
+      primary: FM2
+      secondary: [FM4, FM1]
+    notes: "CAM table population, switch forwarding decisions, frame vs Ethernet frame"
+
+  # ==========================================================================
+  # Module 8: Network Layer
+  # Key struggles: IPv4 header, routing vs switching, packet processing
+  # ==========================================================================
+  - module: 8
+    sections:
+      - "8.1.x"   # Network layer characteristics
+      - "8.2.x"   # IPv4 packet
+      - "8.3.x"   # IPv6 packet
+    severity: high
+    failure_modes:
+      primary: FM1
+      secondary: [FM4, FM6]
+    notes: "IPv4/IPv6 headers, routing vs switching, packet encapsulation"
+
+  # ==========================================================================
+  # Module 9: Address Resolution
+  # Key struggles: ARP process, MAC discovery
+  # ==========================================================================
+  - module: 9
+    sections:
+      - "9.1.x"   # MAC and IP
+      - "9.2.x"   # ARP
+      - "9.3.x"   # IPv6 neighbor discovery
+    severity: high
+    failure_modes:
+      primary: FM2
+      secondary: [FM4, FM1]
+    notes: "ARP process, ARP table, ND protocol"
+
+  # ==========================================================================
+  # Module 10: Basic Router Configuration
+  # Key struggles: Router boot, IOS navigation, interface config
+  # ==========================================================================
+  - module: 10
+    sections:
+      - "10.1.x"  # Router initial config
+      - "10.2.x"  # Configure interfaces
+      - "10.3.x"  # Default gateway
+      - "10.4.x"  # Loopback interface
+    severity: high
+    failure_modes:
+      primary: FM2
+      secondary: [FM5]
+    notes: "Router boot sequence, IOS navigation, interface configuration"
+
+  # ==========================================================================
+  # Module 11: IPv4 Addressing (CRITICAL)
+  # Key struggles: Subnetting, VLSM, address calculations
+  # ==========================================================================
+  - module: 11
+    sections:
+      - "11.1.x"  # IPv4 address structure
+      - "11.2.x"  # IPv4 unicast, broadcast, multicast
+      - "11.3.x"  # Types of IPv4 addresses
+      - "11.4.x"  # Network segmentation
+      - "11.5.x"  # Subnet an IPv4 network
+      - "11.6.x"  # Subnet to meet requirements
+      - "11.7.x"  # VLSM
+      - "11.8.x"  # Structured design
+    severity: critical
+    failure_modes:
+      primary: FM3
+      secondary: [FM4, FM2]
+    notes: "Subnetting, VLSM, network/broadcast address calculations"
+
+  # ==========================================================================
+  # Module 12: IPv6 Addressing (CRITICAL)
+  # Key struggles: Address types, compression, EUI-64
+  # ==========================================================================
+  - module: 12
+    sections:
+      - "12.1.x"  # IPv4 issues
+      - "12.2.x"  # IPv6 addressing
+      - "12.3.x"  # IPv6 address types
+      - "12.4.x"  # GUA and LLA
+      - "12.5.x"  # Dynamic addressing
+      - "12.6.x"  # IPv6 multicast
+    severity: critical
+    failure_modes:
+      primary: FM1
+      secondary: [FM3, FM5]
+    notes: "IPv6 address types, compression rules, EUI-64, SLAAC vs DHCPv6"
+
+  # ==========================================================================
+  # Module 13: ICMP
+  # Key struggles: ICMPv4 vs ICMPv6, ping/traceroute interpretation
+  # ==========================================================================
+  - module: 13
+    sections:
+      - "13.1.x"  # ICMP messages
+      - "13.2.x"  # Ping and traceroute
+    severity: medium
+    failure_modes:
+      primary: FM4
+      secondary: [FM7, FM6]
+    notes: "ICMPv4 vs ICMPv6 messages, ping/traceroute interpretation"
+
+  # ==========================================================================
+  # Module 14: Transport Layer
+  # Key struggles: TCP vs UDP, 3-way handshake, port numbers
+  # ==========================================================================
+  - module: 14
+    sections:
+      - "14.x"    # All transport layer sections
+    severity: high
+    failure_modes:
+      primary: FM1
+      secondary: [FM2, FM6]
+    notes: "TCP vs UDP, 3-way handshake, port numbers, flow control"
+
+  # ==========================================================================
+  # Module 15: Application Layer
+  # Key struggles: DNS, DHCP, HTTP/HTTPS, FTP, email protocols
+  # ==========================================================================
+  - module: 15
+    sections:
+      - "15.x"    # All application layer sections
+    severity: medium
+    failure_modes:
+      primary: FM5
+      secondary: [FM6, FM4]
+    notes: "DNS, DHCP, HTTP/HTTPS, protocol operations"
+
+  # ==========================================================================
+  # Module 16: Network Security
+  # Key struggles: Threat types, attack categories, mitigation
+  # ==========================================================================
+  - module: 16
+    sections:
+      - "16.x"    # All security sections
+    severity: medium
+    failure_modes:
+      primary: FM1
+      secondary: [FM5, FM7]
+    notes: "Threat types, attack categories, mitigation strategies"
+
+  # ==========================================================================
+  # Module 17: Build a Small Network
+  # Key struggles: Design, troubleshooting, documentation
+  # ==========================================================================
+  - module: 17
+    sections:
+      - "17.x"    # All small network sections
+    severity: medium
+    failure_modes:
+      primary: FM2
+      secondary: [FM7, FM4]
+    notes: "Network design, troubleshooting methodology, documentation"
+
+preferences:
+  focus_mode: weakest_first  # Start with critical, then high
+  max_atoms_per_session: 50
+  include_prerequisites: true
+  prerequisite_depth: 2
+
+  # Atom type preferences by failure mode
+  preferred_atom_types:
+    FM1: [mcq, matching]              # Confusions -> discrimination tasks
+    FM2: [parsons, flashcard]         # Process -> ordering tasks
+    FM3: [numeric, flashcard]         # Calculation -> computation practice
+    FM4: [mcq]                        # Application -> scenario-based
+    FM5: [flashcard, cloze]           # Vocabulary -> retrieval practice
+    FM6: [matching, mcq]              # Comparison -> discrimination
+    FM7: [mcq]                        # Troubleshooting -> diagnostic scenarios
+
+# Wildcard expansion rules:
+# - "X.x" or "X.*" expands to all direct children sections of module X
+# - "X.Y.x" or "X.Y.*" expands to all subsections of X.Y
+# - Plain section IDs like "11.3" are used as-is

@@ -1,0 +1,656 @@
+[
+  {
+    "card_id": "PLM-BIN-D2B-255",
+    "front": "Convert to binary: 255",
+    "back": "11111111",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "broadcast/all-ones",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-254",
+    "front": "Convert to binary: 254",
+    "back": "11111110",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "last usable host",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-128",
+    "front": "Convert to binary: 128",
+    "back": "10000000",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "MSB only / half",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-127",
+    "front": "Convert to binary: 127",
+    "back": "01111111",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "all but MSB",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-192",
+    "front": "Convert to binary: 192",
+    "back": "11000000",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/26 mask or Class C range",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-191",
+    "front": "Convert to binary: 191",
+    "back": "10111111",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "just below /26",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-064",
+    "front": "Convert to binary: 64",
+    "back": "01000000",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "subnet boundary",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-063",
+    "front": "Convert to binary: 63",
+    "back": "00111111",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "below subnet boundary",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-000",
+    "front": "Convert to binary: 0",
+    "back": "00000000",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "network/all-zeros",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-001",
+    "front": "Convert to binary: 1",
+    "back": "00000001",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "first usable host",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-224",
+    "front": "Convert to binary: 224",
+    "back": "11100000",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/27 mask or multicast",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-223",
+    "front": "Convert to binary: 223",
+    "back": "11011111",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "just below /27",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-240",
+    "front": "Convert to binary: 240",
+    "back": "11110000",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/28 mask",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-248",
+    "front": "Convert to binary: 248",
+    "back": "11111000",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/29 mask",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-D2B-252",
+    "front": "Convert to binary: 252",
+    "back": "11111100",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/30 mask",
+      "drill_type": "decimal_to_binary"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-255",
+    "front": "Convert to decimal: 11111111",
+    "back": "255",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "broadcast/all-ones",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-254",
+    "front": "Convert to decimal: 11111110",
+    "back": "254",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "last usable host",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-128",
+    "front": "Convert to decimal: 10000000",
+    "back": "128",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "MSB only / half",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-127",
+    "front": "Convert to decimal: 01111111",
+    "back": "127",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "all but MSB",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-192",
+    "front": "Convert to decimal: 11000000",
+    "back": "192",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/26 mask or Class C range",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-191",
+    "front": "Convert to decimal: 10111111",
+    "back": "191",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "just below /26",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-064",
+    "front": "Convert to decimal: 01000000",
+    "back": "64",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "subnet boundary",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-063",
+    "front": "Convert to decimal: 00111111",
+    "back": "63",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "below subnet boundary",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-000",
+    "front": "Convert to decimal: 00000000",
+    "back": "0",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "network/all-zeros",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-001",
+    "front": "Convert to decimal: 00000001",
+    "back": "1",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "first usable host",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-224",
+    "front": "Convert to decimal: 11100000",
+    "back": "224",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/27 mask or multicast",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-223",
+    "front": "Convert to decimal: 11011111",
+    "back": "223",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "just below /27",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-240",
+    "front": "Convert to decimal: 11110000",
+    "back": "240",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/28 mask",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-248",
+    "front": "Convert to decimal: 11111000",
+    "back": "248",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/29 mask",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-B2D-252",
+    "front": "Convert to decimal: 11111100",
+    "back": "252",
+    "atom_type": "numeric",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1000,
+    "tags": [
+      "binary",
+      "decimal",
+      "plm",
+      "subnet-math"
+    ],
+    "metadata": {
+      "significance": "/30 mask",
+      "drill_type": "binary_to_decimal"
+    }
+  },
+  {
+    "card_id": "PLM-BIN-MCQ-001",
+    "front": "In a /24 network, which decimal value represents the BROADCAST address host portion?",
+    "back": "{\"options\": [\"254\", \"255\", \"256\", \"0\"], \"correct\": 1, \"explanation\": \"255 (11111111) = all host bits ON = broadcast. 254 (11111110) = last usable host.\"}",
+    "atom_type": "mcq",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 2000,
+    "tags": [
+      "binary",
+      "subnet",
+      "plm",
+      "discrimination"
+    ]
+  },
+  {
+    "card_id": "PLM-BIN-MCQ-002",
+    "front": "In a /24 network, which decimal value represents the LAST USABLE HOST address host portion?",
+    "back": "{\"options\": [\"255\", \"254\", \"253\", \"1\"], \"correct\": 1, \"explanation\": \"254 (11111110) = last usable. 255 (11111111) = broadcast.\"}",
+    "atom_type": "mcq",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 2000,
+    "tags": [
+      "binary",
+      "subnet",
+      "plm",
+      "discrimination"
+    ]
+  },
+  {
+    "card_id": "PLM-BIN-MCQ-003",
+    "front": "Which binary pattern represents 255?",
+    "back": "{\"options\": [\"11111110\", \"11111111\", \"11111100\", \"10000000\"], \"correct\": 1, \"explanation\": \"255 = all 8 bits ON = 11111111\"}",
+    "atom_type": "mcq",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1500,
+    "tags": [
+      "binary",
+      "plm"
+    ]
+  },
+  {
+    "card_id": "PLM-BIN-MCQ-004",
+    "front": "What is 11111110 in decimal?",
+    "back": "{\"options\": [\"255\", \"254\", \"253\", \"252\"], \"correct\": 1, \"explanation\": \"11111110 = 128+64+32+16+8+4+2 = 254 (last bit OFF)\"}",
+    "atom_type": "mcq",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 1500,
+    "tags": [
+      "binary",
+      "plm"
+    ]
+  },
+  {
+    "card_id": "PLM-BIN-MCQ-005",
+    "front": "Which decimal value appears in the 4th octet of a /25 subnet mask?",
+    "back": "{\"options\": [\"0\", \"128\", \"192\", \"255\"], \"correct\": 1, \"explanation\": \"/25 = 255.255.255.128. 25 bits = 24 + 1 more bit. 10000000 = 128\"}",
+    "atom_type": "mcq",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 2000,
+    "tags": [
+      "subnet",
+      "mask",
+      "plm"
+    ]
+  },
+  {
+    "card_id": "PLM-BIN-MCQ-006",
+    "front": "Which decimal value appears in the 4th octet of a /26 subnet mask?",
+    "back": "{\"options\": [\"128\", \"192\", \"224\", \"240\"], \"correct\": 1, \"explanation\": \"/26 = 255.255.255.192. 26 bits = 24 + 2 more bits. 11000000 = 192\"}",
+    "atom_type": "mcq",
+    "ccna_section_id": "11.4",
+    "source": "plm_binary_drills",
+    "plm_target_ms": 2000,
+    "tags": [
+      "subnet",
+      "mask",
+      "plm"
+    ]
+  }
+]

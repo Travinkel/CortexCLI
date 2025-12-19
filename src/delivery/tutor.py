@@ -9,15 +9,92 @@ Triggered when:
 - Atom quality_score >= 90 (high-value content)
 - User fails the card
 """
+
 from __future__ import annotations
 
 import os
-from typing import Optional
+import difflib
+from types import SimpleNamespace
+from typing import Iterable
 
 from loguru import logger
 
 from .atom_deck import Atom
+from src.adaptive.pedagogy import (
+    InterventionResponse,
+    LearningState,
+    PedagogicalEngine,
+    Remediation,
+)
 
+# Lightweight proxy to connect pedagogy engine to CLI/tutor flows
+
+
+class AdaptiveTutor:
+    """Route learner responses through the pedagogical engine."""
+
+    def __init__(self, deck: list[Atom] | None = None):
+        self.engine = PedagogicalEngine()
+        self.deck = deck or []
+        self._history: dict[str, list[dict]] = {}
+
+    def submit_response(
+        self,
+        atom: Atom,
+        is_correct: bool,
+        response_ms: int,
+        grade: int | None = None,
+        recent_times: list[int] | None = None,
+    ) -> InterventionResponse:
+        """Evaluate a learner response and return an intervention plan."""
+        history = self._history.setdefault(atom.id, [])
+        history.append(
+            {
+                "result": "correct" if is_correct else "incorrect",
+                "latency": response_ms,
+                "confidence": "high" if (grade or 0) >= 4 else "low",
+            }
+        )
+
+        state = LearningState(
+            stability=float(max(atom.difficulty, 1)),
+            review_count=len(history),
+            psi_index=0.0,
+            visual_load=1.0
+            if getattr(atom, "derived_from_visual", False)
+            or getattr(atom, "media_type", "") == "mermaid"
+            else 0.5,
+            symbolic_load=0.5,
+            recent_response_times=(recent_times or [])[-5:],
+        )
+
+        hints_available = bool(atom.hints or (atom.content_json or {}).get("hints"))
+        response = self.engine.evaluate(
+            event=SimpleNamespace(is_correct=is_correct, response_time_ms=response_ms),
+            state=state,
+            history=history,
+            card_type=atom.knowledge_type,
+            is_new_topic=bool(atom.module_number == 0),
+            hints_available=hints_available,
+        )
+
+        # Attach a confusable/lure atom if contrastive remediation requested
+        if response.remediation == Remediation.CONTRASTIVE:
+            response.lure_atom = self._find_confusable_atom(atom)
+
+        return response
+
+    def _find_confusable_atom(self, atom: Atom) -> Atom | None:
+        """Find a likely confusable atom using simple text similarity as a fallback."""
+        candidates: Iterable[Atom] = (c for c in self.deck if c.id != atom.id)
+        best: tuple[float, Atom | None] = (0.0, None)
+        for candidate in candidates:
+            ratio = difflib.SequenceMatcher(
+                None, atom.front.lower(), candidate.front.lower()
+            ).ratio()
+            if ratio > best[0]:
+                best = (ratio, candidate)
+        return best[1]
 
 # =============================================================================
 # Prompts
@@ -69,6 +146,7 @@ Do NOT reveal the answer directly.
 # Socratic Tutor
 # =============================================================================
 
+
 class SocraticTutor:
     """
     Provides Socratic tutoring using Gemini API.
@@ -81,7 +159,7 @@ class SocraticTutor:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model_name: str = "gemini-2.0-flash",
     ):
         """
@@ -122,12 +200,9 @@ class SocraticTutor:
             return False
 
         # Only for high-quality atoms (worth the intervention)
-        if atom.quality_score < self.QUALITY_THRESHOLD:
-            return False
+        return not atom.quality_score < self.QUALITY_THRESHOLD
 
-        return True
-
-    def generate_guidance(self, atom: Atom) -> Optional[str]:
+    def generate_guidance(self, atom: Atom) -> str | None:
         """
         Generate Socratic guiding questions for an atom.
 
@@ -193,7 +268,8 @@ class SocraticTutor:
 # Quick Access Function
 # =============================================================================
 
-def get_socratic_guidance(atom: Atom) -> Optional[str]:
+
+def get_socratic_guidance(atom: Atom) -> str | None:
     """
     Quick access function for generating Socratic guidance.
 

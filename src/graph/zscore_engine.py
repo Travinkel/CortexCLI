@@ -23,35 +23,36 @@ Reference: Cortex 2.0 Architecture Specification, Section 2.3
 Author: Cortex System
 Version: 2.0.0 (Notion-Centric Architecture)
 """
+
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
 
 from loguru import logger
 
 from config import get_settings
 from src.graph.shadow_graph import (
-    get_shadow_graph,
-    ShadowGraphService,
     GraphNode,
-    NodeType,
+    ShadowGraphService,
+    get_shadow_graph,
 )
-
 
 # =============================================================================
 # DATA MODELS
 # =============================================================================
 
+
 @dataclass
 class ZScoreComponents:
     """Components of a Z-Score calculation."""
-    decay: float = 0.0          # D(t) - time decay
-    centrality: float = 0.0     # C(a) - graph centrality
-    project: float = 0.0        # P(a) - project relevance
-    novelty: float = 0.0        # N(a) - novelty/freshness
+
+    decay: float = 0.0  # D(t) - time decay
+    centrality: float = 0.0  # C(a) - graph centrality
+    project: float = 0.0  # P(a) - project relevance
+    novelty: float = 0.0  # N(a) - novelty/freshness
 
     @property
     def total(self) -> float:
@@ -59,10 +60,10 @@ class ZScoreComponents:
         settings = get_settings()
         weights = settings.get_zscore_weights()
         return (
-            weights["decay"] * self.decay +
-            weights["centrality"] * self.centrality +
-            weights["project"] * self.project +
-            weights["novelty"] * self.novelty
+            weights["decay"] * self.decay
+            + weights["centrality"] * self.centrality
+            + weights["project"] * self.project
+            + weights["novelty"] * self.novelty
         )
 
     @property
@@ -86,8 +87,9 @@ class ZScoreComponents:
 @dataclass
 class AtomMetrics:
     """Metrics for an atom used in Z-Score calculation."""
+
     atom_id: str
-    last_touched: Optional[datetime] = None
+    last_touched: datetime | None = None
     review_count: int = 0
     stability: float = 0.0
     difficulty: float = 0.3
@@ -98,6 +100,7 @@ class AtomMetrics:
 @dataclass
 class ZScoreResult:
     """Result of a Z-Score batch computation."""
+
     atom_id: str
     components: ZScoreComponents
     z_score: float
@@ -108,6 +111,7 @@ class ZScoreResult:
 # =============================================================================
 # Z-SCORE ENGINE
 # =============================================================================
+
 
 class ZScoreEngine:
     """
@@ -134,7 +138,7 @@ class ZScoreEngine:
     def __init__(self):
         """Initialize the Z-Score engine."""
         self._settings = get_settings()
-        self._graph: Optional[ShadowGraphService] = None
+        self._graph: ShadowGraphService | None = None
         self._centrality_cache: dict[str, float] = {}
         self._project_atoms_cache: dict[str, set[str]] = {}
 
@@ -150,8 +154,8 @@ class ZScoreEngine:
 
     def compute_decay(
         self,
-        last_touched: Optional[datetime],
-        now: Optional[datetime] = None,
+        last_touched: datetime | None,
+        now: datetime | None = None,
     ) -> float:
         """
         Compute time-decay signal D(t).
@@ -226,8 +230,7 @@ class ZScoreEngine:
                 # Normalize to [0, 1]
                 max_rank = max(rankings.values()) if rankings else 1.0
                 self._centrality_cache = {
-                    aid: rank / max_rank if max_rank > 0 else 0.0
-                    for aid, rank in rankings.items()
+                    aid: rank / max_rank if max_rank > 0 else 0.0 for aid, rank in rankings.items()
                 }
 
         return self._centrality_cache.get(atom_id, 0.5)
@@ -307,8 +310,8 @@ class ZScoreEngine:
     def compute(
         self,
         metrics: AtomMetrics,
-        active_project_ids: Optional[list[str]] = None,
-        now: Optional[datetime] = None,
+        active_project_ids: list[str] | None = None,
+        now: datetime | None = None,
     ) -> ZScoreResult:
         """
         Compute Z-Score for a single atom.
@@ -341,8 +344,8 @@ class ZScoreEngine:
     def compute_batch(
         self,
         metrics_list: list[AtomMetrics],
-        active_project_ids: Optional[list[str]] = None,
-        now: Optional[datetime] = None,
+        active_project_ids: list[str] | None = None,
+        now: datetime | None = None,
     ) -> list[ZScoreResult]:
         """
         Compute Z-Scores for a batch of atoms.
@@ -401,8 +404,7 @@ class ZScoreEngine:
         if rankings:
             max_rank = max(rankings.values()) if rankings else 1.0
             self._centrality_cache = {
-                aid: rank / max_rank if max_rank > 0 else 0.0
-                for aid, rank in rankings.items()
+                aid: rank / max_rank if max_rank > 0 else 0.0 for aid, rank in rankings.items()
             }
 
     def clear_cache(self) -> None:
@@ -415,9 +417,11 @@ class ZScoreEngine:
 # FORCE Z ENGINE
 # =============================================================================
 
+
 @dataclass
 class ForceZResult:
     """Result of a Force Z backtracking analysis."""
+
     target_atom_id: str
     should_backtrack: bool
     weak_prerequisites: list[GraphNode]
@@ -453,7 +457,7 @@ class ForceZEngine:
     def __init__(self):
         """Initialize the Force Z engine."""
         self._settings = get_settings()
-        self._graph: Optional[ShadowGraphService] = None
+        self._graph: ShadowGraphService | None = None
 
     def _get_graph(self) -> ShadowGraphService:
         """Get the Shadow Graph service."""
@@ -464,7 +468,7 @@ class ForceZEngine:
     def analyze(
         self,
         target_atom_id: str,
-        mastery_threshold: Optional[float] = None,
+        mastery_threshold: float | None = None,
     ) -> ForceZResult:
         """
         Analyze whether Force Z backtracking is needed for an atom.
@@ -550,13 +554,15 @@ class ForceZEngine:
 
         queue = []
         for node in result.weak_prerequisites[:limit]:
-            queue.append({
-                "id": node.id,
-                "title": node.title,
-                "memory_state": node.memory_state,
-                "z_score": node.z_score,
-                "is_force_z": True,  # Flag for UI to display differently
-            })
+            queue.append(
+                {
+                    "id": node.id,
+                    "title": node.title,
+                    "memory_state": node.memory_state,
+                    "z_score": node.z_score,
+                    "is_force_z": True,  # Flag for UI to display differently
+                }
+            )
 
         return queue
 
@@ -565,8 +571,8 @@ class ForceZEngine:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
-_zscore_engine: Optional[ZScoreEngine] = None
-_forcez_engine: Optional[ForceZEngine] = None
+_zscore_engine: ZScoreEngine | None = None
+_forcez_engine: ForceZEngine | None = None
 
 
 def get_zscore_engine() -> ZScoreEngine:

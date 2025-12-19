@@ -5,6 +5,7 @@ Run with:
     uvicorn main:app --reload --port 8100
     python main.py
 """
+
 import sys
 from pathlib import Path
 
@@ -12,8 +13,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import uvicorn
+
 from config import get_settings
-from src.api.main import app
 
 settings = get_settings()
 

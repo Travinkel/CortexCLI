@@ -21,7 +21,7 @@ Field Categories:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from loguru import logger
 
@@ -60,87 +60,85 @@ class NotionAdapter:
         """
         self._settings = settings or get_settings()
         self._client = NotionClient(settings=self._settings)
-        logger.info(
-            f"NotionAdapter initialized (PROTECT_NOTION={self._settings.protect_notion})"
-        )
+        logger.info(f"NotionAdapter initialized (PROTECT_NOTION={self._settings.protect_notion})")
 
     # ========================================
     # Read Operations (pass-through)
     # ========================================
 
-    def fetch_flashcards(self) -> List[Dict[str, Any]]:
+    def fetch_flashcards(self) -> list[dict[str, Any]]:
         """Fetch all flashcards from Notion."""
         return self._client.fetch_flashcards()
 
-    def fetch_concepts(self) -> List[Dict[str, Any]]:
+    def fetch_concepts(self) -> list[dict[str, Any]]:
         """Fetch all concepts from Notion."""
         return self._client.fetch_concepts()
 
-    def fetch_concept_areas(self) -> List[Dict[str, Any]]:
+    def fetch_concept_areas(self) -> list[dict[str, Any]]:
         """Fetch all concept areas from Notion."""
         return self._client.fetch_concept_areas()
 
-    def fetch_concept_clusters(self) -> List[Dict[str, Any]]:
+    def fetch_concept_clusters(self) -> list[dict[str, Any]]:
         """Fetch all concept clusters from Notion."""
         return self._client.fetch_concept_clusters()
 
-    def fetch_modules(self) -> List[Dict[str, Any]]:
+    def fetch_modules(self) -> list[dict[str, Any]]:
         """Fetch all modules from Notion."""
         return self._client.fetch_modules()
 
-    def fetch_tracks(self) -> List[Dict[str, Any]]:
+    def fetch_tracks(self) -> list[dict[str, Any]]:
         """Fetch all tracks from Notion."""
         return self._client.fetch_tracks()
 
-    def fetch_programs(self) -> List[Dict[str, Any]]:
+    def fetch_programs(self) -> list[dict[str, Any]]:
         """Fetch all programs from Notion."""
         return self._client.fetch_programs()
 
-    def fetch_activities(self) -> List[Dict[str, Any]]:
+    def fetch_activities(self) -> list[dict[str, Any]]:
         """Fetch all activities from Notion."""
         return self._client.fetch_activities()
 
-    def fetch_sessions(self) -> List[Dict[str, Any]]:
+    def fetch_sessions(self) -> list[dict[str, Any]]:
         """Fetch all sessions from Notion."""
         return self._client.fetch_sessions()
 
-    def fetch_quizzes(self) -> List[Dict[str, Any]]:
+    def fetch_quizzes(self) -> list[dict[str, Any]]:
         """Fetch all quizzes from Notion."""
         return self._client.fetch_quizzes()
 
-    def fetch_critical_skills(self) -> List[Dict[str, Any]]:
+    def fetch_critical_skills(self) -> list[dict[str, Any]]:
         """Fetch all critical skills from Notion."""
         return self._client.fetch_critical_skills()
 
-    def fetch_resources(self) -> List[Dict[str, Any]]:
+    def fetch_resources(self) -> list[dict[str, Any]]:
         """Fetch all resources from Notion."""
         return self._client.fetch_resources()
 
-    def fetch_mental_models(self) -> List[Dict[str, Any]]:
+    def fetch_mental_models(self) -> list[dict[str, Any]]:
         """Fetch all mental models from Notion."""
         return self._client.fetch_mental_models()
 
-    def fetch_evidence(self) -> List[Dict[str, Any]]:
+    def fetch_evidence(self) -> list[dict[str, Any]]:
         """Fetch all evidence from Notion."""
         return self._client.fetch_evidence()
 
-    def fetch_brain_regions(self) -> List[Dict[str, Any]]:
+    def fetch_brain_regions(self) -> list[dict[str, Any]]:
         """Fetch all brain regions from Notion."""
         return self._client.fetch_brain_regions()
 
-    def fetch_training_protocols(self) -> List[Dict[str, Any]]:
+    def fetch_training_protocols(self) -> list[dict[str, Any]]:
         """Fetch all training protocols from Notion."""
         return self._client.fetch_training_protocols()
 
-    def fetch_practice_logs(self) -> List[Dict[str, Any]]:
+    def fetch_practice_logs(self) -> list[dict[str, Any]]:
         """Fetch all practice logs from Notion."""
         return self._client.fetch_practice_logs()
 
-    def fetch_assessments(self) -> List[Dict[str, Any]]:
+    def fetch_assessments(self) -> list[dict[str, Any]]:
         """Fetch all assessments from Notion."""
         return self._client.fetch_assessments()
 
-    def fetch_all(self) -> Dict[str, List[Dict[str, Any]]]:
+    def fetch_all(self) -> dict[str, list[dict[str, Any]]]:
         """Fetch all configured databases in bulk."""
         return self._client.fetch_all()
 
@@ -153,7 +151,7 @@ class NotionAdapter:
     # ========================================
 
     def sync_computed_fields(
-        self, page_id: str, computed_values: Dict[str, Any], dry_run: bool = False
+        self, page_id: str, computed_values: dict[str, Any], dry_run: bool = False
     ) -> bool:
         """
         Sync PostgreSQL-computed values back to Notion.
@@ -182,7 +180,7 @@ class NotionAdapter:
         """
         # Validate all field names have [Computed] prefix
         invalid_fields = [
-            name for name in computed_values.keys() if not name.startswith(self.COMPUTED_PREFIX)
+            name for name in computed_values if not name.startswith(self.COMPUTED_PREFIX)
         ]
         if invalid_fields:
             logger.error(
@@ -201,9 +199,7 @@ class NotionAdapter:
         # Apply dry_run override
         effective_dry_run = dry_run or self._settings.dry_run
         if effective_dry_run:
-            logger.info(
-                f"DRY RUN: Would sync computed fields to page {page_id}: {computed_values}"
-            )
+            logger.info(f"DRY RUN: Would sync computed fields to page {page_id}: {computed_values}")
             return True
 
         # Build Notion properties structure
@@ -215,9 +211,7 @@ class NotionAdapter:
         }
 
         # Execute update
-        logger.info(
-            f"Syncing {len(computed_values)} computed fields to Notion page {page_id}"
-        )
+        logger.info(f"Syncing {len(computed_values)} computed fields to Notion page {page_id}")
         result = self._client.update_page(page_id, properties)
 
         if result:
@@ -292,8 +286,8 @@ class NotionAdapter:
             return False
 
     def bulk_sync_computed_fields(
-        self, updates: List[Dict[str, Any]], dry_run: bool = False
-    ) -> Dict[str, int]:
+        self, updates: list[dict[str, Any]], dry_run: bool = False
+    ) -> dict[str, int]:
         """
         Sync computed fields for multiple pages in bulk.
 
@@ -351,7 +345,7 @@ class NotionAdapter:
     # Helper Methods
     # ========================================
 
-    def _build_notion_properties(self, field_values: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_notion_properties(self, field_values: dict[str, Any]) -> dict[str, Any]:
         """
         Build Notion API properties structure from field values.
 
@@ -377,7 +371,11 @@ class NotionAdapter:
                 # Could be text, select, or date - try to infer
                 if self._is_iso_date(value):
                     properties[field_name] = {"date": {"start": value}}
-                elif field_name.endswith("(select)") or "Grade" in field_name or "Status" in field_name:
+                elif (
+                    field_name.endswith("(select)")
+                    or "Grade" in field_name
+                    or "Status" in field_name
+                ):
                     properties[field_name] = {"select": {"name": value}}
                 else:
                     # Rich text
@@ -391,17 +389,13 @@ class NotionAdapter:
                     if all(len(v) == 32 and "-" in v for v in value):  # UUIDs
                         properties[field_name] = {"relation": [{"id": v} for v in value]}
                     else:
-                        properties[field_name] = {
-                            "multi_select": [{"name": v} for v in value]
-                        }
+                        properties[field_name] = {"multi_select": [{"name": v} for v in value]}
             else:
-                logger.warning(
-                    f"Unknown value type for field '{field_name}': {type(value)}"
-                )
+                logger.warning(f"Unknown value type for field '{field_name}': {type(value)}")
 
         return properties
 
-    def _get_empty_property_for_type(self, field_name: str) -> Dict[str, Any]:
+    def _get_empty_property_for_type(self, field_name: str) -> dict[str, Any]:
         """Get an empty Notion property to clear a field."""
         # For now, return empty rich_text (safest default)
         return {"rich_text": []}

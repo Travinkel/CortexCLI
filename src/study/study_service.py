@@ -7,17 +7,19 @@ Provides high-level operations for the CLI:
 - Get module details
 - Sync mastery from Anki
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Optional
 
 from loguru import logger
 from sqlalchemy import text
 
-from src.study.mastery_calculator import MasteryCalculator, MasteryMetrics, MasteryResult
-from src.study.interleaver import AdaptiveInterleaver, StudyQueue
+from src.adaptive.models import TYPE_QUOTAS, TYPE_MINIMUM
+from src.adaptive.neuro_model import CognitiveDiagnosis
+from src.study.interleaver import AdaptiveInterleaver
+from src.study.mastery_calculator import MasteryCalculator
 
 
 @dataclass
@@ -30,6 +32,7 @@ class ExpandedModuleAtoms:
     - Prerequisite concepts from earlier modules (up to max_depth hops)
     - Dependent concepts from later modules (up to max_depth hops)
     """
+
     target_module: int
     max_depth: int
 
@@ -49,9 +52,11 @@ class ExpandedModuleAtoms:
 @dataclass
 class DailyStudySummary:
     """Summary for daily study session."""
+
     date: date
     due_reviews: int
-    new_atoms_available: int
+    learned_count: int
+    total_count: int
     remediation_sections: int
     remediation_atoms: int
     estimated_minutes: int
@@ -64,6 +69,7 @@ class DailyStudySummary:
 @dataclass
 class ModuleSummary:
     """Summary of a module's progress."""
+
     module_number: int
     title: str
     total_sections: int
@@ -80,21 +86,22 @@ class ModuleSummary:
 @dataclass
 class SectionDetail:
     """Detailed view of a section."""
+
     section_id: str
     title: str
     level: int
-    parent_section_id: Optional[str]
+    parent_section_id: str | None
     mastery_score: float
     is_mastered: bool
     needs_remediation: bool
-    remediation_reason: Optional[str]
+    remediation_reason: str | None
     atoms_total: int
     atoms_mastered: int
     atoms_learning: int
     atoms_struggling: int
     atoms_new: int
-    last_review_date: Optional[datetime]
-    subsections: list["SectionDetail"]
+    last_review_date: datetime | None
+    subsections: list[SectionDetail]
 
 
 class StudyService:
@@ -126,46 +133,60 @@ class StudyService:
 
         with engine.connect() as conn:
             # Get due reviews count (simplified - would need Anki sync)
-            due_result = conn.execute(text("""
+            due_result = conn.execute(
+                text("""
                 SELECT COUNT(*) as cnt
                 FROM learning_atoms
                 WHERE anki_due_date IS NOT NULL
                   AND anki_due_date <= CURRENT_DATE
-            """))
+            """)
+            )
             due_reviews = due_result.fetchone().cnt or 0
 
-            # Get new atoms available
-            new_result = conn.execute(text("""
-                SELECT COUNT(*) as cnt
+            # Get learned/total atom counts
+            progress_result = conn.execute(
+                text("""
+                SELECT
+                    COUNT(*) FILTER (WHERE anki_review_count > 0) as learned,
+                    COUNT(*) as total
                 FROM learning_atoms
-                WHERE (anki_review_count IS NULL OR anki_review_count = 0)
-                  AND ccna_section_id IS NOT NULL
-            """))
-            new_atoms = new_result.fetchone().cnt or 0
+                WHERE ccna_section_id IS NOT NULL
+            """)
+            )
+            progress_row = progress_result.fetchone()
+            learned_count = progress_row.learned or 0
+            total_count = progress_row.total or 0
 
             # Get remediation stats
-            remediation_result = conn.execute(text("""
+            remediation_result = conn.execute(
+                text("""
                 SELECT
                     COUNT(*) as sections,
                     COALESCE(SUM(atoms_struggling), 0) as atoms
                 FROM ccna_section_mastery
                 WHERE needs_remediation = TRUE
                   AND user_id = :user_id
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
             rem_row = remediation_result.fetchone()
             remediation_sections = rem_row.sections or 0
             remediation_atoms = rem_row.atoms or 0
 
             # Get overall mastery
-            mastery_result = conn.execute(text("""
+            mastery_result = conn.execute(
+                text("""
                 SELECT AVG(mastery_score) as avg_mastery
                 FROM ccna_section_mastery
                 WHERE user_id = :user_id
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
             overall_mastery = mastery_result.fetchone().avg_mastery or 0
 
             # Get current progress (first incomplete section)
-            progress_result = conn.execute(text("""
+            current_result = conn.execute(
+                text("""
                 SELECT s.module_number, s.section_id
                 FROM ccna_sections s
                 LEFT JOIN ccna_section_mastery m
@@ -173,28 +194,35 @@ class StudyService:
                 WHERE COALESCE(m.is_completed, FALSE) = FALSE
                 ORDER BY s.display_order
                 LIMIT 1
-            """), {"user_id": self.user_id})
-            progress_row = progress_result.fetchone()
-            current_module = progress_row.module_number if progress_row else 1
-            current_section = progress_row.section_id if progress_row else "1.2"
+            """),
+                {"user_id": self.user_id},
+            )
+            current_row = current_result.fetchone()
+            current_module = current_row.module_number if current_row else 1
+            current_section = current_row.section_id if current_row else "1.2"
 
             # Estimate time (30 sec per card)
-            total_cards = due_reviews + min(30, new_atoms) + min(15, remediation_atoms)
+            unlearned = max(0, total_count - learned_count)
+            total_cards = due_reviews + min(30, unlearned) + min(15, remediation_atoms)
             estimated_minutes = max(1, total_cards // 2)
 
             # Streak (simplified - count consecutive days with sessions)
-            streak_result = conn.execute(text("""
+            streak_result = conn.execute(
+                text("""
                 SELECT COUNT(DISTINCT session_date) as streak
                 FROM ccna_study_sessions
                 WHERE user_id = :user_id
                   AND session_date >= CURRENT_DATE - INTERVAL '30 days'
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
             streak_days = streak_result.fetchone().streak or 0
 
         return DailyStudySummary(
             date=date.today(),
             due_reviews=due_reviews,
-            new_atoms_available=new_atoms,
+            learned_count=learned_count,
+            total_count=total_count,
             remediation_sections=remediation_sections,
             remediation_atoms=remediation_atoms,
             estimated_minutes=estimated_minutes,
@@ -216,7 +244,8 @@ class StudyService:
         summaries = []
 
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT
                     s.module_number,
                     COUNT(DISTINCT s.section_id) as total_sections,
@@ -234,7 +263,9 @@ class StudyService:
                 WHERE s.level = 2  -- Main sections only for summary
                 GROUP BY s.module_number
                 ORDER BY s.module_number
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
 
             # Module titles
             module_titles = {
@@ -258,19 +289,21 @@ class StudyService:
             }
 
             for row in result:
-                summaries.append(ModuleSummary(
-                    module_number=row.module_number,
-                    title=module_titles.get(row.module_number, f"Module {row.module_number}"),
-                    total_sections=row.total_sections,
-                    sections_completed=row.sections_completed or 0,
-                    avg_mastery=round(row.avg_mastery or 0, 1),
-                    atoms_total=row.atoms_total or 0,
-                    atoms_mastered=row.atoms_mastered or 0,
-                    atoms_learning=row.atoms_learning or 0,
-                    atoms_struggling=row.atoms_struggling or 0,
-                    atoms_new=row.atoms_new or 0,
-                    sections_needing_remediation=row.remediation_count or 0,
-                ))
+                summaries.append(
+                    ModuleSummary(
+                        module_number=row.module_number,
+                        title=module_titles.get(row.module_number, f"Module {row.module_number}"),
+                        total_sections=row.total_sections,
+                        sections_completed=row.sections_completed or 0,
+                        avg_mastery=round(row.avg_mastery or 0, 1),
+                        atoms_total=row.atoms_total or 0,
+                        atoms_mastered=row.atoms_mastered or 0,
+                        atoms_learning=row.atoms_learning or 0,
+                        atoms_struggling=row.atoms_struggling or 0,
+                        atoms_new=row.atoms_new or 0,
+                        sections_needing_remediation=row.remediation_count or 0,
+                    )
+                )
 
         return summaries
 
@@ -287,7 +320,8 @@ class StudyService:
         from src.db.database import engine
 
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT
                     s.section_id,
                     s.title,
@@ -308,7 +342,9 @@ class StudyService:
                     ON s.section_id = m.section_id AND m.user_id = :user_id
                 WHERE s.module_number = :module
                 ORDER BY s.display_order
-            """), {"user_id": self.user_id, "module": module_number})
+            """),
+                {"user_id": self.user_id, "module": module_number},
+            )
 
             # Build hierarchy
             sections_by_id = {}
@@ -351,9 +387,12 @@ class StudyService:
         from src.db.database import engine
 
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT refresh_all_section_mastery(:user_id) as count
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
             count = result.fetchone().count
 
             conn.commit()
@@ -371,7 +410,8 @@ class StudyService:
         from src.db.database import engine
 
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT
                     s.section_id,
                     s.title,
@@ -393,27 +433,31 @@ class StudyService:
                     ON s.section_id = m.section_id AND m.user_id = :user_id
                 WHERE m.needs_remediation = TRUE
                 ORDER BY m.remediation_priority DESC, m.mastery_score ASC
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
 
             sections = []
             for row in result:
-                sections.append(SectionDetail(
-                    section_id=row.section_id,
-                    title=row.title,
-                    level=row.level,
-                    parent_section_id=row.parent_section_id,
-                    mastery_score=round(row.mastery_score or 0, 1),
-                    is_mastered=False,
-                    needs_remediation=True,
-                    remediation_reason=row.remediation_reason,
-                    atoms_total=row.atoms_total or 0,
-                    atoms_mastered=row.atoms_mastered or 0,
-                    atoms_learning=row.atoms_learning or 0,
-                    atoms_struggling=row.atoms_struggling or 0,
-                    atoms_new=row.atoms_new or 0,
-                    last_review_date=row.last_review_date,
-                    subsections=[],
-                ))
+                sections.append(
+                    SectionDetail(
+                        section_id=row.section_id,
+                        title=row.title,
+                        level=row.level,
+                        parent_section_id=row.parent_section_id,
+                        mastery_score=round(row.mastery_score or 0, 1),
+                        is_mastered=False,
+                        needs_remediation=True,
+                        remediation_reason=row.remediation_reason,
+                        atoms_total=row.atoms_total or 0,
+                        atoms_mastered=row.atoms_mastered or 0,
+                        atoms_learning=row.atoms_learning or 0,
+                        atoms_struggling=row.atoms_struggling or 0,
+                        atoms_new=row.atoms_new or 0,
+                        last_review_date=row.last_review_date,
+                        subsections=[],
+                    )
+                )
 
         return sections
 
@@ -428,7 +472,8 @@ class StudyService:
 
         with engine.connect() as conn:
             # Overall stats
-            overall_result = conn.execute(text("""
+            overall_result = conn.execute(
+                text("""
                 SELECT
                     COUNT(*) as total_sections,
                     COUNT(CASE WHEN is_completed THEN 1 END) as completed_sections,
@@ -441,11 +486,14 @@ class StudyService:
                     SUM(total_reviews) as total_reviews
                 FROM ccna_section_mastery
                 WHERE user_id = :user_id
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
             overall = overall_result.fetchone()
 
             # Session history
-            sessions_result = conn.execute(text("""
+            sessions_result = conn.execute(
+                text("""
                 SELECT
                     COUNT(*) as total_sessions,
                     SUM(duration_minutes) as total_minutes,
@@ -453,7 +501,9 @@ class StudyService:
                     AVG(correct_count::float / NULLIF(correct_count + incorrect_count, 0)) * 100 as avg_accuracy
                 FROM ccna_study_sessions
                 WHERE user_id = :user_id
-            """), {"user_id": self.user_id})
+            """),
+                {"user_id": self.user_id},
+            )
             sessions = sessions_result.fetchone()
 
         return {
@@ -461,8 +511,7 @@ class StudyService:
                 "total": overall.total_sections or 0,
                 "completed": overall.completed_sections or 0,
                 "completion_rate": round(
-                    (overall.completed_sections or 0) / max(overall.total_sections or 1, 1) * 100,
-                    1
+                    (overall.completed_sections or 0) / max(overall.total_sections or 1, 1) * 100, 1
                 ),
             },
             "atoms": {
@@ -517,7 +566,8 @@ class StudyService:
         with engine.connect() as conn:
             # Recursive CTE to expand concept chain up to max_depth hops
             # This traverses both upstream (prerequisites) and downstream (dependents)
-            atoms_result = conn.execute(text("""
+            atoms_result = conn.execute(
+                text("""
                 WITH RECURSIVE concept_chain AS (
                     -- Base case: concepts in the target module (depth 0)
                     SELECT DISTINCT
@@ -576,7 +626,9 @@ class StudyService:
                 JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
                 WHERE ca.front IS NOT NULL AND ca.front != ''
                 ORDER BY cc_chain.depth, cs.module_number, ca.atom_type
-            """), {"module": module_number, "max_depth": max_depth})
+            """),
+                {"module": module_number, "max_depth": max_depth},
+            )
 
             modules_set = set()
             concepts_set = set()
@@ -635,9 +687,7 @@ class StudyService:
 
         return result
 
-    def get_multi_module_activity_path(
-        self, module_numbers: list[int], max_depth: int = 3
-    ) -> dict:
+    def get_multi_module_activity_path(self, module_numbers: list[int], max_depth: int = 3) -> dict:
         """
         Get activity path for multiple modules with prerequisite ordering.
 
@@ -713,7 +763,10 @@ class StudyService:
                 result["activity_path"].append(activity)
 
                 # Route to appropriate job list
-                if atom.get("destination") == "anki" or atom.get("atom_type") in ("flashcard", "cloze"):
+                if atom.get("destination") == "anki" or atom.get("atom_type") in (
+                    "flashcard",
+                    "cloze",
+                ):
                     mod = atom.get("module_number", 0)
                     anki_by_module.setdefault(mod, []).append(atom)
                 else:
@@ -728,30 +781,40 @@ class StudyService:
                 cl_count = sum(1 for a in atoms_list if a.get("atom_type") == "cloze")
                 is_target = mod in module_numbers
 
-                result["anki_jobs"].append({
-                    "module": mod,
-                    "is_target_module": is_target,
-                    "flashcard_count": fc_count,
-                    "cloze_count": cl_count,
-                    "total": len(atoms_list),
-                    "anki_query": f"deck:CCNA* tag:module:{mod}",
-                    "note_ids": [a.get("anki_note_id") for a in atoms_list if a.get("anki_note_id")],
-                })
+                result["anki_jobs"].append(
+                    {
+                        "module": mod,
+                        "is_target_module": is_target,
+                        "flashcard_count": fc_count,
+                        "cloze_count": cl_count,
+                        "total": len(atoms_list),
+                        "anki_query": f"deck:CCNA* tag:module:{mod}",
+                        "note_ids": [
+                            a.get("anki_note_id") for a in atoms_list if a.get("anki_note_id")
+                        ],
+                    }
+                )
 
             # Build NLS quiz jobs (grouped by type with CLT metadata)
             for qtype, atoms_list in nls_by_type.items():
                 if atoms_list:
                     avg_clt = sum(
-                        (a.get("clt_intrinsic") or 2) + (a.get("clt_extraneous") or 2) + (a.get("clt_germane") or 3)
+                        (a.get("clt_intrinsic") or 2)
+                        + (a.get("clt_extraneous") or 2)
+                        + (a.get("clt_germane") or 3)
                         for a in atoms_list
                     ) / (len(atoms_list) * 3)
 
-                    result["nls_jobs"].append({
-                        "quiz_type": qtype,
-                        "count": len(atoms_list),
-                        "avg_clt_load": round(avg_clt, 1),
-                        "modules_included": sorted(set(a.get("module_number", 0) for a in atoms_list)),
-                    })
+                    result["nls_jobs"].append(
+                        {
+                            "quiz_type": qtype,
+                            "count": len(atoms_list),
+                            "avg_clt_load": round(avg_clt, 1),
+                            "modules_included": sorted(
+                                set(a.get("module_number", 0) for a in atoms_list)
+                            ),
+                        }
+                    )
 
             result["modules_touched"] = sorted(modules_set)
             result["concept_count"] = len(concepts_set)
@@ -761,7 +824,9 @@ class StudyService:
                 "total_atoms": len(atoms),
                 "anki_total": sum(j["total"] for j in result["anki_jobs"]),
                 "nls_total": sum(j["count"] for j in result["nls_jobs"]),
-                "prerequisite_modules": [m for m in result["modules_touched"] if m not in module_numbers],
+                "prerequisite_modules": [
+                    m for m in result["modules_touched"] if m not in module_numbers
+                ],
                 "target_modules": module_numbers,
             }
 
@@ -773,19 +838,23 @@ class StudyService:
 
         return result
 
-    def _fallback_multi_module_expansion(self, conn, module_numbers: list[int], max_depth: int) -> list[dict]:
+    def _fallback_multi_module_expansion(
+        self, conn, module_numbers: list[int], max_depth: int
+    ) -> list[dict]:
         """Fallback expansion using prerequisite graph if available."""
         # Convert module list to SQL-safe format
         modules_str = ",".join(str(m) for m in module_numbers)
 
         # First check if explicit_prerequisites table exists
         try:
-            check = conn.execute(text("""
+            check = conn.execute(
+                text("""
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables
                     WHERE table_name = 'explicit_prerequisites'
                 )
-            """))
+            """)
+            )
             has_prereqs = check.scalar()
         except Exception:
             has_prereqs = False
@@ -795,7 +864,8 @@ class StudyService:
             return self._simple_module_atoms(conn, module_numbers)
 
         # Full recursive expansion with prerequisites
-        result = conn.execute(text(f"""
+        result = conn.execute(
+            text(f"""
             WITH RECURSIVE concept_chain AS (
                 SELECT DISTINCT
                     ca.concept_id,
@@ -848,7 +918,9 @@ class StudyService:
             JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
             WHERE ca.front IS NOT NULL AND ca.front != ''
             ORDER BY cc_chain.depth DESC, cs.module_number, ca.atom_type
-        """), {"max_depth": max_depth})
+        """),
+            {"max_depth": max_depth},
+        )
 
         return [dict(row._mapping) for row in result.fetchall()]
 
@@ -856,7 +928,8 @@ class StudyService:
         """Simple query to get all atoms for modules without prerequisite expansion."""
         modules_str = ",".join(str(m) for m in module_numbers)
 
-        result = conn.execute(text(f"""
+        result = conn.execute(
+            text(f"""
             SELECT
                 ca.id as atom_id,
                 ca.card_id,
@@ -880,7 +953,8 @@ class StudyService:
               AND ca.front IS NOT NULL
               AND ca.front != ''
             ORDER BY cs.module_number, ca.atom_type
-        """))
+        """)
+        )
 
         return [dict(row._mapping) for row in result.fetchall()]
 
@@ -901,35 +975,41 @@ class StudyService:
 
         for job in activity_path.get("anki_jobs", []):
             if job["module"] in prereq_modules:
-                suggestions.append({
-                    "priority": 1,
-                    "type": "anki",
-                    "action": f"Review {job['total']} cards in Module {job['module']}",
-                    "reason": f"Prerequisites for Module(s) {target_modules}",
-                    "query": job["anki_query"],
-                    "count": job["total"],
-                })
+                suggestions.append(
+                    {
+                        "priority": 1,
+                        "type": "anki",
+                        "action": f"Review {job['total']} cards in Module {job['module']}",
+                        "reason": f"Prerequisites for Module(s) {target_modules}",
+                        "query": job["anki_query"],
+                        "count": job["total"],
+                    }
+                )
             elif job["is_target_module"]:
-                suggestions.append({
-                    "priority": 2,
-                    "type": "anki",
-                    "action": f"Learn {job['total']} new cards in Module {job['module']}",
-                    "reason": "Target module content",
-                    "query": job["anki_query"],
-                    "count": job["total"],
-                })
+                suggestions.append(
+                    {
+                        "priority": 2,
+                        "type": "anki",
+                        "action": f"Learn {job['total']} new cards in Module {job['module']}",
+                        "reason": "Target module content",
+                        "query": job["anki_query"],
+                        "count": job["total"],
+                    }
+                )
 
         # NLS quiz suggestions (CLT-balanced)
         for job in activity_path.get("nls_jobs", []):
             clt_desc = "moderate" if job["avg_clt_load"] < 3 else "challenging"
-            suggestions.append({
-                "priority": 3,
-                "type": "nls_quiz",
-                "action": f"Complete {job['count']} {job['quiz_type'].upper()} questions",
-                "reason": f"{clt_desc.title()} CLT load ({job['avg_clt_load']}), covers modules {job['modules_included']}",
-                "quiz_type": job["quiz_type"],
-                "count": job["count"],
-            })
+            suggestions.append(
+                {
+                    "priority": 3,
+                    "type": "nls_quiz",
+                    "action": f"Complete {job['count']} {job['quiz_type'].upper()} questions",
+                    "reason": f"{clt_desc.title()} CLT load ({job['avg_clt_load']}), covers modules {job['modules_included']}",
+                    "quiz_type": job["quiz_type"],
+                    "count": job["count"],
+                }
+            )
 
         # Sort by priority
         suggestions.sort(key=lambda x: x["priority"])
@@ -972,7 +1052,8 @@ class StudyService:
         types_list = prioritize_types
 
         with engine.connect() as conn:
-            result = conn.execute(text(f"""
+            result = conn.execute(
+                text(f"""
                 SELECT
                     ca.id,
                     ca.card_id,
@@ -1010,30 +1091,33 @@ class StudyService:
                     -- Finally randomize within same priority
                     RANDOM()
                 LIMIT :limit
-            """), {"types": types_list, "limit": limit})
+            """),
+                {"types": types_list, "limit": limit},
+            )
 
             atoms = []
             for row in result:
-                atoms.append({
-                    "id": str(row.id),
-                    "card_id": row.card_id,
-                    "atom_type": row.atom_type,
-                    "front": row.front,
-                    "back": row.back or "",
-                    "concept_id": str(row.concept_id) if row.concept_id else None,
-                    "section_id": row.ccna_section_id,
-                    "module_number": row.module_number,
-                    "section_title": row.section_title,
-                    "concept_name": row.concept_name or "Unknown",
-                    "difficulty": row.difficulty,
-                    "stability": row.stability,
-                    "lapses": row.lapses,
-                    "review_count": row.review_count,
-                })
+                atoms.append(
+                    {
+                        "id": str(row.id),
+                        "card_id": row.card_id,
+                        "atom_type": row.atom_type,
+                        "front": row.front,
+                        "back": row.back or "",
+                        "concept_id": str(row.concept_id) if row.concept_id else None,
+                        "section_id": row.ccna_section_id,
+                        "module_number": row.module_number,
+                        "section_title": row.section_title,
+                        "concept_name": row.concept_name or "Unknown",
+                        "difficulty": row.difficulty,
+                        "stability": row.stability,
+                        "lapses": row.lapses,
+                        "review_count": row.review_count,
+                    }
+                )
 
         logger.info(
-            f"War session: {len(atoms)} atoms from modules {modules} "
-            f"(types: {prioritize_types})"
+            f"War session: {len(atoms)} atoms from modules {modules} (types: {prioritize_types})"
         )
         return atoms
 
@@ -1042,20 +1126,30 @@ class StudyService:
         limit: int = 20,
         include_new: bool = True,
         interleave: bool = True,
+        use_struggles: bool = True,
+        exclude_ids: list[str] | None = None,
+        modules: list[int] | None = None,
+        sections: list[str] | None = None,
+        source_file: str | None = None,
     ) -> list[dict]:
         """
-        Get atoms for Adaptive Mode - uses FSRS scheduling and interleaving.
+        Get atoms for Adaptive Mode - uses struggle priority and FSRS scheduling.
 
         Adaptive Mode:
-        1. Prioritizes due reviews (FSRS scheduled)
-        2. Mixes in new atoms for progressive learning
-        3. Interleaves across modules for better retention
-        4. Balances atom types to prevent fatigue
+        1. Prioritizes atoms from struggle zones (v_struggle_priority view)
+        2. Mixes in FSRS due reviews
+        3. Adds new atoms for progressive learning
+        4. Interleaves across modules for better retention
 
         Args:
             limit: Maximum atoms to return
             include_new: Whether to include never-reviewed atoms
             interleave: Whether to interleave across modules
+            use_struggles: Whether to prioritize struggle zones (default True)
+            exclude_ids: List of atom IDs to exclude from the session
+            modules: Filter to specific module numbers (e.g., [1, 2, 3])
+            sections: Filter to specific section IDs (e.g., ["11.4", "11.5"])
+            source_file: Filter to specific source file (e.g., "ITNFinalPacketTracer.txt")
 
         Returns:
             List of atom dicts ordered for optimal learning
@@ -1063,47 +1157,170 @@ class StudyService:
         from src.db.database import engine
 
         with engine.connect() as conn:
-            # Get due reviews first
-            due_query = """
-                SELECT
-                    ca.id,
-                    ca.card_id,
-                    ca.atom_type,
-                    ca.front,
-                    ca.back,
-                    ca.concept_id,
-                    ca.ccna_section_id,
-                    cs.module_number,
-                    cs.title as section_title,
-                    cc.name as concept_name,
-                    COALESCE(ca.anki_difficulty, 0.5) as difficulty,
-                    COALESCE(ca.anki_stability, 0) as stability,
-                    COALESCE(ca.anki_lapses, 0) as lapses,
-                    COALESCE(ca.anki_review_count, 0) as review_count,
-                    ca.anki_due_date,
-                    'due' as source
-                FROM learning_atoms ca
-                JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
-                LEFT JOIN concepts cc ON ca.concept_id = cc.id
-                WHERE ca.atom_type IN ('mcq', 'true_false', 'parsons', 'numeric')
-                  AND ca.front IS NOT NULL
-                  AND ca.front != ''
-                  AND ca.anki_due_date IS NOT NULL
-                  AND ca.anki_due_date <= CURRENT_DATE
-                ORDER BY ca.anki_due_date ASC, ca.anki_stability ASC
-                LIMIT :due_limit
-            """
-
-            due_limit = limit if not include_new else int(limit * 0.7)
-            due_result = conn.execute(text(due_query), {"due_limit": due_limit})
-            due_atoms = [dict(row._mapping) for row in due_result.fetchall()]
-
-            # Get new atoms if requested
+            struggle_atoms = []
+            due_atoms = []
             new_atoms = []
-            if include_new and len(due_atoms) < limit:
-                remaining = limit - len(due_atoms)
-                # All quiz content is stored in learning_atoms.back (JSON for MCQ/matching)
-                new_query = """
+            exclude_ids = exclude_ids or []
+
+            # Log active filters if any are set
+            if modules or sections or source_file:
+                logger.debug(f"Adaptive session filters: modules={modules}, sections={sections}, source_file={source_file}")
+
+            # 1. Get struggle-weighted atoms first (if enabled and table exists)
+            if use_struggles:
+                try:
+                    # Build filter clause for struggle query (uses vsp.* aliases)
+                    struggle_filter_parts = []
+                    struggle_filter_params = {}
+                    if modules:
+                        struggle_filter_parts.append("vsp.module_number = ANY(:filter_modules)")
+                        struggle_filter_params["filter_modules"] = modules
+                    if sections:
+                        sec_conditions = []
+                        for i, sec in enumerate(sections):
+                            p = f"sf_sec_{i}"
+                            sec_conditions.append(f"(vsp.section_id = :{p} OR vsp.section_id LIKE :{p}_pfx)")
+                            struggle_filter_params[p] = sec
+                            struggle_filter_params[f"{p}_pfx"] = f"{sec}.%"
+                        if sec_conditions:
+                            struggle_filter_parts.append(f"({' OR '.join(sec_conditions)})")
+                    if source_file:
+                        struggle_filter_parts.append("la.source_file = :filter_source_file")
+                        struggle_filter_params["filter_source_file"] = source_file
+
+                    struggle_filter_clause = (" AND " + " AND ".join(struggle_filter_parts)) if struggle_filter_parts else ""
+
+                    struggle_query = f"""
+                        SELECT
+                            vsp.atom_id as id,
+                            vsp.card_id,
+                            vsp.atom_type,
+                            vsp.front,
+                            vsp.back,
+                            la.concept_id,
+                            vsp.section_id as ccna_section_id,
+                            vsp.module_number,
+                            vsp.section_title,
+                            cc.name as concept_name,
+                            vsp.difficulty,
+                            vsp.stability,
+                            COALESCE(la.anki_lapses, 0) as lapses,
+                            COALESCE(la.anki_review_count, 0) as review_count,
+                            la.anki_due_date,
+                            'struggle' as source,
+                            vsp.priority_score
+                        FROM v_struggle_priority vsp
+                        JOIN learning_atoms la ON vsp.atom_id = la.id
+                        LEFT JOIN concepts cc ON la.concept_id = cc.id
+                        WHERE vsp.atom_type IN ('mcq', 'true_false', 'parsons', 'matching')
+                          AND vsp.front IS NOT NULL
+                          AND vsp.front != ''
+                          AND vsp.struggle_weight >= 0.5
+                          AND (la.id NOT IN :exclude_ids OR :exclude_ids IS NULL)
+                          {struggle_filter_clause}
+                        ORDER BY vsp.priority_score DESC
+                        LIMIT :struggle_limit
+                    """
+                    struggle_limit = limit // 2  # Half from struggles
+                    query_params = {"struggle_limit": struggle_limit, "exclude_ids": tuple(exclude_ids) or (None,)}
+                    query_params.update(struggle_filter_params)
+                    result = conn.execute(text(struggle_query), query_params)
+                    struggle_atoms = [dict(row._mapping) for row in result.fetchall()]
+                    logger.debug(f"Got {len(struggle_atoms)} struggle-weighted atoms")
+                except Exception as e:
+                    logger.warning(f"Could not query v_struggle_priority (run struggles --import?): {e}")
+                    struggle_atoms = []
+
+            # 2. Get FSRS due reviews (excluding ones already in struggle set)
+            current_exclude_ids = exclude_ids + [str(a.get("id")) for a in struggle_atoms]
+            remaining_due = limit - len(struggle_atoms)
+
+            if remaining_due > 0:
+                # Build filter clause for due query (uses ca.* and cs.* aliases)
+                due_filter_parts = []
+                due_filter_params = {}
+                if modules:
+                    due_filter_parts.append("cs.module_number = ANY(:due_filter_modules)")
+                    due_filter_params["due_filter_modules"] = modules
+                if sections:
+                    sec_conditions = []
+                    for i, sec in enumerate(sections):
+                        p = f"df_sec_{i}"
+                        sec_conditions.append(f"(ca.ccna_section_id = :{p} OR ca.ccna_section_id LIKE :{p}_pfx)")
+                        due_filter_params[p] = sec
+                        due_filter_params[f"{p}_pfx"] = f"{sec}.%"
+                    if sec_conditions:
+                        due_filter_parts.append(f"({' OR '.join(sec_conditions)})")
+                if source_file:
+                    due_filter_parts.append("ca.source_file = :due_filter_source_file")
+                    due_filter_params["due_filter_source_file"] = source_file
+
+                due_filter_clause = (" AND " + " AND ".join(due_filter_parts)) if due_filter_parts else ""
+
+                due_query = f"""
+                    SELECT
+                        ca.id,
+                        ca.card_id,
+                        ca.atom_type,
+                        ca.front,
+                        ca.back,
+                        ca.concept_id,
+                        ca.ccna_section_id,
+                        cs.module_number,
+                        cs.title as section_title,
+                        cc.name as concept_name,
+                        COALESCE(ca.anki_difficulty, 0.5) as difficulty,
+                        COALESCE(ca.anki_stability, 0) as stability,
+                        COALESCE(ca.anki_lapses, 0) as lapses,
+                        COALESCE(ca.anki_review_count, 0) as review_count,
+                        ca.anki_due_date,
+                        'due' as source
+                    FROM learning_atoms ca
+                    JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
+                    LEFT JOIN concepts cc ON ca.concept_id = cc.id
+                    WHERE ca.atom_type IN ('mcq', 'true_false', 'parsons', 'matching')
+                      AND ca.front IS NOT NULL
+                      AND ca.front != ''
+                      AND ca.anki_due_date IS NOT NULL
+                      AND ca.anki_due_date <= CURRENT_DATE
+                      AND (ca.id NOT IN :exclude_ids OR :exclude_ids IS NULL)
+                      {due_filter_clause}
+                    ORDER BY ca.anki_due_date ASC, ca.anki_stability ASC
+                    LIMIT :due_limit
+                """
+                due_limit = remaining_due if not include_new else int(remaining_due * 0.7)
+                due_query_params = {"due_limit": due_limit, "exclude_ids": tuple(current_exclude_ids) or (None,)}
+                due_query_params.update(due_filter_params)
+                due_result = conn.execute(text(due_query), due_query_params)
+                due_atoms = [dict(row._mapping) for row in due_result.fetchall()]
+
+            # 3. Get new atoms if requested
+            current_exclude_ids.extend([str(a.get("id")) for a in due_atoms])
+            remaining_new = limit - len(struggle_atoms) - len(due_atoms)
+
+            if include_new and remaining_new > 0:
+                # Build filter clause for new query (uses ca.* and cs.* aliases)
+                new_filter_parts = []
+                new_filter_params = {}
+                if modules:
+                    new_filter_parts.append("cs.module_number = ANY(:new_filter_modules)")
+                    new_filter_params["new_filter_modules"] = modules
+                if sections:
+                    sec_conditions = []
+                    for i, sec in enumerate(sections):
+                        p = f"nf_sec_{i}"
+                        sec_conditions.append(f"(ca.ccna_section_id = :{p} OR ca.ccna_section_id LIKE :{p}_pfx)")
+                        new_filter_params[p] = sec
+                        new_filter_params[f"{p}_pfx"] = f"{sec}.%"
+                    if sec_conditions:
+                        new_filter_parts.append(f"({' OR '.join(sec_conditions)})")
+                if source_file:
+                    new_filter_parts.append("ca.source_file = :new_filter_source_file")
+                    new_filter_params["new_filter_source_file"] = source_file
+
+                new_filter_clause = (" AND " + " AND ".join(new_filter_parts)) if new_filter_parts else ""
+
+                new_query = f"""
                     SELECT
                         ca.id,
                         ca.card_id,
@@ -1128,17 +1345,24 @@ class StudyService:
                       AND ca.front IS NOT NULL
                       AND ca.front != ''
                       AND (ca.anki_review_count IS NULL OR ca.anki_review_count = 0)
+                      AND (ca.id NOT IN :exclude_ids OR :exclude_ids IS NULL)
+                      {new_filter_clause}
                     ORDER BY cs.display_order, RANDOM()
                     LIMIT :new_limit
                 """
-                new_result = conn.execute(text(new_query), {"new_limit": remaining})
+                new_query_params = {"new_limit": remaining_new, "exclude_ids": tuple(current_exclude_ids) or (None,)}
+                new_query_params.update(new_filter_params)
+                new_result = conn.execute(text(new_query), new_query_params)
                 new_atoms = [dict(row._mapping) for row in new_result.fetchall()]
 
-            # Combine and optionally interleave
-            all_atoms = due_atoms + new_atoms
+            # Combine: struggles first, then due, then new
+            all_atoms = struggle_atoms + due_atoms + new_atoms
+
+            # Apply type quotas for balanced distribution
+            all_atoms = self._apply_type_quotas(all_atoms, limit)
 
             if interleave and len(all_atoms) > 1:
-                all_atoms = self._interleave_atoms(all_atoms)
+                all_atoms = self._interleave_atoms_by_type(all_atoms)
 
             # Convert to standard format
             atoms = []
@@ -1150,7 +1374,7 @@ class StudyService:
                     "front": row["front"],
                     "back": row["back"] or "",
                     "concept_id": str(row["concept_id"]) if row.get("concept_id") else None,
-                    "section_id": row["ccna_section_id"],
+                    "section_id": row.get("ccna_section_id") or row.get("section_id"),
                     "module_number": row["module_number"],
                     "section_title": row["section_title"],
                     "concept_name": row["concept_name"] or "Unknown",
@@ -1165,9 +1389,9 @@ class StudyService:
                     atom["quiz_content"] = row["quiz_content"]
                 atoms.append(atom)
 
-        logger.info(
+        logger.debug(
             f"Adaptive session: {len(atoms)} atoms "
-            f"({len(due_atoms)} due, {len(new_atoms)} new)"
+            f"({len(struggle_atoms)} struggle, {len(due_atoms)} due, {len(new_atoms)} new)"
         )
         return atoms
 
@@ -1197,6 +1421,105 @@ class StudyService:
 
         return result
 
+    def _apply_type_quotas(self, atoms: list[dict], limit: int) -> list[dict]:
+        """
+        Apply question type quotas to ensure balanced distribution.
+
+        Uses TYPE_QUOTAS from adaptive.models to calculate target counts
+        for each question type (mcq, true_false, parsons, matching).
+
+        Args:
+            atoms: List of atom dicts to filter
+            limit: Target session size
+
+        Returns:
+            Filtered list with balanced type distribution
+        """
+        if not atoms:
+            return atoms
+
+        # Group atoms by type
+        by_type: dict[str, list[dict]] = {}
+        for atom in atoms:
+            atype = atom.get("atom_type", "unknown")
+            by_type.setdefault(atype, []).append(atom)
+
+        # Calculate target counts based on quotas
+        targets = {atype: max(int(limit * quota), TYPE_MINIMUM.get(atype, 1))
+                   for atype, quota in TYPE_QUOTAS.items()}
+
+        # Log available vs target
+        available = {atype: len(by_type.get(atype, [])) for atype in TYPE_QUOTAS.keys()}
+        logger.debug(f"Type quota targets: {targets}, available: {available}")
+
+        # Select atoms up to quota for each type
+        selected: list[dict] = []
+        shortfall = 0
+
+        for atype, target in targets.items():
+            type_atoms = by_type.get(atype, [])
+            count = min(len(type_atoms), target)
+            selected.extend(type_atoms[:count])
+            shortfall += target - count
+
+        # Fill shortfall from any available type (prefer MCQ for thinking)
+        if shortfall > 0:
+            remaining = []
+            for atype in ["mcq", "matching", "true_false", "parsons"]:
+                type_atoms = by_type.get(atype, [])
+                already_selected = targets.get(atype, 0)
+                remaining.extend(type_atoms[already_selected:])
+
+            selected.extend(remaining[:shortfall])
+
+        # Log final distribution
+        final_dist = {}
+        for atom in selected:
+            atype = atom.get("atom_type", "unknown")
+            final_dist[atype] = final_dist.get(atype, 0) + 1
+        logger.debug(f"Type-balanced session: {final_dist}")
+
+        return selected[:limit]
+
+    def _interleave_atoms_by_type(self, atoms: list[dict]) -> list[dict]:
+        """
+        Interleave atoms by type to prevent consecutive same-type questions.
+
+        Uses round-robin selection across atom types for optimal
+        cognitive diversity and reduced fatigue.
+
+        Args:
+            atoms: List of atom dicts to interleave
+
+        Returns:
+            Reordered list with type-based interleaving
+        """
+        if len(atoms) <= 1:
+            return atoms
+
+        # Group by type
+        by_type: dict[str, list[dict]] = {}
+        for atom in atoms:
+            atype = atom.get("atom_type", "unknown")
+            by_type.setdefault(atype, []).append(atom)
+
+        # Shuffle within each type group for variety
+        import random
+        for type_atoms in by_type.values():
+            random.shuffle(type_atoms)
+
+        # Round-robin interleave by type
+        result = []
+        type_order = ["mcq", "matching", "true_false", "parsons"]  # Conceptual first
+        types_with_atoms = [t for t in type_order if by_type.get(t)]
+
+        while any(by_type.get(t) for t in types_with_atoms):
+            for atype in types_with_atoms:
+                if by_type.get(atype):
+                    result.append(by_type[atype].pop(0))
+
+        return result
+
     def record_interaction(
         self,
         atom_id: str,
@@ -1204,6 +1527,7 @@ class StudyService:
         response_time_ms: int,
         user_answer: str = "",
         session_type: str = "cortex",
+        atom_type: str = "",
     ) -> dict:
         """
         Record a study interaction and update mastery metrics.
@@ -1213,6 +1537,7 @@ class StudyService:
         1. atom_responses table (raw interaction log)
         2. learning_atoms FSRS fields (stability, difficulty, due_date)
         3. ccna_section_mastery aggregate scores
+        4. Transfer testing (accuracy_by_type, memorization detection)
 
         Args:
             atom_id: UUID of the atom
@@ -1220,6 +1545,7 @@ class StudyService:
             response_time_ms: Time taken to answer in milliseconds
             user_answer: The user's answer (for logging)
             session_type: Type of session (cortex, war, adaptive, anki)
+            atom_type: Question type (mcq, true_false, parsons, matching)
 
         Returns:
             Dict with updated mastery info
@@ -1237,7 +1563,8 @@ class StudyService:
         with engine.connect() as conn:
             # 1. Record raw interaction
             try:
-                conn.execute(text("""
+                conn.execute(
+                    text("""
                     INSERT INTO atom_responses (
                         atom_id, user_id, is_correct, response_time_ms,
                         user_answer, responded_at
@@ -1245,13 +1572,15 @@ class StudyService:
                         :atom_id, :user_id, :is_correct, :response_time,
                         :user_answer, NOW()
                     )
-                """), {
-                    "atom_id": atom_id,
-                    "user_id": self.user_id,
-                    "is_correct": is_correct,
-                    "response_time": response_time_ms,
-                    "user_answer": user_answer[:500] if user_answer else "",
-                })
+                """),
+                    {
+                        "atom_id": atom_id,
+                        "user_id": self.user_id,
+                        "is_correct": is_correct,
+                        "response_time": response_time_ms,
+                        "user_answer": user_answer[:500] if user_answer else "",
+                    },
+                )
                 conn.commit()
             except Exception as e:
                 logger.debug(f"Could not record response (table may not exist): {e}")
@@ -1262,7 +1591,8 @@ class StudyService:
             try:
                 if is_correct:
                     # Correct: increase stability, decrease difficulty
-                    conn.execute(text("""
+                    conn.execute(
+                        text("""
                         UPDATE learning_atoms
                         SET
                             anki_stability = LEAST(COALESCE(anki_stability, 1) * 2.5, 365),
@@ -1272,10 +1602,13 @@ class StudyService:
                             updated_at = NOW()
                         WHERE id = :atom_id
                         RETURNING anki_stability, anki_due_date
-                    """), {"atom_id": atom_id})
+                    """),
+                        {"atom_id": atom_id},
+                    )
                 else:
                     # Incorrect: reset stability, increase difficulty, increment lapses
-                    conn.execute(text("""
+                    conn.execute(
+                        text("""
                         UPDATE learning_atoms
                         SET
                             anki_stability = GREATEST(COALESCE(anki_stability, 1) * 0.5, 1),
@@ -1286,17 +1619,24 @@ class StudyService:
                             updated_at = NOW()
                         WHERE id = :atom_id
                         RETURNING anki_stability, anki_due_date
-                    """), {"atom_id": atom_id})
+                    """),
+                        {"atom_id": atom_id},
+                    )
 
                 # Fetch updated values
-                updated = conn.execute(text("""
+                updated = conn.execute(
+                    text("""
                     SELECT anki_stability, anki_due_date, ccna_section_id
                     FROM learning_atoms WHERE id = :atom_id
-                """), {"atom_id": atom_id}).fetchone()
+                """),
+                    {"atom_id": atom_id},
+                ).fetchone()
 
                 if updated:
                     result["new_stability"] = updated.anki_stability or 0
-                    result["next_due"] = str(updated.anki_due_date) if updated.anki_due_date else None
+                    result["next_due"] = (
+                        str(updated.anki_due_date) if updated.anki_due_date else None
+                    )
 
                     # 3. Trigger section mastery recalculation
                     if updated.ccna_section_id:
@@ -1314,17 +1654,154 @@ class StudyService:
             except Exception:
                 pass
 
+        # 4. Update transfer testing (accuracy by type, memorization detection)
+        if atom_type:
+            self._update_transfer_testing(atom_id, atom_type, is_correct)
+            result["atom_type"] = atom_type
+
         logger.debug(
             f"Recorded interaction: atom={atom_id[:8]}... "
             f"correct={is_correct} stability={result['new_stability']:.1f}"
         )
         return result
 
+    def _update_transfer_testing(
+        self,
+        atom_id: str,
+        atom_type: str,
+        is_correct: bool,
+    ) -> None:
+        """
+        Update transfer testing data for memorization detection.
+
+        Tracks per-format accuracy and flags memorization suspects
+        when T/F accuracy is 35%+ higher than procedural accuracy.
+
+        Args:
+            atom_id: UUID of the atom
+            atom_type: Question type (mcq, true_false, parsons, matching)
+            is_correct: Whether the answer was correct
+        """
+        import json
+        from src.db.database import engine
+
+        # Recognition types that might indicate memorization if not transferable
+        recognition_types = {"true_false", "mcq"}
+        # Procedural types that test genuine understanding
+        procedural_types = {"parsons", "numeric", "sequence"}
+
+        with engine.connect() as conn:
+            try:
+                # 1. Fetch current accuracy_by_type
+                row = conn.execute(
+                    text("""
+                        SELECT accuracy_by_type, ccna_section_id
+                        FROM learning_atoms
+                        WHERE id = :atom_id
+                    """),
+                    {"atom_id": atom_id}
+                ).fetchone()
+
+                if not row:
+                    return
+
+                accuracy_data = row.accuracy_by_type or {}
+                if isinstance(accuracy_data, str):
+                    accuracy_data = json.loads(accuracy_data)
+
+                section_id = row.ccna_section_id
+
+                # 2. Update accuracy for this type
+                type_stats = accuracy_data.get(atom_type, {"correct": 0, "total": 0})
+                type_stats["total"] = type_stats.get("total", 0) + 1
+                if is_correct:
+                    type_stats["correct"] = type_stats.get("correct", 0) + 1
+                accuracy_data[atom_type] = type_stats
+
+                # 3. Calculate transfer score and memorization suspect flag
+                transfer_score = None
+                memorization_suspect = False
+
+                # Calculate per-category accuracy
+                recognition_correct = 0
+                recognition_total = 0
+                procedural_correct = 0
+                procedural_total = 0
+
+                for atype, stats in accuracy_data.items():
+                    if atype in recognition_types:
+                        recognition_correct += stats.get("correct", 0)
+                        recognition_total += stats.get("total", 0)
+                    elif atype in procedural_types:
+                        procedural_correct += stats.get("correct", 0)
+                        procedural_total += stats.get("total", 0)
+
+                # Calculate transfer score if we have both recognition and procedural data
+                if recognition_total >= 3 and procedural_total >= 2:
+                    recognition_acc = recognition_correct / recognition_total
+                    procedural_acc = procedural_correct / procedural_total
+
+                    # Transfer score: average of accuracies (high = consistent understanding)
+                    transfer_score = (recognition_acc + procedural_acc) / 2
+
+                    # Flag memorization suspect: 35% gap between recognition and procedural
+                    if recognition_acc - procedural_acc >= 0.35:
+                        memorization_suspect = True
+                        logger.warning(
+                            f"Memorization suspect detected: atom={atom_id[:8]}, "
+                            f"recognition={recognition_acc:.0%}, procedural={procedural_acc:.0%}"
+                        )
+
+                # 4. Queue for transfer test if recognition success
+                transfer_queue = None
+                if is_correct and atom_type in recognition_types:
+                    # Queue a procedural test for next session
+                    target_type = "parsons" if atom_type == "true_false" else "numeric"
+                    transfer_queue = [f"{atom_id}:{target_type}"]
+
+                # 5. Update database
+                conn.execute(
+                    text("""
+                        UPDATE learning_atoms
+                        SET
+                            accuracy_by_type = :accuracy_data::jsonb,
+                            transfer_score = COALESCE(:transfer_score, transfer_score),
+                            memorization_suspect = :memorization_suspect,
+                            format_seen = COALESCE(format_seen, '{}'::jsonb) || jsonb_build_object(:atom_type, NOW()),
+                            transfer_queue = CASE
+                                WHEN :transfer_queue IS NOT NULL
+                                THEN COALESCE(transfer_queue, ARRAY[]::text[]) || :transfer_queue::text[]
+                                ELSE transfer_queue
+                            END,
+                            updated_at = NOW()
+                        WHERE id = :atom_id
+                    """),
+                    {
+                        "atom_id": atom_id,
+                        "accuracy_data": json.dumps(accuracy_data),
+                        "transfer_score": transfer_score,
+                        "memorization_suspect": memorization_suspect,
+                        "atom_type": atom_type,
+                        "transfer_queue": transfer_queue,
+                    }
+                )
+                conn.commit()
+
+            except Exception as e:
+                logger.debug(f"Transfer testing update skipped: {e}")
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+
     def _update_section_mastery(self, conn, section_id: str) -> None:
         """Update section mastery scores after an interaction."""
         try:
             # Recalculate section stats from atom data
-            conn.execute(text("""
+            # Mastery is calculated only from STUDIED atoms (have reviews or responses)
+            # This prevents unstudied atoms from diluting progress
+            conn.execute(
+                text("""
                 INSERT INTO ccna_section_mastery (
                     section_id, user_id, mastery_score,
                     atoms_total, atoms_mastered, atoms_learning, atoms_struggling, atoms_new,
@@ -1333,8 +1810,17 @@ class StudyService:
                 SELECT
                     :section_id,
                     :user_id,
-                    -- Mastery = weighted average of atom stability
-                    COALESCE(AVG(LEAST(anki_stability / 30.0, 1.0)) * 100, 0),
+                    -- Mastery = average stability of STUDIED atoms only (0.0-1.0 range)
+                    -- Atoms are "studied" if they have reviews or NLS responses
+                    -- Uses stability / 30 days as proxy for long-term memory
+                    COALESCE(
+                        AVG(LEAST(anki_stability / 30.0, 1.0)) FILTER (
+                            WHERE COALESCE(anki_review_count, 0) > 0
+                               OR COALESCE(nls_correct_count, 0) > 0
+                               OR COALESCE(nls_incorrect_count, 0) > 0
+                        ),
+                        0
+                    ),
                     COUNT(*),
                     COUNT(*) FILTER (WHERE anki_stability >= 21),
                     COUNT(*) FILTER (WHERE anki_stability >= 7 AND anki_stability < 21),
@@ -1356,6 +1842,330 @@ class StudyService:
                     total_reviews = EXCLUDED.total_reviews,
                     last_review_date = EXCLUDED.last_review_date,
                     updated_at = NOW()
-            """), {"section_id": section_id, "user_id": self.user_id})
+            """),
+                {"section_id": section_id, "user_id": self.user_id},
+            )
         except Exception as e:
             logger.debug(f"Could not update section mastery: {e}")
+
+    def record_diagnosis(
+        self,
+        atom_id: str,
+        diagnosis: CognitiveDiagnosis,
+        response_time_ms: int,
+        is_correct: bool,
+    ) -> str | None:
+        """
+        Persist a cognitive diagnosis to the database.
+
+        This is the critical "synapse" that wires the neuro-cognitive model
+        to the persistence layer, enabling long-term learning analytics.
+
+        Uses the existing PostgreSQL function `record_diagnosis()` from
+        migration 017_neuromorphic_cortex.sql.
+
+        Args:
+            atom_id: UUID of the atom that was diagnosed
+            diagnosis: CognitiveDiagnosis from the neuro model
+            response_time_ms: Response time in milliseconds
+            is_correct: Whether the answer was correct
+
+        Returns:
+            UUID of the created diagnosis record, or None if failed
+        """
+        import json
+
+        from src.db.database import engine
+
+        # Map Python enum values to PostgreSQL text
+        fail_mode = diagnosis.fail_mode.value if diagnosis.fail_mode else None
+        success_mode = diagnosis.success_mode.value if diagnosis.success_mode else None
+        cognitive_state = diagnosis.cognitive_state.value if diagnosis.cognitive_state else "flow"
+        remediation_type = diagnosis.remediation_type.value if diagnosis.remediation_type else None
+
+        # Serialize evidence as JSON
+        evidence_json = json.dumps(diagnosis.evidence) if diagnosis.evidence else "[]"
+
+        with engine.connect() as conn:
+            try:
+                # Use the PostgreSQL function from 017_neuromorphic_cortex.sql
+                result = conn.execute(
+                    text("""
+                    SELECT record_diagnosis(
+                        :user_id,
+                        :atom_id,
+                        :fail_mode,
+                        :success_mode,
+                        :cognitive_state,
+                        :confidence,
+                        :response_time_ms,
+                        :is_correct,
+                        :remediation_type,
+                        :evidence
+                    ) as diagnosis_id
+                """),
+                    {
+                        "user_id": self.user_id,
+                        "atom_id": atom_id,
+                        "fail_mode": fail_mode,
+                        "success_mode": success_mode,
+                        "cognitive_state": cognitive_state,
+                        "confidence": round(diagnosis.confidence, 3),
+                        "response_time_ms": response_time_ms,
+                        "is_correct": is_correct,
+                        "remediation_type": remediation_type,
+                        "evidence": evidence_json,
+                    },
+                )
+
+                row = result.fetchone()
+                diagnosis_id = str(row.diagnosis_id) if row else None
+                conn.commit()
+
+                logger.info(
+                    f"Recorded diagnosis: atom={atom_id[:8]}... "
+                    f"fail_mode={fail_mode or 'success'} "
+                    f"confidence={diagnosis.confidence:.2f} "
+                    f"diagnosis_id={diagnosis_id[:8] if diagnosis_id else 'N/A'}..."
+                )
+                return diagnosis_id
+
+            except Exception as e:
+                logger.warning(f"Could not record diagnosis (function may not exist): {e}")
+                conn.rollback()
+
+                # Fallback: direct INSERT if function doesn't exist
+                try:
+                    result = conn.execute(
+                        text("""
+                        INSERT INTO cognitive_diagnoses (
+                            user_id, atom_id, fail_mode, success_mode, cognitive_state,
+                            confidence, response_time_ms, is_correct, remediation_type,
+                            evidence, diagnosed_at
+                        ) VALUES (
+                            :user_id, :atom_id, :fail_mode, :success_mode, :cognitive_state,
+                            :confidence, :response_time_ms, :is_correct, :remediation_type,
+                            :evidence::jsonb, NOW()
+                        )
+                        RETURNING id
+                    """),
+                        {
+                            "user_id": self.user_id,
+                            "atom_id": atom_id,
+                            "fail_mode": fail_mode,
+                            "success_mode": success_mode,
+                            "cognitive_state": cognitive_state,
+                            "confidence": round(diagnosis.confidence, 3),
+                            "response_time_ms": response_time_ms,
+                            "is_correct": is_correct,
+                            "remediation_type": remediation_type,
+                            "evidence": evidence_json,
+                        },
+                    )
+
+                    row = result.fetchone()
+                    diagnosis_id = str(row.id) if row else None
+                    conn.commit()
+
+                    logger.info(f"Recorded diagnosis (fallback): diagnosis_id={diagnosis_id}")
+                    return diagnosis_id
+
+                except Exception as e2:
+                    logger.error(f"Fallback diagnosis insert failed: {e2}")
+                    conn.rollback()
+                    return None
+
+    def get_manual_session(
+        self,
+        sections: list[str],
+        atom_types: list[str] | None = None,
+        limit: int = 20,
+        use_struggle_weights: bool = True,
+        shuffle: bool = True,
+    ) -> list[dict]:
+        """
+        Get atoms for Manual Mode - user-specified sections and types.
+
+        Manual Mode gives full control:
+        1. Specify exact sections to study (supports wildcards via CLI)
+        2. Filter by atom types (all, mcq, true_false, parsons, matching)
+        3. Optional struggle map weighting
+        4. No FSRS scheduling constraints
+
+        Args:
+            sections: List of section IDs (e.g., ["11.3", "11.4", "14.2"])
+            atom_types: List of atom types to include (None = all supported)
+            limit: Maximum atoms to return
+            use_struggle_weights: Apply struggle map priority weighting
+            shuffle: Randomize order after retrieval
+
+        Returns:
+            List of atom dicts ready for presentation
+        """
+        from src.db.database import engine
+
+        # Default to all supported quiz types
+        if atom_types is None or atom_types == ["all"]:
+            atom_types = ["mcq", "true_false", "parsons", "matching", "numeric"]
+
+        with engine.connect() as conn:
+            # Build the sections filter
+            # Handle both direct section matches and parent prefix matches
+            section_conditions = []
+            params: dict = {"types": atom_types, "limit": limit}
+
+            for i, section in enumerate(sections):
+                param_name = f"sec_{i}"
+                # Handle wildcard patterns like "5.x", "5.*", or just "5" for module-level
+                if section.endswith(".x") or section.endswith(".*"):
+                    # Wildcard: match all sections under this prefix
+                    prefix = section[:-2]  # Strip ".x" or ".*"
+                    section_conditions.append(f"cs.section_id LIKE :{param_name}_prefix")
+                    params[f"{param_name}_prefix"] = f"{prefix}.%"
+                elif "." not in section and section.isdigit():
+                    # Just a module number: match all sections in this module
+                    section_conditions.append(f"cs.module_number = :{param_name}_module")
+                    params[f"{param_name}_module"] = int(section)
+                else:
+                    # Match exact section or any child sections
+                    section_conditions.append(
+                        f"(cs.section_id = :{param_name} OR cs.section_id LIKE :{param_name}_prefix)"
+                    )
+                    params[param_name] = section
+                    params[f"{param_name}_prefix"] = f"{section}.%"
+
+            sections_where = " OR ".join(section_conditions) if section_conditions else "TRUE"
+
+            # Base query with optional struggle weighting
+            if use_struggle_weights:
+                query = f"""
+                    SELECT
+                        ca.id,
+                        ca.card_id,
+                        ca.atom_type,
+                        ca.front,
+                        ca.back,
+                        ca.concept_id,
+                        ca.ccna_section_id,
+                        cs.module_number,
+                        cs.title as section_title,
+                        cc.name as concept_name,
+                        COALESCE(ca.anki_difficulty, 0.5) as difficulty,
+                        COALESCE(ca.anki_stability, 0) as stability,
+                        COALESCE(ca.anki_lapses, 0) as lapses,
+                        COALESCE(ca.anki_review_count, 0) as review_count,
+                        COALESCE(sw.weight, 0.3) as struggle_weight
+                    FROM learning_atoms ca
+                    JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
+                    LEFT JOIN concepts cc ON ca.concept_id = cc.id
+                    LEFT JOIN struggle_weights sw ON
+                        sw.module_number = cs.module_number AND
+                        (sw.section_id IS NULL OR sw.section_id = cs.section_id)
+                    WHERE ({sections_where})
+                      AND ca.atom_type = ANY(:types)
+                      AND ca.front IS NOT NULL
+                      AND ca.front != ''
+                    ORDER BY
+                        COALESCE(sw.weight, 0.3) DESC,
+                        COALESCE(ca.anki_stability, 0) ASC,
+                        RANDOM()
+                    LIMIT :limit
+                """
+            else:
+                query = f"""
+                    SELECT
+                        ca.id,
+                        ca.card_id,
+                        ca.atom_type,
+                        ca.front,
+                        ca.back,
+                        ca.concept_id,
+                        ca.ccna_section_id,
+                        cs.module_number,
+                        cs.title as section_title,
+                        cc.name as concept_name,
+                        COALESCE(ca.anki_difficulty, 0.5) as difficulty,
+                        COALESCE(ca.anki_stability, 0) as stability,
+                        COALESCE(ca.anki_lapses, 0) as lapses,
+                        COALESCE(ca.anki_review_count, 0) as review_count,
+                        0.5 as struggle_weight
+                    FROM learning_atoms ca
+                    JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
+                    LEFT JOIN concepts cc ON ca.concept_id = cc.id
+                    WHERE ({sections_where})
+                      AND ca.atom_type = ANY(:types)
+                      AND ca.front IS NOT NULL
+                      AND ca.front != ''
+                    ORDER BY RANDOM()
+                    LIMIT :limit
+                """
+
+            try:
+                result = conn.execute(text(query), params)
+                rows = result.fetchall()
+            except Exception as e:
+                logger.warning(f"Manual session query failed (struggle_weights may not exist): {e}")
+                # Rollback the failed transaction before attempting fallback
+                conn.rollback()
+                # Fallback without struggle weights
+                fallback_query = f"""
+                    SELECT
+                        ca.id,
+                        ca.card_id,
+                        ca.atom_type,
+                        ca.front,
+                        ca.back,
+                        ca.concept_id,
+                        ca.ccna_section_id,
+                        cs.module_number,
+                        cs.title as section_title,
+                        cc.name as concept_name,
+                        COALESCE(ca.anki_difficulty, 0.5) as difficulty,
+                        COALESCE(ca.anki_stability, 0) as stability,
+                        COALESCE(ca.anki_lapses, 0) as lapses,
+                        COALESCE(ca.anki_review_count, 0) as review_count,
+                        0.5 as struggle_weight
+                    FROM learning_atoms ca
+                    JOIN ccna_sections cs ON ca.ccna_section_id = cs.section_id
+                    LEFT JOIN concepts cc ON ca.concept_id = cc.id
+                    WHERE ({sections_where})
+                      AND ca.atom_type = ANY(:types)
+                      AND ca.front IS NOT NULL
+                      AND ca.front != ''
+                    ORDER BY RANDOM()
+                    LIMIT :limit
+                """
+                result = conn.execute(text(fallback_query), params)
+                rows = result.fetchall()
+
+            atoms = []
+            for row in rows:
+                atoms.append(
+                    {
+                        "id": str(row.id),
+                        "card_id": row.card_id,
+                        "atom_type": row.atom_type,
+                        "front": row.front,
+                        "back": row.back or "",
+                        "concept_id": str(row.concept_id) if row.concept_id else None,
+                        "section_id": row.ccna_section_id,
+                        "module_number": row.module_number,
+                        "section_title": row.section_title,
+                        "concept_name": row.concept_name or "Unknown",
+                        "difficulty": row.difficulty,
+                        "stability": row.stability,
+                        "lapses": row.lapses,
+                        "review_count": row.review_count,
+                        "struggle_weight": float(row.struggle_weight),
+                    }
+                )
+
+            if shuffle:
+                import random
+                random.shuffle(atoms)
+
+        logger.info(
+            f"Manual session: {len(atoms)} atoms from {len(sections)} sections "
+            f"(types: {atom_types}, struggle_weights: {use_struggle_weights})"
+        )
+        return atoms

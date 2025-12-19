@@ -652,6 +652,136 @@ Records individual turns within a Socratic dialogue:
 - `idx_dialogues_resolution` (resolution)
 - `idx_turns_dialogue` (dialogue_id)
 
+### Migration 022: User Flags
+
+**Purpose**: Allow users to flag problematic questions during study sessions for later review.
+
+**Tables Created**:
+
+#### user_flags
+
+Records user-reported issues with learning atoms:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID (PK) | Primary key |
+| `atom_id` | UUID (FK) | Reference to learning_atoms |
+| `user_id` | TEXT | User identifier (future: real user system) |
+| `flag_type` | TEXT | Issue type (see below) |
+| `flag_reason` | TEXT | Optional user-provided explanation |
+| `session_id` | UUID | Optional link to study session |
+| `created_at` | TIMESTAMPTZ | When flagged |
+| `resolved_at` | TIMESTAMPTZ | When resolved (NULL = unresolved) |
+| `resolution_notes` | TEXT | Notes on how issue was resolved |
+| `resolved_by` | TEXT | Who resolved the flag |
+
+**Flag Types**:
+
+| Type | Description |
+|------|-------------|
+| `wrong_answer` | Marked answer is incorrect |
+| `ambiguous` | Question is unclear or has multiple interpretations |
+| `typo` | Spelling or formatting error |
+| `outdated` | Information is no longer accurate |
+| `too_easy` | Not challenging enough |
+| `too_hard` | Requires knowledge not covered |
+
+**Indexes**:
+- `idx_user_flags_unresolved` (resolved_at) WHERE resolved_at IS NULL
+- `idx_user_flags_atom` (atom_id)
+- `idx_user_flags_type` (flag_type)
+
+**Views Created**:
+
+#### v_flagged_atoms
+
+Aggregates flags by atom for prioritized review:
+
+```sql
+SELECT
+    atom_id,
+    card_id,
+    atom_type,
+    front,
+    flag_count,
+    flag_types,          -- ARRAY of distinct flag types
+    first_flagged,
+    last_flagged
+FROM v_flagged_atoms
+WHERE flag_count >= 2    -- Multiple reports = higher priority
+ORDER BY flag_count DESC;
+```
+
+### Migration 023: Source File Tracking
+
+**Purpose**: Enable subdivided adaptive learning by tracking the source content file for each atom. Supports filtering sessions by module groups or ITN assessments.
+
+**Columns Added to `learning_atoms`**:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `source_file` | TEXT | Source content file (e.g., "CCNAModule1-3.txt", "ITNFinalPacketTracer.txt") |
+
+**Indexes Created**:
+- `idx_learning_atoms_source_file` (source_file) WHERE source_file IS NOT NULL
+
+**Source File Values**:
+
+| File | Content |
+|------|---------|
+| `CCNAModule1-3.txt` | Modules 1-3 (Foundations) |
+| `CCNAModule4-7.txt` | Modules 4-7 (Physical & Data Link) |
+| `CCNAModule8-10.txt` | Modules 8-10 (Network Layer Basics) |
+| `CCNAModule11-13.txt` | Modules 11-13 (IP Addressing) |
+| `CCNAModule14-15.txt` | Modules 14-15 (Transport & Application) |
+| `CCNAModule16-17.txt` | Modules 16-17 (Security & Integration) |
+| `ITNFinalPacketTracer.txt` | ITN Final Packet Tracer exam |
+| `ITNPracticeFinalExam.txt` | ITN Practice Final Exam |
+| `ITNPracticeTest.txt` | ITN Practice Test |
+| `ITNSkillsAssessment.txt` | ITN Skills Assessment |
+
+**Views Created**:
+
+#### v_atoms_by_source
+
+Atom counts by source file and type:
+
+```sql
+SELECT
+    source_file,
+    atom_count,
+    mcq_count,
+    tf_count,
+    flashcard_count,
+    cloze_count,
+    parsons_count,
+    matching_count,
+    numeric_count
+FROM v_atoms_by_source
+ORDER BY source_file;
+```
+
+**Backfill Logic**:
+
+The migration automatically backfills `source_file` based on `card_id` patterns:
+- `NET-M{N}-*` or `CPE-M{N}-*` -> Corresponding CCNAModule file
+- `ITN-FINAL-*` -> ITNFinalPacketTracer.txt
+- `ITN-PRAC-*` -> ITNPracticeFinalExam.txt
+- `ITN-PTEST-*` or `ITN-TEST-*` -> ITNPracticeTest.txt
+- `ITN-SKILL-*` -> ITNSkillsAssessment.txt
+
+**Usage**:
+
+Filter study sessions by source file via the CLI:
+
+```bash
+# Use named preset
+nls cortex start --source itn-final
+
+# Or filter by modules which maps to source files internally
+nls cortex start --modules 11-13
+```
+
 ---
 
 ## See Also

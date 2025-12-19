@@ -11,19 +11,19 @@ Endpoints for the adaptive learning engine:
 
 Phase 5 implementation: Knewton-style adaptive learning.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
 from pydantic import BaseModel, Field
-
-from src.db.database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.db.database import get_async_session
 
 router = APIRouter()
 
@@ -37,12 +37,9 @@ class SessionCreateRequest(BaseModel):
     """Request model for creating a learning session."""
 
     learner_id: str = Field(..., description="Learner identifier")
-    mode: str = Field(
-        "adaptive",
-        description="Session mode: adaptive, review, quiz, remediation"
-    )
-    target_concept_id: Optional[str] = Field(None, description="Target concept UUID")
-    target_cluster_id: Optional[str] = Field(None, description="Target cluster UUID")
+    mode: str = Field("adaptive", description="Session mode: adaptive, review, quiz, remediation")
+    target_concept_id: str | None = Field(None, description="Target concept UUID")
+    target_cluster_id: str | None = Field(None, description="Target cluster UUID")
     atom_count: int = Field(20, ge=1, le=100, description="Number of atoms for session")
 
 
@@ -52,11 +49,11 @@ class AtomPresentationResponse(BaseModel):
     atom_id: str
     atom_type: str
     front: str
-    back: Optional[str]
-    content_json: Optional[Dict[str, Any]]
-    concept_name: Optional[str]
+    back: str | None
+    content_json: dict[str, Any] | None
+    concept_name: str | None
     is_remediation: bool = False
-    remediation_for: Optional[str] = None
+    remediation_for: str | None = None
 
 
 class SessionProgressResponse(BaseModel):
@@ -77,12 +74,12 @@ class SessionResponse(BaseModel):
     learner_id: str
     mode: str
     status: str
-    target_concept_name: Optional[str]
-    target_cluster_name: Optional[str]
+    target_concept_name: str | None
+    target_cluster_name: str | None
     progress: SessionProgressResponse
-    current_atom: Optional[AtomPresentationResponse]
-    next_atom: Optional[AtomPresentationResponse]
-    started_at: Optional[datetime]
+    current_atom: AtomPresentationResponse | None
+    next_atom: AtomPresentationResponse | None
+    started_at: datetime | None
 
 
 class AnswerSubmitRequest(BaseModel):
@@ -90,12 +87,8 @@ class AnswerSubmitRequest(BaseModel):
 
     atom_id: str = Field(..., description="Atom UUID being answered")
     answer: str = Field(..., description="Learner's answer")
-    confidence: Optional[float] = Field(
-        None, ge=0, le=1, description="Self-reported confidence (0-1)"
-    )
-    time_taken_seconds: Optional[int] = Field(
-        None, ge=0, description="Time spent on the atom"
-    )
+    confidence: float | None = Field(None, ge=0, le=1, description="Self-reported confidence (0-1)")
+    time_taken_seconds: int | None = Field(None, ge=0, description="Time spent on the atom")
 
 
 class RemediationPlanResponse(BaseModel):
@@ -103,7 +96,7 @@ class RemediationPlanResponse(BaseModel):
 
     gap_concept_id: str
     gap_concept_name: str
-    atoms: List[str]
+    atoms: list[str]
     priority: str
     gating_type: str
     mastery_target: float
@@ -115,10 +108,10 @@ class AnswerResultResponse(BaseModel):
 
     is_correct: bool
     score: float
-    explanation: Optional[str]
-    correct_answer: Optional[str]
+    explanation: str | None
+    correct_answer: str | None
     remediation_triggered: bool
-    remediation_plan: Optional[RemediationPlanResponse]
+    remediation_plan: RemediationPlanResponse | None
 
 
 class KnowledgeBreakdownResponse(BaseModel):
@@ -140,7 +133,7 @@ class ConceptMasteryResponse(BaseModel):
     mastery_level: str
     knowledge_breakdown: KnowledgeBreakdownResponse
     is_unlocked: bool
-    unlock_reason: Optional[str]
+    unlock_reason: str | None
     review_count: int
     quiz_attempt_count: int
 
@@ -150,8 +143,8 @@ class LearningPathResponse(BaseModel):
 
     target_concept_id: str
     target_concept_name: str
-    prerequisites: List[ConceptMasteryResponse]
-    path_atoms: List[str]
+    prerequisites: list[ConceptMasteryResponse]
+    path_atoms: list[str]
     estimated_atoms: int
     estimated_duration_minutes: int
     current_mastery: float
@@ -168,7 +161,7 @@ class KnowledgeGapResponse(BaseModel):
     required_mastery: float
     gap_size: float
     priority: str
-    recommended_atoms: List[str]
+    recommended_atoms: list[str]
     estimated_duration_minutes: int
 
 
@@ -189,15 +182,15 @@ class AtomSuitabilityResponse(BaseModel):
     recommended_type: str
     recommendation_confidence: float
     type_mismatch: bool
-    scores: Dict[str, SuitabilityScoreResponse]
+    scores: dict[str, SuitabilityScoreResponse]
 
 
 class UnlockStatusResponse(BaseModel):
     """Response model for concept unlock status."""
 
     is_unlocked: bool
-    blocking_prerequisites: List[Dict[str, Any]]
-    unlock_reason: Optional[str]
+    blocking_prerequisites: list[dict[str, Any]]
+    unlock_reason: str | None
     estimated_atoms_to_unlock: int
 
 
@@ -242,8 +235,12 @@ async def create_session(
         session_state = engine.create_session(
             learner_id=request.learner_id,
             mode=mode,
-            target_concept_id=UUID(request.target_concept_id) if request.target_concept_id else None,
-            target_cluster_id=UUID(request.target_cluster_id) if request.target_cluster_id else None,
+            target_concept_id=UUID(request.target_concept_id)
+            if request.target_concept_id
+            else None,
+            target_cluster_id=UUID(request.target_cluster_id)
+            if request.target_cluster_id
+            else None,
             atom_count=request.atom_count,
         )
 
@@ -378,13 +375,13 @@ async def submit_answer(
 
 @router.get(
     "/sessions/{session_id}/next-atom",
-    response_model=Optional[AtomPresentationResponse],
+    response_model=AtomPresentationResponse | None,
     summary="Get next atom",
 )
 async def get_next_atom(
     session_id: str,
     db: AsyncSession = Depends(get_async_session),
-) -> Optional[AtomPresentationResponse]:
+) -> AtomPresentationResponse | None:
     """
     Get the next atom in the session.
 
@@ -423,15 +420,15 @@ async def get_next_atom(
 
 @router.get(
     "/mastery/{learner_id}",
-    response_model=List[ConceptMasteryResponse],
+    response_model=list[ConceptMasteryResponse],
     summary="Get learner mastery",
 )
 async def get_learner_mastery(
     learner_id: str,
-    concept_ids: Optional[str] = Query(None, description="Comma-separated concept UUIDs"),
-    cluster_id: Optional[str] = Query(None, description="Filter by cluster"),
+    concept_ids: str | None = Query(None, description="Comma-separated concept UUIDs"),
+    cluster_id: str | None = Query(None, description="Filter by cluster"),
     db: AsyncSession = Depends(get_async_session),
-) -> List[ConceptMasteryResponse]:
+) -> list[ConceptMasteryResponse]:
     """Get mastery state for a learner across concepts."""
     try:
         from src.adaptive import LearningEngine
@@ -480,9 +477,9 @@ async def get_learner_mastery(
 )
 async def recalculate_mastery(
     learner_id: str = Query(..., description="Learner identifier"),
-    concept_ids: Optional[str] = Query(None, description="Comma-separated concept UUIDs"),
+    concept_ids: str | None = Query(None, description="Comma-separated concept UUIDs"),
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Trigger mastery recalculation for a learner."""
     try:
         from src.adaptive import LearningEngine
@@ -579,17 +576,17 @@ async def get_learning_path(
 
 @router.get(
     "/next-atom/{learner_id}",
-    response_model=List[str],
+    response_model=list[str],
     summary="Get next optimal atoms",
 )
 async def get_next_optimal_atoms(
     learner_id: str,
-    concept_id: Optional[str] = Query(None, description="Optional concept focus"),
-    cluster_id: Optional[str] = Query(None, description="Optional cluster scope"),
+    concept_id: str | None = Query(None, description="Optional concept focus"),
+    cluster_id: str | None = Query(None, description="Optional cluster scope"),
     count: int = Query(10, ge=1, le=50, description="Number of atoms to return"),
     include_review: bool = Query(True, description="Include due reviews"),
     db: AsyncSession = Depends(get_async_session),
-) -> List[str]:
+) -> list[str]:
     """
     Get next optimal atoms for a learner.
 
@@ -625,14 +622,14 @@ async def get_next_optimal_atoms(
 
 @router.get(
     "/remediation/{learner_id}/gaps",
-    response_model=List[KnowledgeGapResponse],
+    response_model=list[KnowledgeGapResponse],
     summary="Get knowledge gaps",
 )
 async def get_knowledge_gaps(
     learner_id: str,
-    cluster_id: Optional[str] = Query(None, description="Optional cluster scope"),
+    cluster_id: str | None = Query(None, description="Optional cluster scope"),
     db: AsyncSession = Depends(get_async_session),
-) -> List[KnowledgeGapResponse]:
+) -> list[KnowledgeGapResponse]:
     """
     Identify knowledge gaps for a learner.
 
@@ -691,8 +688,7 @@ async def trigger_remediation(
 
         if not plan:
             raise HTTPException(
-                status_code=404,
-                detail="No remediation needed or no atoms available"
+                status_code=404, detail="No remediation needed or no atoms available"
             )
 
         return RemediationPlanResponse(
@@ -804,10 +800,10 @@ async def get_atom_suitability(
     summary="Batch compute suitability",
 )
 async def batch_compute_suitability(
-    atom_ids: Optional[List[str]] = None,
+    atom_ids: list[str] | None = None,
     limit: int = Query(100, ge=1, le=1000, description="Max atoms to process"),
     db: AsyncSession = Depends(get_async_session),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Batch compute and store suitability scores.
 

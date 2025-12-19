@@ -15,13 +15,15 @@ Requirements:
     pip install playwright pytest-playwright
     playwright install chromium
 """
-import pytest
-from playwright.sync_api import Page, expect
+
 import os
+
+import pytest
 
 # Skip all tests if playwright is not available
 try:
     from playwright.sync_api import sync_playwright
+
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -121,8 +123,7 @@ class TestStudySessionAPI:
     def test_start_study_session(self, api_client):
         """Should be able to start a study session."""
         response = api_client.post(
-            "/api/study/session",
-            json={"mode": "adaptive", "duration_minutes": 25}
+            "/api/study/session", json={"mode": "adaptive", "duration_minutes": 25}
         )
 
         if response.status_code == 404:
@@ -155,12 +156,8 @@ class TestAtomReviewAPI:
 
         # Submit answer
         response = api_client.post(
-            f"/api/study/answer",
-            json={
-                "atom_id": str(atom_id),
-                "answer": "test answer",
-                "confidence": 0.8
-            }
+            "/api/study/answer",
+            json={"atom_id": str(atom_id), "answer": "test answer", "confidence": 0.8},
         )
 
         if response.status_code == 404:

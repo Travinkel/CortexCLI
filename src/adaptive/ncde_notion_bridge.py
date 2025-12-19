@@ -21,52 +21,51 @@ Architecture:
 Author: Cortex System
 Version: 2.0.0 (Notion-Centric Architecture)
 """
+
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
 from enum import Enum
+from typing import Any
 
 from loguru import logger
 
 from config import get_settings
-from src.sync.notion_cortex import (
-    NotionCortexService,
-    CortexPropertyUpdate,
-    get_notion_cortex,
-)
 from src.graph.zscore_engine import (
-    ZScoreEngine,
     AtomMetrics,
     get_zscore_engine,
-    get_forcez_engine,
 )
-from src.graph.shadow_graph import get_shadow_graph
-
+from src.sync.notion_cortex import (
+    CortexPropertyUpdate,
+    NotionCortexService,
+    get_notion_cortex,
+)
 
 # =============================================================================
 # DATA MODELS
 # =============================================================================
 
+
 class MemoryState(str, Enum):
     """Memory consolidation states for atoms."""
-    NEW = "NEW"              # Never reviewed
-    LEARNING = "LEARNING"    # Active encoding phase
-    REVIEW = "REVIEW"        # Consolidation phase
-    MASTERED = "MASTERED"    # Fluent retrieval
+
+    NEW = "NEW"  # Never reviewed
+    LEARNING = "LEARNING"  # Active encoding phase
+    REVIEW = "REVIEW"  # Consolidation phase
+    MASTERED = "MASTERED"  # Fluent retrieval
 
 
 @dataclass
 class NCDEWritebackEvent:
     """Event representing an NCDE result that needs Notion write-back."""
+
     atom_id: str
-    diagnosis_type: Optional[str] = None  # FailMode or SuccessMode value
-    remediation_type: Optional[str] = None
+    diagnosis_type: str | None = None  # FailMode or SuccessMode value
+    remediation_type: str | None = None
     confidence: float = 0.0
-    psi_update: Optional[float] = None
-    memory_state_change: Optional[MemoryState] = None
+    psi_update: float | None = None
+    memory_state_change: MemoryState | None = None
     z_score_delta: float = 0.0
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -74,18 +73,20 @@ class NCDEWritebackEvent:
 @dataclass
 class BridgeStats:
     """Statistics for the NCDE-Notion bridge."""
+
     events_processed: int = 0
     notion_updates_success: int = 0
     notion_updates_failed: int = 0
     psi_updates: int = 0
     memory_transitions: int = 0
     zscore_recalculations: int = 0
-    last_sync: Optional[datetime] = None
+    last_sync: datetime | None = None
 
 
 # =============================================================================
 # NCDE NOTION BRIDGE
 # =============================================================================
+
 
 class NCDENotionBridge:
     """
@@ -117,7 +118,7 @@ class NCDENotionBridge:
 
     def __init__(
         self,
-        notion_service: Optional[NotionCortexService] = None,
+        notion_service: NotionCortexService | None = None,
         batch_size: int = 10,
         auto_flush_threshold: int = 50,
     ):
@@ -199,10 +200,12 @@ class NCDENotionBridge:
 
         event = NCDEWritebackEvent(
             atom_id=atom_id,
-            diagnosis_type=diagnosis.fail_mode.value if diagnosis.fail_mode else (
-                diagnosis.success_mode.value if diagnosis.success_mode else None
-            ),
-            remediation_type=diagnosis.recommended_remediation.value if diagnosis.recommended_remediation else None,
+            diagnosis_type=diagnosis.fail_mode.value
+            if diagnosis.fail_mode
+            else (diagnosis.success_mode.value if diagnosis.success_mode else None),
+            remediation_type=diagnosis.recommended_remediation.value
+            if diagnosis.recommended_remediation
+            else None,
             confidence=diagnosis.confidence,
             psi_update=psi,
         )
@@ -237,9 +240,7 @@ class NCDENotionBridge:
 
         # Check if Notion writes are protected
         if self._settings.protect_notion:
-            logger.warning(
-                f"PROTECT_NOTION enabled; would update {len(updates)} atoms"
-            )
+            logger.warning(f"PROTECT_NOTION enabled; would update {len(updates)} atoms")
             self._queue.clear()
             return self._stats
 
@@ -254,9 +255,7 @@ class NCDENotionBridge:
         # Clear queue
         self._queue.clear()
 
-        logger.info(
-            f"Flush complete: {result.success} success, {result.failed} failed"
-        )
+        logger.info(f"Flush complete: {result.success} success, {result.failed} failed")
 
         return self._stats
 
@@ -315,7 +314,7 @@ class NCDENotionBridge:
         is_correct: bool,
         current_stability: float = 0.0,
         lapses: int = 0,
-    ) -> Optional[MemoryState]:
+    ) -> MemoryState | None:
         """
         Determine memory state transition based on interaction.
 
@@ -371,7 +370,7 @@ class NCDENotionBridge:
     def recalculate_zscores(
         self,
         atom_ids: list[str],
-        project_ids: Optional[list[str]] = None,
+        project_ids: list[str] | None = None,
     ) -> int:
         """
         Trigger Z-Score recalculation for atoms.
@@ -389,7 +388,6 @@ class NCDENotionBridge:
             Number of atoms with changed activation status
         """
         engine = get_zscore_engine()
-        notion = self._notion
 
         # Build metrics from cached states
         metrics_list = []
@@ -410,7 +408,7 @@ class NCDENotionBridge:
             result.needs_update = True  # Always update after recalculation
 
             # Queue for Notion update
-            event = NCDEWritebackEvent(
+            NCDEWritebackEvent(
                 atom_id=result.atom_id,
                 z_score_delta=result.z_score,  # Using as absolute value for now
             )
@@ -424,6 +422,7 @@ class NCDENotionBridge:
 # =============================================================================
 # SESSION INTEGRATION
 # =============================================================================
+
 
 class NCDESessionWrapper:
     """
@@ -462,11 +461,12 @@ class NCDESessionWrapper:
         self._enable_zscore = enable_zscore_updates
 
         # Import NCDE pipeline
-        from src.adaptive.ncde_pipeline import NCDEPipeline, SessionContext
+        from src.adaptive.ncde_pipeline import NCDEPipeline
+
         self._pipeline = NCDEPipeline()
 
         # Session context
-        self._context: Optional[Any] = None
+        self._context: Any | None = None
 
         # Atoms processed this session (for batch Z-Score update)
         self._processed_atoms: list[str] = []
@@ -564,7 +564,7 @@ class NCDESessionWrapper:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
-_bridge: Optional[NCDENotionBridge] = None
+_bridge: NCDENotionBridge | None = None
 
 
 def get_ncde_bridge() -> NCDENotionBridge:

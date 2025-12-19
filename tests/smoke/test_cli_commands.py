@@ -8,10 +8,12 @@ Usage:
     pytest tests/smoke/test_cli_commands.py -v
     pytest tests/smoke/test_cli_commands.py -v -m smoke
 """
+
 import subprocess
 import sys
-import pytest
 from pathlib import Path
+
+import pytest
 
 # Mark all tests in this module as smoke tests
 pytestmark = pytest.mark.smoke
@@ -137,7 +139,7 @@ class TestCLIModule:
         code, stdout, stderr = run_cli_command("module 999")
 
         # Should fail gracefully, not crash
-        assert code in [0, 1, 2], f"Module 999 crashed unexpectedly"
+        assert code in [0, 1, 2], "Module 999 crashed unexpectedly"
 
 
 class TestCLIRemediation:
@@ -206,8 +208,9 @@ class TestCLIOutputFormat:
 
         if code == 0:
             # Rich tables use box characters or separators
-            assert ("|" in stdout or "─" in stdout or "+" in stdout), \
+            assert "|" in stdout or "─" in stdout or "+" in stdout, (
                 "Stats output should use table formatting"
+            )
 
     def test_no_python_exceptions(self):
         """Commands should not print Python exceptions."""
@@ -231,6 +234,7 @@ class TestCLIPerformance:
     def test_stats_fast(self):
         """Stats should complete quickly."""
         import time
+
         start = time.time()
 
         code, stdout, stderr = run_cli_command("stats", timeout=10)
@@ -242,6 +246,7 @@ class TestCLIPerformance:
     def test_help_fast(self):
         """Help should complete very quickly."""
         import time
+
         start = time.time()
 
         code, stdout, stderr = run_cli_command("--help", timeout=5)
