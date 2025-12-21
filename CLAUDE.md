@@ -12,19 +12,23 @@
 
 ## In Progress
 - [ ] Validate integration in full session flow
+- [ ] Test with mock Greenlight server
 
 ## Blocked
 - [ ] None
 
 ## Commits
-- None yet
+- 27c2020: feat(batch2b): Integrate Greenlight handoff into session flow
+- 502c3ae: test(batch2b): Add Greenlight session integration tests
+- 48dcc5e: chore(batch2b): Update progress log
 
 ## GitHub Issues
-- None yet
+- #7: [Batch 2b] Greenlight SessionManager Integration (created)
 
 ## Notes
 - Batch 2a is now available via origin/master after fetch.
 - Tests: `python -m pytest tests/unit/test_greenlight_session_integration.py -v`
+- Issue labels/milestone missing on repo; created issue without them.
 
 # Claude Code Progress Log
 
