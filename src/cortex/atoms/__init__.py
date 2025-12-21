@@ -29,6 +29,12 @@ class AtomType(str, Enum):
     SHORT_ANSWER_REGEX = "short_answer_regex"
     LIST_RECALL = "list_recall"
     ORDERED_LIST_RECALL = "ordered_list_recall"
+    # Batch 3b: Procedural & Sequential handlers
+    FADED_PARSONS = "faded_parsons"
+    DISTRACTOR_PARSONS = "distractor_parsons"
+    TIMELINE_ORDERING = "timeline_ordering"
+    SQL_QUERY_BUILDER = "sql_query_builder"
+    EQUATION_BALANCING = "equation_balancing"
 
 
 # Handler registry - populated by @register decorator
@@ -67,6 +73,12 @@ from . import short_answer_exact
 from . import short_answer_regex
 from . import list_recall
 from . import ordered_list_recall
+# Batch 3b: Procedural & Sequential handlers
+from . import faded_parsons
+from . import distractor_parsons
+from . import timeline_ordering
+from . import sql_query_builder
+from . import equation_balancing
 
 __all__ = [
     "AtomType",
