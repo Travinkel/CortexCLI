@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Refactoring Atom",
+  "description": "Improve existing code without changing external behavior.",
+  "type": "object",
+  "required": ["prompt", "language", "code"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Instruction describing the refactoring task.",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "description": "Programming language/runtime identifier."
+    },
+    "code": {
+      "type": "string",
+      "description": "Existing code to refactor."
+    },
+    "refactor_goals": {
+      "type": "array",
+      "description": "Goals such as readability, modularity, or performance.",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "target_complexity": {
+      "type": "string",
+      "description": "Target complexity or performance goal (e.g., O(n))."
+    },
+    "constraints": {
+      "type": "array",
+      "description": "Constraints such as API compatibility or style guides.",
+      "items": {"type": "string"}
+    },
+    "forbidden_changes": {
+      "type": "array",
+      "description": "Edits that are not allowed.",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
+}

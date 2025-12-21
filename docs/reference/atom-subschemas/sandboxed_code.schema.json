@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sandboxed Code Atom",
+  "description": "Write code in a sandboxed runtime to satisfy hidden tests.",
+  "type": "object",
+  "required": ["prompt", "language", "function_signature"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Problem statement and requirements.",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "description": "Programming language/runtime identifier."
+    },
+    "function_signature": {
+      "type": "string",
+      "description": "Required function signature or entrypoint."
+    },
+    "starter_code": {
+      "type": "string",
+      "description": "Optional starter code or scaffolding."
+    },
+    "constraints": {
+      "type": "array",
+      "description": "Explicit constraints such as time/space limits.",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "examples": {
+      "type": "array",
+      "description": "Sample inputs/outputs or usage examples.",
+      "items": {
+        "type": "object",
+        "required": ["input", "output"],
+        "properties": {
+          "input": {"type": "string"},
+          "output": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
