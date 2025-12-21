@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Script Concordance Test",
+  "description": "Assess how new information shifts the likelihood of a hypothesis.",
+  "type": "object",
+  "required": ["scenario", "hypothesis", "new_info", "expert_consensus"],
+  "properties": {
+    "scenario": {
+      "type": "string",
+      "description": "Case vignette or troubleshooting scenario."
+    },
+    "hypothesis": {
+      "type": "string",
+      "description": "Diagnosis or explanation being evaluated."
+    },
+    "new_info": {
+      "type": "string",
+      "description": "Additional data introduced to update the hypothesis."
+    },
+    "expert_consensus": {
+      "type": "integer",
+      "minimum": -2,
+      "maximum": 2,
+      "description": "Expert consensus on a -2 to +2 likelihood shift scale."
+    },
+    "expert_distribution": {
+      "type": "object",
+      "description": "Counts of expert votes by scale value (-2 to +2).",
+      "properties": {
+        "-2": { "type": "integer", "minimum": 0 },
+        "-1": { "type": "integer", "minimum": 0 },
+        "0": { "type": "integer", "minimum": 0 },
+        "1": { "type": "integer", "minimum": 0 },
+        "2": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Rationale for the expert consensus."
+    }
+  },
+  "additionalProperties": false
+}

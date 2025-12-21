@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Logic Gate Truth Table",
+  "description": "Fill in outputs for a boolean logic expression.",
+  "type": "object",
+  "required": ["inputs", "expression", "truth_table"],
+  "properties": {
+    "inputs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 2,
+      "description": "Input variable names for the logic circuit."
+    },
+    "expression": {
+      "type": "string",
+      "description": "Boolean expression or gate description."
+    },
+    "truth_table": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["inputs", "output"],
+        "properties": {
+          "inputs": {
+            "type": "array",
+            "items": { "type": "boolean" },
+            "minItems": 2,
+            "description": "Input values for this row."
+          },
+          "output": {
+            "type": "boolean",
+            "description": "Output value for the row."
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Truth table rows with inputs and outputs."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Explanation of the logic behavior."
+    }
+  },
+  "additionalProperties": false
+}

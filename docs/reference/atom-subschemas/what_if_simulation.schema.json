@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "What-If Simulation",
+  "description": "Predict the outcome of a parameter change.",
+  "type": "object",
+  "required": ["scenario", "parameter_changes", "expected_outcome"],
+  "properties": {
+    "scenario": {
+      "type": "string",
+      "description": "Baseline situation before changes are applied."
+    },
+    "baseline_state": {
+      "type": "string",
+      "description": "Optional summary of the system state prior to changes."
+    },
+    "parameter_changes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["parameter", "from", "to"],
+        "properties": {
+          "parameter": { "type": "string", "description": "Parameter being changed." },
+          "from": { "type": "string", "description": "Original value." },
+          "to": { "type": "string", "description": "Updated value." }
+        },
+        "additionalProperties": false
+      },
+      "description": "List of parameter modifications to simulate."
+    },
+    "expected_outcome": {
+      "type": "string",
+      "description": "Predicted effect of the change."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Reasoning that connects the change to the outcome."
+    }
+  },
+  "additionalProperties": false
+}
