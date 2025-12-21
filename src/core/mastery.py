@@ -387,12 +387,12 @@ class SimpleMasteryCalculator(MasteryCalculator):
 
     def calculate_mastery_score(
         self,
-        retrievability: float | None = None,
-        lapses: float | None = None,
-        mcq_score: float | None = None,
+        retrievability: float,
+        quiz_score: float | None = None,
+        **kwargs,
     ) -> float:
         """
-        Calculate simplified mastery score (0-100).
+        Calculate simplified mastery score (0-1).
 
         Formula:
             40% × retrievability +
@@ -402,26 +402,30 @@ class SimpleMasteryCalculator(MasteryCalculator):
 
         Args:
             retrievability: Average FSRS retrievability (0-1)
-            lapses: Average lapses per atom
-            mcq_score: MCQ performance (0-100)
+            quiz_score: MCQ performance (0-1)
+            kwargs:
+                - lapses: Average lapses per atom (default 0)
 
         Returns:
-            Mastery score 0-100
+            Mastery score 0-1
         """
-        # Retrievability component (0-40 points)
-        ret = (retrievability or 0.5) * 100 * 0.40
+        lapses = kwargs.get("lapses", 0.0)
 
-        # Lapse component - fewer lapses = higher score (0-25 points)
-        lapse_rate = min((lapses or 0) / 5.0, 1.0)
-        lapse_score = (1 - lapse_rate) * 100 * 0.25
+        # Retrievability component (0-0.40)
+        ret = retrievability * 0.40
 
-        # MCQ component (0-25 points)
-        mcq = (mcq_score or 50) * 0.25
+        # Lapse component - fewer lapses = higher score (0-0.25)
+        # Normalize lapses: 0 lapses = 1.0, 5+ lapses = 0.0
+        lapse_rate = min(lapses / 5.0, 1.0)
+        lapse_score = (1.0 - lapse_rate) * 0.25
 
-        # Buffer (10 points)
-        buffer = 10
+        # MCQ component (0-0.25)
+        mcq = (quiz_score or 0.5) * 0.25
 
-        return min(max(ret + lapse_score + mcq + buffer, 0), 100)
+        # Buffer (0.10)
+        buffer = 0.10
+
+        return min(max(ret + lapse_score + mcq + buffer, 0.0), 1.0)
 
     def check_mastery(
         self,
@@ -464,7 +468,7 @@ class SimpleMasteryCalculator(MasteryCalculator):
         if (lapses or 0) > self.REMEDIATION_MAX_LAPSES:
             reasons.append("high_lapses")
 
-        if mcq_score is not None and mcq_score < 80:
+        if mcq_score is not None and mcq_score < 0.80:
             reasons.append("low_mcq")
 
         if reasons:
@@ -472,20 +476,20 @@ class SimpleMasteryCalculator(MasteryCalculator):
         return False, None
 
     def get_level(self, score: float) -> MasteryLevel:
-        """Get mastery level from score (0-100)."""
-        return MasteryLevel.from_score(score / 100)
+        """Get mastery level from score (0-1)."""
+        return MasteryLevel.from_score(score)
 
     def format_progress_bar(self, score: float, width: int = 10) -> str:
         """
         Format a text progress bar.
 
         Args:
-            score: Score 0-100
+            score: Score 0-1
             width: Character width
 
         Returns:
             String like "████████░░"
         """
-        filled = int(score / 100 * width)
+        filled = int(score * width)
         empty = width - filled
         return "█" * filled + "░" * empty

@@ -109,10 +109,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware for local development
+# CORS middleware
+# SECURITY: Restrict origins in production!
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict in production
+    allow_origins=["http://localhost:3000", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -176,36 +177,17 @@ def health_check() -> dict[str, Any]:
 
 @app.get("/config", tags=["Health"])
 def get_config() -> dict[str, Any]:
-    """Get current configuration (non-sensitive)."""
+    """Get current configuration (safe subset)."""
     return {
-        "database_url": settings.database_url.split("@")[-1]
-        if "@" in settings.database_url
-        else "configured",
         "notion": {
             "configured": bool(settings.notion_api_key),
-            "databases": settings.get_configured_notion_databases(),
-        },
-        "anki": {
-            "connect_url": settings.anki_connect_url,
-            "deck_name": settings.anki_deck_name,
-            "note_type": settings.anki_note_type,
-        },
-        "ai": {
-            "gemini_configured": bool(settings.gemini_api_key),
-            "vertex_configured": bool(settings.vertex_project),
-            "model": settings.ai_model,
+            "databases_configured": len(settings.get_configured_notion_databases()),
         },
         "atomicity": {
             "front_max_words": settings.atomicity_front_max_words,
             "back_optimal_words": settings.atomicity_back_optimal_words,
-            "back_warning_words": settings.atomicity_back_warning_words,
-            "back_max_chars": settings.atomicity_back_max_chars,
             "mode": settings.atomicity_mode,
         },
-        "semantic": settings.get_semantic_config(),
-        "prerequisites": settings.get_prerequisite_config(),
-        "quiz": settings.get_quiz_config(),
-        "knowledge_thresholds": settings.get_knowledge_thresholds(),
         "sync": {
             "interval_minutes": settings.sync_interval_minutes,
             "protect_notion": settings.protect_notion,

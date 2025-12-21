@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Database
     # ========================================
     database_url: str = Field(
-        default="postgresql://postgres:learning123@localhost:5432/notion_learning_sync",
+        default="postgresql://postgres:postgres@localhost:5432/notion_learning_sync",
         description="PostgreSQL connection string",
     )
 
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
         description="Notion integration API key",
     )
     notion_version: str = Field(
-        default="2022-06-28",  # Update to "2025-09-03" when using latest features
+        default="2022-06-28",
         description="Notion API version",
     )
 
@@ -57,19 +57,6 @@ class Settings(BaseSettings):
     subconcepts_db_id: str | None = Field(
         default=None,
         description="Notion Subconcepts (being merged into Flashcards) database ID",
-    )
-    # Legacy (for backwards compatibility)
-    concepts_db_id: str | None = Field(
-        default=None,
-        description="Notion Concepts (L2) database ID - legacy",
-    )
-    concept_areas_db_id: str | None = Field(
-        default=None,
-        description="Notion Concept Areas (L0) database ID - legacy",
-    )
-    concept_clusters_db_id: str | None = Field(
-        default=None,
-        description="Notion Concept Clusters (L1) database ID - legacy",
     )
     # Projects (for Z-Score project relevance signal)
     projects_db_id: str | None = Field(
@@ -159,7 +146,7 @@ class Settings(BaseSettings):
         description="Anki note type for new cards",
     )
     anki_query: str = Field(
-        default="deck:CCNA::ITN::* (tag:section:2.1.4 OR tag:section:2.1.5 OR tag:section:2.2.1 OR tag:section:2.2.2 OR tag:section:2.2.4 OR tag:section:2.3.1 OR tag:section:2.3.2 OR tag:section:2.3.3 OR tag:section:2.3.5 OR tag:section:2.4.2 OR tag:section:2.4.3 OR tag:section:2.4.5 OR tag:section:2.6.2 OR tag:section:2.7.1 OR tag:section:2.7.4 OR tag:section:2.8.1 OR tag:section:2.8.2 OR tag:section:3.1.2 OR tag:section:3.1.3 OR tag:section:3.2.* OR tag:section:3.3.* OR tag:section:4.1.* OR tag:section:4.2.1 OR tag:section:4.2.2 OR tag:section:4.2.3 OR tag:section:4.3.* OR tag:section:5.1.1 OR tag:section:5.1.2 OR tag:section:5.1.4 OR tag:section:5.1.5 OR tag:section:5.2.1 OR tag:section:5.2.2 OR tag:section:5.2.3 OR tag:section:5.3.1 OR tag:section:5.3.2 OR tag:section:5.3.3 OR tag:section:5.4.1 OR tag:section:5.4.2 OR tag:section:6.1.* OR tag:section:6.2.* OR tag:section:6.3.* OR tag:section:7.1.2 OR tag:section:7.1.3 OR tag:section:7.1.4 OR tag:section:7.2.1 OR tag:section:7.2.2 OR tag:section:7.2.3 OR tag:section:7.2.4 OR tag:section:7.2.5 OR tag:section:7.2.6 OR tag:section:8.1.* OR tag:section:8.2.* OR tag:section:8.3.* OR tag:section:9.1.* OR tag:section:9.2.* OR tag:section:9.3.* OR tag:section:10.1.* OR tag:section:10.2.* OR tag:section:10.3.* OR tag:section:10.4.* OR tag:section:11.1.* OR tag:section:11.2.* OR tag:section:11.3.* OR tag:section:11.4.* OR tag:section:11.5.* OR tag:section:11.6.* OR tag:section:11.7.* OR tag:section:11.8.* OR tag:section:12.1.* OR tag:section:12.2.* OR tag:section:12.3.* OR tag:section:12.4.* OR tag:section:12.5.* OR tag:section:12.6.* OR tag:section:13.1.* OR tag:section:13.2.* OR tag:section:14.* OR tag:section:15.* OR tag:section:16.* OR tag:section:17.*) -is:suspended",
+        default="deck:CCNA::ITN::* -is:suspended",
         description="Anki search query for filtering cards to import",
     )
 
@@ -322,10 +309,6 @@ class Settings(BaseSettings):
             "superconcepts": self.superconcepts_db_id,  # Knowledge Areas (L0/L1)
             "subconcepts": self.subconcepts_db_id,  # Being merged
             "projects": self.projects_db_id,  # Learning focus
-            # Legacy concept databases (backwards compatibility)
-            "concepts": self.concepts_db_id,
-            "concept_areas": self.concept_areas_db_id,
-            "concept_clusters": self.concept_clusters_db_id,
             # Curriculum (3)
             "modules": self.modules_db_id,
             "tracks": self.tracks_db_id,
@@ -548,7 +531,7 @@ class Settings(BaseSettings):
         description="Neo4j username",
     )
     neo4j_password: str = Field(
-        default="cortex2025",
+        default="",
         description="Neo4j password",
     )
     neo4j_database: str = Field(
