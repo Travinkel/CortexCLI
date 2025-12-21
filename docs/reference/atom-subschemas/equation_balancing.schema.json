@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Equation Balancing",
+  "description": "Balance chemical or mathematical equations by adjusting coefficients",
+  "type": "object",
+  "required": ["equation_type", "terms", "correct_coefficients"],
+  "properties": {
+    "equation_type": {
+      "type": "string",
+      "enum": ["chemical", "mathematical", "nuclear", "redox"],
+      "description": "Type of equation to balance"
+    },
+    "terms": {
+      "type": "object",
+      "required": ["left", "right"],
+      "properties": {
+        "left": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "formula"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the term"
+              },
+              "formula": {
+                "type": "string",
+                "description": "Chemical formula or mathematical expression"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the compound/term"
+              },
+              "state": {
+                "type": "string",
+                "enum": ["solid", "liquid", "gas", "aqueous"],
+                "description": "Physical state (for chemical equations)"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "Terms on the left side of the equation"
+        },
+        "right": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "formula"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the term"
+              },
+              "formula": {
+                "type": "string",
+                "description": "Chemical formula or mathematical expression"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the compound/term"
+              },
+              "state": {
+                "type": "string",
+                "enum": ["solid", "liquid", "gas", "aqueous"],
+                "description": "Physical state (for chemical equations)"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "Terms on the right side of the equation"
+        }
+      },
+      "description": "Terms on both sides of the equation"
+    },
+    "correct_coefficients": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "description": "Map of term IDs to their correct coefficients"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}

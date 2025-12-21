@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SQL Query Builder",
+  "description": "Build SQL queries by arranging clauses and expressions in correct order",
+  "type": "object",
+  "required": ["query_type", "clauses", "correct_query"],
+  "properties": {
+    "query_type": {
+      "type": "string",
+      "enum": ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "JOIN"],
+      "description": "Type of SQL query to build"
+    },
+    "clauses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "clause_type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the clause"
+          },
+          "text": {
+            "type": "string",
+            "description": "SQL clause text"
+          },
+          "clause_type": {
+            "type": "string",
+            "enum": ["SELECT", "FROM", "WHERE", "JOIN", "ON", "GROUP BY", "HAVING", "ORDER BY", "LIMIT", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE", "ALTER", "AND", "OR", "AS", "DISTINCT", "UNION"],
+            "description": "Type of SQL clause"
+          },
+          "is_distractor": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this is an incorrect clause"
+          }
+        }
+      },
+      "minItems": 2,
+      "maxItems": 15,
+      "description": "Available SQL clauses to arrange"
+    },
+    "correct_query": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Clause IDs in correct order (excludes distractors)"
+    },
+    "schema_context": {
+      "type": "object",
+      "properties": {
+        "tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "columns"],
+            "properties": {
+              "name": {"type": "string"},
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "type"],
+                  "properties": {
+                    "name": {"type": "string"},
+                    "type": {"type": "string"},
+                    "primary_key": {"type": "boolean"},
+                    "foreign_key": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "description": "Database tables for context"
+        }
+      },
+      "description": "Database schema context for the query"
+    },
+    "expected_result_description": {
+      "type": "string",
+      "description": "Description of what the query should return"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}
