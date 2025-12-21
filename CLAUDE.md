@@ -1,30 +1,55 @@
-# Batch 1b: Skill Mastery Tracker - Progress
+# Batch 1b: Skill Graph Foundation
 
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE
 **Started:** 2025-12-21
 **Completed:** 2025-12-21
 **AI Coder:** Claude Sonnet 4.5
+**Branch:** batch-1b-skill-tracker
+**Issues:** #8, #10, #11
 
 ## Completed Tasks
 
+- [x] Create database migration 030_skill_graph.sql
+- [x] Create skill taxonomy seed data (35 skills)
 - [x] Create src/learning/skill_mastery_tracker.py
 - [x] Implement Bayesian mastery update formula
 - [x] Implement FSRS parameter tracking
 - [x] Implement skill gap identification
-- [x] Git commit implementation
+- [x] Create src/learning/atom_selector.py
+- [x] Implement skill-based atom selection
+- [x] Write comprehensive unit tests (19 tests, 100% passing)
+- [x] Git commit all files
 - [x] Push to origin/batch-1b-skill-tracker
-- [ ] Unit tests (deferred - file structure created)
-- [ ] Integration with SessionManager (deferred - requires SessionManager to exist)
+- [x] Create GitHub issues (#8, #10, #11)
 
 ## Deliverables
 
 ### Files Created
 
-1. **src/learning/skill_mastery_tracker.py** (435 lines)
+1. **src/db/migrations/030_skill_graph.sql** (126 lines)
+   - `skills` table with hierarchical support and Bloom's taxonomy
+   - `atom_skill_weights` table for many-to-many mapping
+   - `learner_skill_mastery` table with FSRS parameters
+   - `v_skill_gaps` view for analytics
+   - 12 indexes for optimized queries
+
+2. **data/skill_taxonomy_seed.sql** (118 lines)
+   - 35 skills across 3 domains (networking: 16, programming: 13, systems: 6)
+   - All Bloom's taxonomy levels (remember → create)
+
+3. **src/learning/skill_mastery_tracker.py** (467 lines)
    - `SkillMasteryTracker` class: Main tracker with Bayesian updates
    - `SkillUpdate` dataclass: Result of mastery update
    - `SkillMasteryState` dataclass: Current mastery state for a skill
-   - `AtomSkillLink` dataclass: Atom-skill linking with weight
+
+4. **src/learning/atom_selector.py** (213 lines)
+   - `AtomSelector` class for adaptive selection
+   - `select_atoms_by_skill_gap()` method
+   - `get_skill_coverage_for_module()` analytics
+
+5. **tests/learning/test_skill_mastery_tracker.py** (342 lines)
+   - 19 comprehensive unit tests
+   - 100% passing (all tests pass)
 
 ### Key Implementation Details
 
@@ -51,7 +76,17 @@ else:
 
 ### Commits
 
+- `ffb762f`: feat(batch1): Add skill graph schema with skill_weights and mastery tables
+- `d4e9284`: feat(batch1): Add skill taxonomy seed data for networking, programming, systems
 - `8e91e34`: feat(batch1b): Implement SkillMasteryTracker with Bayesian updates and FSRS
+- `e144809`: feat(batch1): Add skill-based atom selection with gap targeting
+- `3ba83c2`: test(batch1): Add unit tests for SkillMasteryTracker
+
+### GitHub Issues
+
+- **#8**: [Batch 1] Skill Graph Database Schema ✅
+- **#10**: [Batch 1] SkillMasteryTracker with Bayesian Updates ✅
+- **#11**: [Batch 1] Skill-Based Atom Selection ✅
 
 ### Methods Implemented
 
@@ -73,44 +108,54 @@ else:
 
 ## Testing Status
 
-⚠️ **Unit Tests Deferred:** Test file structure created but comprehensive tests deferred to separate commit. Core implementation is complete and ready for integration.
+✅ **Unit Tests Complete:** 19 comprehensive tests, all passing (100%)
 
-### Manual Testing Approach
+### Test Results
 
-When PostgreSQL is available, manual testing can be done:
-
-```python
-# Initialize tracker
-from src.learning.skill_mastery_tracker import SkillMasteryTracker
-import asyncpg
-
-db = await asyncpg.connect(...)
-tracker = SkillMasteryTracker(db)
-
-# Test update workflow
-updates = await tracker.update_skill_mastery(
-    learner_id="test-learner",
-    atom_id="test-atom",
-    is_correct=True,
-    latency_ms=3000,
-    confidence=4
-)
-
-print(f"Updated {len(updates)} skills:")
-for update in updates:
-    print(f"  {update.skill_code}: {update.old_mastery:.4f} → {update.new_mastery:.4f}")
-
-# Test skill gap identification
-gaps = await tracker.get_learner_skill_gaps(
-    learner_id="test-learner",
-    module_id="test-module",
-    limit=5
-)
-
-print(f"\nWeakest skills:")
-for gap in gaps:
-    print(f"  {gap['skill_code']}: {gap['mastery_level']:.4f}")
 ```
+============================= test session starts =============================
+tests/learning/test_skill_mastery_tracker.py::TestBayesianUpdate (6 tests) PASSED
+tests/learning/test_skill_mastery_tracker.py::TestFSRSParameters (5 tests) PASSED
+tests/learning/test_skill_mastery_tracker.py::TestConfidenceInterval (3 tests) PASSED
+tests/learning/test_skill_mastery_tracker.py::TestSkillMasteryState (1 test) PASSED
+tests/learning/test_skill_mastery_tracker.py::TestSkillUpdate (1 test) PASSED
+tests/learning/test_skill_mastery_tracker.py::TestEdgeCases (3 tests) PASSED
+
+============================= 19 passed in 15.77s =============================
+```
+
+### Test Coverage
+
+**TestBayesianUpdate (6 tests):**
+- ✅ Correct answer increases mastery
+- ✅ Incorrect answer decreases mastery
+- ✅ Hypercorrection: high confidence + wrong = bigger penalty
+- ✅ Weight affects update size
+- ✅ Confidence affects update size
+- ✅ Mastery stays within [0, 1] bounds
+
+**TestFSRSParameters (5 tests):**
+- ✅ Difficulty decreases on correct
+- ✅ Difficulty increases on incorrect
+- ✅ Stability increases on correct
+- ✅ Stability decreases on incorrect
+- ✅ Retrievability differs for correct vs incorrect
+
+**TestConfidenceInterval (3 tests):**
+- ✅ Confidence narrows with practice
+- ✅ Confidence has minimum bound (5%)
+- ✅ Confidence follows exponential decay formula
+
+**TestSkillMasteryState (1 test):**
+- ✅ Dataclass creation and field access
+
+**TestSkillUpdate (1 test):**
+- ✅ Dataclass creation and field access
+
+**TestEdgeCases (3 tests):**
+- ✅ Zero weight atom has no effect
+- ✅ Minimum confidence (1/5) produces small update
+- ✅ Maximum confidence (5/5) produces large update
 
 ## Integration Notes
 
@@ -127,10 +172,10 @@ for gap in gaps:
 
 ## Next Steps
 
-1. Wait for Batch 1b to be merged to master
+1. Merge Batch 1b to master
 2. Batch 1c can use `get_learner_skill_gaps()` for atom selection
-3. Future work: Integrate with SessionManager
-4. Future work: Add comprehensive unit tests
+3. Future: Integrate with SessionManager
+4. Future: Add skill mastery analytics dashboard
 
 ## Notes
 
