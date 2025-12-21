@@ -3,6 +3,14 @@
 This module extends atom selection with skill gap targeting capabilities.
 Uses learner skill mastery data to select atoms that address weaknesses.
 """
+Atom Selection for Adaptive Learning.
+
+Provides intelligent atom selection based on:
+- Skill gaps (targets learner's weakest skills)
+- Difficulty appropriateness
+- Z-score ranking
+- Type diversity
+"""
 
 from __future__ import annotations
 
