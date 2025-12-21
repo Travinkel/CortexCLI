@@ -1,17 +1,21 @@
 # Agile Work Orders: 100+ Atom Taxonomy Implementation
 
-**Purpose:** AI-accessible work orders for parallel development across 15 git worktrees.
+**Purpose:** AI-accessible work orders for parallel development across 21 git worktrees.
 
 ## Overview
 
-This directory contains detailed work orders for implementing the 100+ atom taxonomy across 5 parallel batches, subdivided into 15 independent workstreams for maximum velocity.
+This directory contains detailed work orders for implementing the 100+ atom taxonomy across 5 parallel batches, subdivided into 21 independent workstreams for maximum velocity (6 infrastructure, 3 handlers, 5 schemas, 2 docs, plus 5 parent batches).
 
 ## Worktree Structure
 
 | Batch | Branch | Worktree Path | Status |
 |-------|--------|---------------|--------|
-| **1: Skill Graph** | `batch-1-skill-graph` | `../cortex-batch-1-skill-graph` | 🟡 In Progress |
-| **2: Greenlight** | `batch-2-greenlight` | `../cortex-batch-2-greenlight` | 🔴 Pending |
+| **1a: Skill Database** | `batch-1a-skill-database` | `../cortex-batch-1a-skill-database` | 🔴 Pending |
+| **1b: Skill Tracker** | `batch-1b-skill-tracker` | `../cortex-batch-1b-skill-tracker` | 🔴 Pending |
+| **1c: Skill Selection** | `batch-1c-skill-selection` | `../cortex-batch-1c-skill-selection` | 🔴 Pending |
+| **2a: Greenlight Client** | `batch-2a-greenlight-client` | `../cortex-batch-2a-greenlight-client` | 🔴 Pending |
+| **2b: Greenlight Integration** | `batch-2b-greenlight-integration` | `../cortex-batch-2b-greenlight-integration` | 🔴 Pending |
+| **2c: Greenlight Database** | `batch-2c-greenlight-database` | `../cortex-batch-2c-greenlight-database` | 🔴 Pending |
 | **3a: Declarative Handlers** | `batch-3a-handlers-declarative` | `../cortex-batch-3a-handlers-declarative` | 🔴 Pending |
 | **3b: Procedural Handlers** | `batch-3b-handlers-procedural` | `../cortex-batch-3b-handlers-procedural` | 🔴 Pending |
 | **3c: Diagnostic Handlers** | `batch-3c-handlers-diagnostic` | `../cortex-batch-3c-handlers-diagnostic` | 🔴 Pending |
@@ -22,6 +26,12 @@ This directory contains detailed work orders for implementing the 100+ atom taxo
 | **4e: Advanced Schemas** | `batch-4e-schemas-advanced` | `../cortex-batch-4e-schemas-advanced` | 🔴 Pending |
 | **5a: GitHub Issues** | `batch-5a-github-issues` | `../cortex-batch-5a-github-issues` | 🔴 Pending |
 | **5b: Documentation** | `batch-5b-documentation` | `../cortex-batch-5b-documentation` | 🔴 Pending |
+
+## Quick Start for AI Coders
+
+**👉 READ THESE FIRST:**
+- **AI_STARTUP_PROMPT_TEMPLATE.md** - Copy-paste ready prompts for each batch
+- **PARALLELIZATION_STRATEGY.md** - Wave-based execution strategy (12-16 days)
 
 ## Workflow for AI Agents
 
