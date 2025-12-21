@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Design Pattern Application Atom",
+  "description": "Apply a design pattern to a problem context.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "problem_context",
+    "pattern",
+    "application_steps",
+    "rationale"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "problem_context": {
+      "type": "string"
+    },
+    "pattern": {
+      "type": "string"
+    },
+    "application_steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

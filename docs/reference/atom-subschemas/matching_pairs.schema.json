@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Matching Pairs Atom",
+  "description": "Match paired items across two lists.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "pairs"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Instruction for matching."
+    },
+    "pairs": {
+      "type": "array",
+      "description": "Correct pairings between left and right items.",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "left",
+          "right"
+        ],
+        "properties": {
+          "left": {
+            "type": "string"
+          },
+          "right": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "shuffle": {
+      "type": "boolean",
+      "description": "Shuffle right-side items.",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

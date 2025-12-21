@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Error Highlighting Atom",
+  "description": "Highlight errors in a visual or text artifact.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "content",
+    "error_spans"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "error_spans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "description"
+        ],
+        "properties": {
+          "start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "total_errors": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": false
+}

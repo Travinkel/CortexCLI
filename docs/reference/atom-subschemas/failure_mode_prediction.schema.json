@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Failure Mode Prediction Atom",
+  "description": "Predict likely failure modes for a system.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "system_description",
+    "failure_modes"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "system_description": {
+      "type": "string"
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "mode",
+          "likelihood",
+          "impact"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "likelihood": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "impact": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}

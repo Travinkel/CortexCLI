@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Minimal Fix Atom",
+  "description": "Provide the smallest fix that resolves a bug.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "code",
+    "failing_tests",
+    "fix_patch"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "failing_tests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "fix_patch": {
+      "type": "string",
+      "description": "Patch or diff snippet."
+    }
+  },
+  "additionalProperties": false
+}

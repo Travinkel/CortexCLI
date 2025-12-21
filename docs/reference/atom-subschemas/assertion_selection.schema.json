@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Assertion Selection Atom",
+  "description": "Select the best assertions for a scenario.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "scenario",
+    "assertions",
+    "rationale"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "scenario": {
+      "type": "string"
+    },
+    "assertions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Caching Policy Selection Atom",
+  "description": "Select a caching policy for a workload.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "workload_description",
+    "cache_policies",
+    "selected_policy",
+    "rationale"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "workload_description": {
+      "type": "string"
+    },
+    "cache_policies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "selected_policy": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

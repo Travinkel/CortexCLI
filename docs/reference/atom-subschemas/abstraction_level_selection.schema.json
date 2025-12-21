@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Abstraction Level Selection Atom",
+  "description": "Select the right abstraction level for an artifact.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "artifact",
+    "abstraction_levels",
+    "selected_level",
+    "rationale"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "artifact": {
+      "type": "string"
+    },
+    "abstraction_levels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "selected_level": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Categorization Atom",
+  "description": "Assign items to the correct category.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "categories",
+    "items"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item",
+          "category"
+        ],
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 2
+    },
+    "allow_multiple": {
+      "type": "boolean",
+      "description": "Allow multiple categories per item.",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

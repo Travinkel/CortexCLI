@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fuzzy Pattern Match Atom",
+  "description": "Select the best match for a fuzzy pattern.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "pattern",
+    "candidates",
+    "correct_match"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "pattern": {
+      "type": "string"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "correct_match": {
+      "type": "string"
+    },
+    "similarity_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "additionalProperties": false
+}

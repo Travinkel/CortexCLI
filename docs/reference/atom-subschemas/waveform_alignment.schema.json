@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Waveform Alignment Atom",
+  "description": "Align waveforms to target phase or timing.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "audio_ref",
+    "alignment_points",
+    "tolerance_ms"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "audio_ref": {
+      "type": "string"
+    },
+    "alignment_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "timestamp_ms",
+          "phase"
+        ],
+        "properties": {
+          "timestamp_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "phase": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "tolerance_ms": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

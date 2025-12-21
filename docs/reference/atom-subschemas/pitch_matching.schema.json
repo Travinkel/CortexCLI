@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pitch Matching Atom",
+  "description": "Match a target pitch within tolerance.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "target_pitch_hz",
+    "tolerance_cents"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "target_pitch_hz": {
+      "type": "number",
+      "minimum": 1
+    },
+    "tolerance_cents": {
+      "type": "number",
+      "minimum": 0
+    },
+    "response_audio_ref": {
+      "type": "string",
+      "description": "Reference to recorded response."
+    }
+  },
+  "additionalProperties": false
+}

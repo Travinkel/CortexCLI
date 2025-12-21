@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Output Prediction Atom",
+  "description": "Predict the output of a code snippet.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "code",
+    "expected_output"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "input": {
+      "type": "string",
+      "description": "Input provided to the program."
+    },
+    "expected_output": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Resource Leak Identification Atom",
+  "description": "Identify resource leaks in code.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "code",
+    "resource_types",
+    "leak_points"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "resource_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "leak_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}

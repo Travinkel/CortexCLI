@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Component Responsibility Atom",
+  "description": "Map components to their responsibilities.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "components",
+    "responsibilities",
+    "mapping"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "responsibilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "component",
+          "responsibility"
+        ],
+        "properties": {
+          "component": {
+            "type": "string"
+          },
+          "responsibility": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}
