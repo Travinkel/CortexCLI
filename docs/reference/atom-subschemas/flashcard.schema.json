@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flashcard Atom",
+  "description": "Standard front-to-back flashcard for declarative recall",
+  "type": "object",
+  "required": ["front", "back"],
+  "properties": {
+    "front": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The prompt or question shown to the learner"
+    },
+    "back": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The answer or response to be recalled"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist recall"
+    },
+    "media": {
+      "type": "object",
+      "properties": {
+        "front_image": {
+          "type": "string",
+          "format": "uri",
+          "description": "Optional image URL for the front"
+        },
+        "back_image": {
+          "type": "string",
+          "format": "uri",
+          "description": "Optional image URL for the back"
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

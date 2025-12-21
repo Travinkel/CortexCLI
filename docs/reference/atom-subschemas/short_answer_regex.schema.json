@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Short Answer Regex Atom",
+  "description": "Short answer question with regex pattern matching",
+  "type": "object",
+  "required": ["question", "pattern"],
+  "properties": {
+    "question": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The question prompt"
+    },
+    "pattern": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Regular expression pattern for matching correct answers"
+    },
+    "pattern_flags": {
+      "type": "string",
+      "pattern": "^[gimsuvy]*$",
+      "description": "Regex flags (e.g., 'i' for case-insensitive)"
+    },
+    "example_answer": {
+      "type": "string",
+      "description": "An example of a correct answer for feedback"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist recall"
+    },
+    "max_length": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum allowed answer length in characters"
+    },
+    "validation_message": {
+      "type": "string",
+      "description": "Custom message shown when answer doesn't match pattern"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

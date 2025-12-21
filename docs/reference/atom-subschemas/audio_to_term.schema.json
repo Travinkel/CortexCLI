@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Audio to Term Atom",
+  "description": "Audio recognition flashcard mapping audio to a term",
+  "type": "object",
+  "required": ["audio_url", "term"],
+  "properties": {
+    "audio_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the audio clip to be identified"
+    },
+    "term": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The correct term or transcription for the audio"
+    },
+    "transcript": {
+      "type": "string",
+      "description": "Full transcript of the audio for accessibility"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist recognition"
+    },
+    "accepted_answers": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Alternative acceptable answers"
+    },
+    "case_sensitive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether answer matching is case-sensitive"
+    },
+    "playback_limit": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum number of times audio can be played"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

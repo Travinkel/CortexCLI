@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Symbolic Cloze Atom",
+  "description": "Cloze deletion for symbols, formulas, or specialized notation",
+  "type": "object",
+  "required": ["cloze_text", "symbol_type"],
+  "properties": {
+    "cloze_text": {
+      "type": "string",
+      "pattern": ".*\\{\\{c\\d+::[^}]+\\}\\}.*",
+      "description": "Text with {{c1::symbol}} cloze placeholders"
+    },
+    "symbol_type": {
+      "type": "string",
+      "enum": ["math", "chemical", "musical", "logic", "programming", "networking", "other"],
+      "description": "Type of symbolic notation used"
+    },
+    "render_format": {
+      "type": "string",
+      "enum": ["latex", "ascii", "unicode", "html"],
+      "default": "unicode",
+      "description": "How symbols should be rendered"
+    },
+    "accepted_answers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"}
+      },
+      "description": "Map of cloze IDs to alternative acceptable representations"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist recall"
+    },
+    "context": {
+      "type": "string",
+      "description": "Additional context explaining the symbolic domain"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

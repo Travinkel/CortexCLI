@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Ordered List Recall Atom",
+  "description": "Sequential list recall where order matters",
+  "type": "object",
+  "required": ["prompt", "items"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The question asking for ordered list items"
+    },
+    "items": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 2,
+      "description": "The correct list items in required order"
+    },
+    "accepted_alternatives": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"}
+      },
+      "description": "Map of items to their acceptable alternative forms"
+    },
+    "case_sensitive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether item matching is case-sensitive"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint (e.g., 'List the 7 OSI layers from bottom to top')"
+    },
+    "partial_credit": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to award partial credit for partially correct sequences"
+    },
+    "scoring_method": {
+      "type": "string",
+      "enum": ["exact", "longest_subsequence", "position_weighted"],
+      "default": "exact",
+      "description": "How to score partial matches"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}
