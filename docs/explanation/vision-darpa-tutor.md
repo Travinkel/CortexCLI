@@ -243,6 +243,62 @@ Even without Greenlight or Right-Learning, Cortex-CLI is valuable for:
 
 ---
 
+## Key Features to Rival DARPA Digital Tutor
+
+1. **Adaptive Content Delivery**
+   - Today: Z-Score prioritization (decay, centrality, project, novelty).
+   - Next: Cognitive load monitoring, error-pattern detection, time-on-task; CLI-only signals (shell history, git commits, IDE events via Greenlight).
+
+2. **Interactive Problem-Solving**
+   - Parsons/ordering; live code execution (Python/bash/SQL) in the practice pane.
+   - Progressive hints; immediate feedback; guided CLI labs for networking/devops/sysadmin.
+
+3. **Multi-Modal Learning**
+   - Guided labs, debugging challenges (time-to-fix), refactoring exercises, command recall/fluency drills.
+
+4. **Cognitive Model Tracking**
+   - FSRS, prerequisite backtracking, PLM sidecar.
+   - Add cognitive load index to adapt difficulty based on struggle vs flow.
+
+5. **Split-Pane Modes (TUI)**
+   - Horizontal: theory over practice.
+   - Vertical: instruction vs workspace.
+   - 3-pane: reference | workspace | feedback/mastery tracker.
+   - Top bar: app/version/module/mastery/hotkeys; bottom strip: queue/latency/attempts/confidence prompt.
+
+## Implementation Phases (Cortex-CLI)
+
+- **Phase 1: TUI Foundation**
+  - Split-pane interface (Textual/Rich).
+  - Interactive study mode beyond flashcards; live code exec in practice pane.
+  - Session recording: time-on-task, error patterns.
+
+- **Phase 2: Enhanced Learning Modes**
+  - Guided lab mode with checkpoints.
+  - Debugging mode (broken code, time-to-fix tracking).
+  - Fluency drills (timed command recall).
+
+- **Phase 3: Intelligence Layer**
+  - Cognitive load detection to adapt difficulty.
+  - Greenlight integration for struggle ingestion → remediation atoms.
+  - PLM sidecar to personalize beyond FSRS.
+
+## Atom Taxonomy (Canonical Snapshot)
+
+- **Recall/Recognition:** flashcards, cloze (single/multi/hints), short answer (exact/fuzzy), numeric/unit/tolerance, MCQ variants.
+- **Structural/Ordering:** matching, bucket/grouping, sequencing/timelines, Parsons variants.
+- **Numeric/Symbolic:** calculations, formula/regex, SQL/query prediction.
+- **Application/Transfer:** scenarios, predictions, fault isolation.
+- **Error-Focused:** spot/fix bugs, incorrect steps, false premises, config repair.
+- **Comparison:** similarities/differences/trade-offs/when-to-use/boundary cases.
+- **Explanation/Elaboration:** explain/teach-back/why/causal-chain.
+- **Creative/Generative:** examples, counterexamples, analogies, test cases, designs.
+- **CS-Specific:** code understanding (output/state/trace), code construction, debugging, config/CLI reasoning, system/architecture, algorithmic reasoning, testing/verification.
+- **Meta-Cognitive:** confidence/difficulty, reflection, error tagging, self-correction.
+- **Simulation/Dynamic:** CLI emulator, branching dialogue, sliders/state puzzles, graph/network construction (via DSL/IDE), labs.
+
+---
+
 ## Next: Implementation Roadmap
 
 See:
