@@ -13,8 +13,8 @@ class TestHandlerRegistry:
     """Test the handler registry."""
 
     def test_all_handlers_registered(self):
-        """All 12 atom types should have handlers (7 original + 5 batch 3a)."""
-        assert len(HANDLERS) == 12
+        """All 17 atom types should have handlers (7 original + 5 batch 3a + 5 batch 3b)."""
+        assert len(HANDLERS) == 17
 
     def test_get_handler_by_string(self):
         """Should get handler by string type name."""
