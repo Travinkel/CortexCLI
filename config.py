@@ -878,6 +878,44 @@ class Settings(BaseSettings):
             },
         }
 
+    # ========================================
+    # Greenlight Integration (Batch 2)
+    # ========================================
+    greenlight_enabled: bool = Field(
+        default=False,
+        description="Enable Greenlight IDE integration for runtime atoms",
+    )
+    greenlight_api_url: str = Field(
+        default="http://localhost:8090",
+        description="Greenlight API base URL",
+    )
+    greenlight_handoff_timeout_ms: int = Field(
+        default=30000,
+        description="Maximum wait time for atom handoff (milliseconds)",
+    )
+    greenlight_retry_attempts: int = Field(
+        default=3,
+        description="Number of retry attempts on API failure",
+    )
+    greenlight_fallback_mode: Literal["queue", "skip", "manual"] = Field(
+        default="queue",
+        description="Behavior when Greenlight unavailable: queue (save for later), skip (mark skipped), manual (require user action)",
+    )
+
+    def has_greenlight_configured(self) -> bool:
+        """Check if Greenlight integration is enabled and configured."""
+        return self.greenlight_enabled and bool(self.greenlight_api_url)
+
+    def get_greenlight_config(self) -> dict[str, any]:
+        """Get Greenlight integration configuration as a dictionary."""
+        return {
+            "enabled": self.greenlight_enabled,
+            "api_url": self.greenlight_api_url,
+            "handoff_timeout_ms": self.greenlight_handoff_timeout_ms,
+            "retry_attempts": self.greenlight_retry_attempts,
+            "fallback_mode": self.greenlight_fallback_mode,
+        }
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
