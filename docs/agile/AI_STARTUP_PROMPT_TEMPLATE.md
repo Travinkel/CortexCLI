@@ -33,9 +33,27 @@ IMPORTANT:
 - Check dependencies in your work order before starting
 ```
 
-## Batch-Specific Prompts
+---
 
-### Batch 1a: Skill Graph Database
+# 🌊 WAVE-BASED EXECUTION STRATEGY
+
+Execute in 4 waves with internal parallelization. **Read PARALLELIZATION_STRATEGY.md for full details.**
+
+**Total Duration:** 12-16 days (vs 25-36 sequential)
+**Peak Concurrency:** 6 AI coders (Wave 1)
+
+---
+
+## 🌊 Wave 1: Infrastructure Foundation (Days 1-5)
+
+**Goal:** Build skill graph and Greenlight integration foundation.
+
+**Run in Parallel:** 6 AI coders
+**Duration:** 3-5 days
+
+### 🚀 Start Immediately (3 batches - no dependencies)
+
+#### Batch 1a: Skill Graph Database ⚡ **CRITICAL PATH - START FIRST**
 
 ```
 You are implementing the skill graph database schema for Cortex-CLI.
@@ -54,13 +72,13 @@ CRITICAL INSTRUCTIONS:
 7. Create GitHub issue: "[Batch 1a] Skill Graph Database Schema"
 8. Update CLAUDE.md with completion status
 
-DEPENDENCIES: None (this is the critical path!)
-BLOCKS: Batch 1b, 1c, all Batch 3 handlers
+⚠️ DEPENDENCIES: None (this is the critical path!)
+🔒 BLOCKS: Batch 1b, 1c, all Batch 3 handlers
 
 START NOW!
 ```
 
-### Batch 2a: Greenlight Client
+#### Batch 2a: Greenlight HTTP Client ⚡ **START IMMEDIATELY**
 
 ```
 You are implementing the Greenlight HTTP client for runtime atom execution.
@@ -82,13 +100,157 @@ CRITICAL INSTRUCTIONS:
 7. Create GitHub issue: "[Batch 2a] Greenlight HTTP Client"
 8. Update CLAUDE.md
 
-DEPENDENCIES: None (runs in parallel with Batch 1)
-BLOCKS: Batch 2b (SessionManager integration)
+⚠️ DEPENDENCIES: None (runs in parallel with Batch 1a)
+🔒 BLOCKS: Batch 2b (SessionManager integration)
 
 START NOW!
 ```
 
-### Batch 3a: Declarative Memory Handlers
+#### Batch 2c: Greenlight Database Queue ⚡ **START IMMEDIATELY**
+
+```
+You are implementing the Greenlight async execution queue.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-2c-greenlight-database.md
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-2c-greenlight-database
+2. cat docs/agile/batch-2c-greenlight-database.md
+3. Create src/db/migrations/031_greenlight_queue.sql
+4. Create queuing logic for async atom execution
+5. Test migration on local PostgreSQL database
+6. git add, commit, push
+7. Create GitHub issue: "[Batch 2c] Greenlight Database Queue"
+8. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: None (independent of other Wave 1 batches)
+🔒 BLOCKS: None
+
+START NOW!
+```
+
+### ⏳ Start After Batch 1a Completes (2 batches)
+
+#### Batch 1b: Skill Mastery Tracker 🕒 **WAIT FOR 1a**
+
+```
+You are implementing the skill mastery tracking system with Bayesian updates.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-1b-skill-tracker.md
+
+⚠️ CRITICAL: DO NOT START until Batch 1a is complete and merged to master!
+
+VERIFICATION BEFORE STARTING:
+1. Check that Batch 1a is merged: git log --oneline | grep "batch1a"
+2. Verify tables exist: psql -U postgres -d cortex_cli -c "\dt skills"
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-1b-skill-tracker
+2. cat docs/agile/batch-1b-skill-tracker.md
+3. Create src/learning/skill_mastery_tracker.py
+4. Implement SkillMasteryTracker class with Bayesian update formula
+5. Implement FSRS parameter updates per skill
+6. Write unit tests
+7. git add, commit, push
+8. Create GitHub issue: "[Batch 1b] Skill Mastery Tracker"
+9. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Batch 1a must be complete (needs skills, learner_skill_mastery tables)
+🔒 BLOCKS: None
+
+START AFTER BATCH 1a COMPLETES!
+```
+
+#### Batch 1c: Skill-Based Atom Selection 🕒 **WAIT FOR 1a**
+
+```
+You are implementing skill-based atom selection queries.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-1c-skill-selection.md
+
+⚠️ CRITICAL: DO NOT START until Batch 1a is complete and merged to master!
+
+VERIFICATION BEFORE STARTING:
+1. Check that Batch 1a is merged: git log --oneline | grep "batch1a"
+2. Verify tables exist: psql -U postgres -d cortex_cli -c "\dt atom_skill_weights"
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-1c-skill-selection
+2. cat docs/agile/batch-1c-skill-selection.md
+3. Extend src/learning/atom_selector.py with select_atoms_by_skill_gap()
+4. Implement Z-score ranking for skill-targeted atoms
+5. Write unit tests
+6. git add, commit, push
+7. Create GitHub issue: "[Batch 1c] Skill-Based Atom Selection"
+8. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Batch 1a must be complete (needs skills, atom_skill_weights tables)
+🔒 BLOCKS: All Batch 3 handlers (they use skill-based selection)
+
+START AFTER BATCH 1a COMPLETES!
+```
+
+### ⏳ Start After Batch 2a Completes (1 batch)
+
+#### Batch 2b: Greenlight SessionManager Integration 🕒 **WAIT FOR 2a**
+
+```
+You are integrating Greenlight handoff into SessionManager.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-2b-greenlight-integration.md
+
+⚠️ CRITICAL: DO NOT START until Batch 2a is complete and merged to master!
+
+VERIFICATION BEFORE STARTING:
+1. Check that Batch 2a is merged: git log --oneline | grep "batch2a"
+2. Verify GreenlightClient exists: ls -la src/integrations/greenlight_client.py
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-2b-greenlight-integration
+2. cat docs/agile/batch-2b-greenlight-integration.md
+3. Extend src/learning/session_manager.py with handoff logic
+4. Implement _handoff_to_greenlight() method
+5. Add Greenlight result rendering in terminal
+6. Write integration tests
+7. git add, commit, push
+8. Create GitHub issue: "[Batch 2b] Greenlight SessionManager Integration"
+9. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Batch 2a must be complete (needs GreenlightClient)
+🔒 BLOCKS: None
+
+START AFTER BATCH 2a COMPLETES!
+```
+
+### ✅ Wave 1 Success Criteria
+
+- [ ] All 6 batches merged to master
+- [ ] Skill graph operational (3 tables + 30 seed skills)
+- [ ] Greenlight client operational (HTTP client + queue)
+- [ ] All unit tests passing
+
+---
+
+## 🌊 Wave 2: Atom Handlers (Days 6-10)
+
+**Goal:** Implement 15 atom handlers (5 declarative, 5 procedural, 5 diagnostic).
+
+**Run in Parallel:** 3 AI coders
+**Duration:** 4-5 days
+
+⚠️ **CRITICAL:** DO NOT START WAVE 2 until ALL of Wave 1 is complete!
+
+### 🚀 Start After Wave 1 Complete (3 batches)
+
+#### Batch 3a: Declarative Memory Handlers
 
 ```
 You are implementing 5 atom handlers for declarative memory types.
@@ -96,6 +258,12 @@ You are implementing 5 atom handlers for declarative memory types.
 Read docs/ and docs/agile/ for context.
 
 Your job: Implement batch-3a-handlers-declarative.md
+
+⚠️ CRITICAL: DO NOT START until Wave 1 is complete (Batches 1a, 1b, 1c merged)!
+
+VERIFICATION BEFORE STARTING:
+1. Check Wave 1 complete: git log --oneline | grep -E "batch1[abc]"
+2. Verify skill tables exist: psql -U postgres -d cortex_cli -c "\dt skills"
 
 CRITICAL INSTRUCTIONS:
 1. cd ../cortex-batch-3a-handlers-declarative
@@ -115,13 +283,110 @@ CRITICAL INSTRUCTIONS:
 10. Create GitHub issue: "[Batch 3a] Declarative Memory Handlers (5 types)"
 11. Update CLAUDE.md
 
-DEPENDENCIES: Batch 1 must be complete (for skill linking)
-BLOCKS: None (can run in parallel with 3b, 3c)
+⚠️ DEPENDENCIES: Batch 1a, 1b, 1c must be complete (for skill linking)
+🔒 BLOCKS: Batch 4a (schemas need handlers to validate against)
 
-START NOW!
+START AFTER WAVE 1 COMPLETES!
 ```
 
-### Batch 4a: Declarative Memory Schemas
+#### Batch 3b: Procedural/Sequential Handlers
+
+```
+You are implementing 5 atom handlers for procedural/sequential types.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-3b-handlers-procedural.md
+
+⚠️ CRITICAL: DO NOT START until Wave 1 is complete!
+
+VERIFICATION BEFORE STARTING:
+1. Check Wave 1 complete: git log --oneline | grep -E "batch1[abc]"
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-3b-handlers-procedural
+2. cat docs/agile/batch-3b-handlers-procedural.md
+3. Implement 5 handlers:
+   - faded_parsons.py
+   - distractor_parsons.py
+   - timeline_ordering.py
+   - sql_query_builder.py
+   - process_flow.py
+4. Each handler must implement AtomHandler interface
+5. Add Rich UI rendering
+6. Link to skills
+7. Write unit tests
+8. Register in src/cortex/atoms/__init__.py
+9. git add, commit, push
+10. Create GitHub issue: "[Batch 3b] Procedural Handlers (5 types)"
+11. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Batch 1a, 1b, 1c must be complete
+🔒 BLOCKS: Batch 4b (procedural schemas)
+
+START AFTER WAVE 1 COMPLETES!
+```
+
+#### Batch 3c: Metacognitive/Diagnostic Handlers
+
+```
+You are implementing 5 atom handlers for metacognitive/diagnostic types.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-3c-handlers-diagnostic.md
+
+⚠️ CRITICAL: DO NOT START until Wave 1 is complete!
+
+VERIFICATION BEFORE STARTING:
+1. Check Wave 1 complete: git log --oneline | grep -E "batch1[abc]"
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-3c-handlers-diagnostic
+2. cat docs/agile/batch-3c-handlers-diagnostic.md
+3. Implement 5 handlers:
+   - script_concordance_test.py
+   - key_feature_problem.py
+   - boundary_value_analysis.py
+   - confidence_slider.py
+   - effort_rating.py
+4. Each handler must implement AtomHandler interface
+5. Add Rich UI rendering
+6. Link to skills
+7. Write unit tests
+8. Register in src/cortex/atoms/__init__.py
+9. git add, commit, push
+10. Create GitHub issue: "[Batch 3c] Diagnostic Handlers (5 types)"
+11. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Batch 1a, 1b, 1c must be complete
+🔒 BLOCKS: Batch 4c (diagnostic schemas)
+
+START AFTER WAVE 1 COMPLETES!
+```
+
+### ✅ Wave 2 Success Criteria
+
+- [ ] All 3 batches merged to master
+- [ ] 15 new atom handlers implemented
+- [ ] All handlers linked to skills
+- [ ] Unit tests passing
+- [ ] Registered in handler registry
+
+---
+
+## 🌊 Wave 3: JSON Schemas (Days 11-13)
+
+**Goal:** Create 100 JSON Schema files for all atom types.
+
+**Run in Parallel:** 5 AI coders
+**Duration:** 2-3 days
+
+⚠️ **CRITICAL:** DO NOT START WAVE 3 until ALL of Wave 2 is complete!
+
+### 🚀 Start After Wave 2 Complete (5 batches)
+
+#### Batch 4a: Declarative Memory Schemas
 
 ```
 You are creating JSON Schema validation files for 12 declarative memory atom types.
@@ -129,6 +394,12 @@ You are creating JSON Schema validation files for 12 declarative memory atom typ
 Read docs/ and docs/agile/ for context.
 
 Your job: Implement batch-4a-schemas-declarative.md
+
+⚠️ CRITICAL: DO NOT START until Wave 2 is complete (Batches 3a, 3b, 3c merged)!
+
+VERIFICATION BEFORE STARTING:
+1. Check Wave 2 complete: git log --oneline | grep -E "batch3[abc]"
+2. Verify handlers exist: ls -la src/cortex/atoms/cloze_dropdown.py
 
 CRITICAL INSTRUCTIONS:
 1. cd ../cortex-batch-4a-schemas-declarative
@@ -152,13 +423,142 @@ CRITICAL INSTRUCTIONS:
 7. Create GitHub issue: "[Batch 4a] Declarative Memory Schemas (12 types)"
 8. Update CLAUDE.md
 
-DEPENDENCIES: Batch 3a should be complete (to validate handler behavior)
-BLOCKS: None
+⚠️ DEPENDENCIES: Batch 3a should be complete (to validate handler behavior)
+🔒 BLOCKS: Batch 5a, 5b (documentation needs schemas complete)
 
-START NOW!
+START AFTER WAVE 2 COMPLETES!
 ```
 
-### Batch 5a: GitHub Issues
+#### Batch 4b: Procedural/Sequential Schemas
+
+```
+You are creating JSON Schema validation files for 11 procedural/sequential atom types.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-4b-schemas-procedural.md
+
+⚠️ CRITICAL: DO NOT START until Wave 2 is complete!
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-4b-schemas-procedural
+2. cat docs/agile/batch-4b-schemas-procedural.md
+3. Create 11 JSON Schema files (parsons variants, timeline_ordering, etc.)
+4. Follow JSON Schema draft-07 format
+5. Test schemas
+6. git add, commit, push
+7. Create GitHub issue: "[Batch 4b] Procedural Schemas (11 types)"
+8. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Batch 3b should be complete
+🔒 BLOCKS: Batch 5a, 5b
+
+START AFTER WAVE 2 COMPLETES!
+```
+
+#### Batch 4c: Diagnostic/Reasoning Schemas
+
+```
+You are creating JSON Schema validation files for 9 diagnostic/reasoning atom types.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-4c-schemas-diagnostic.md
+
+⚠️ CRITICAL: DO NOT START until Wave 2 is complete!
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-4c-schemas-diagnostic
+2. cat docs/agile/batch-4c-schemas-diagnostic.md
+3. Create 9 JSON Schema files
+4. Follow JSON Schema draft-07 format
+5. Test schemas
+6. git add, commit, push
+7. Create GitHub issue: "[Batch 4c] Diagnostic Schemas (9 types)"
+8. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Batch 3c should be complete
+🔒 BLOCKS: Batch 5a, 5b
+
+START AFTER WAVE 2 COMPLETES!
+```
+
+#### Batch 4d: Generative/Creative Schemas
+
+```
+You are creating JSON Schema validation files for 8 generative/creative atom types.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-4d-schemas-generative.md
+
+⚠️ CRITICAL: DO NOT START until Wave 2 is complete!
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-4d-schemas-generative
+2. cat docs/agile/batch-4d-schemas-generative.md
+3. Create 8 JSON Schema files
+4. Follow JSON Schema draft-07 format
+5. Test schemas
+6. git add, commit, push
+7. Create GitHub issue: "[Batch 4d] Generative Schemas (8 types)"
+8. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Wave 2 should be complete (can start earlier if needed)
+🔒 BLOCKS: Batch 5a, 5b
+
+START AFTER WAVE 2 COMPLETES!
+```
+
+#### Batch 4e: Advanced/CS-Specific Schemas
+
+```
+You are creating JSON Schema validation files for 60 advanced/CS-specific atom types.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-4e-schemas-advanced.md
+
+⚠️ CRITICAL: DO NOT START until Wave 2 is complete!
+⚠️ NOTE: This is the largest batch (60 schemas) - may take longer than others
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-4e-schemas-advanced
+2. cat docs/agile/batch-4e-schemas-advanced.md
+3. Create 60 JSON Schema files (matching, categorization, hierarchy, CS-specific types)
+4. Follow JSON Schema draft-07 format
+5. Test schemas
+6. git add, commit, push
+7. Create GitHub issue: "[Batch 4e] Advanced Schemas (60 types)"
+8. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: Wave 2 should be complete
+🔒 BLOCKS: Batch 5a, 5b
+
+START AFTER WAVE 2 COMPLETES!
+```
+
+### ✅ Wave 3 Success Criteria
+
+- [ ] All 5 batches merged to master
+- [ ] 100 JSON Schema files created
+- [ ] All schemas validate correctly
+- [ ] AtomValidator class implemented
+
+---
+
+## 🌊 Wave 4: Documentation & Issues (Days 14-16)
+
+**Goal:** Create comprehensive documentation and GitHub issues.
+
+**Run in Parallel:** 2 AI coders
+**Duration:** 2-3 days
+
+⚠️ **CRITICAL:** DO NOT START WAVE 4 until ALL of Wave 3 is complete!
+
+### 🚀 Start After Wave 3 Complete (2 batches)
+
+#### Batch 5a: GitHub Issues
 
 ```
 You are creating 135 GitHub issues for all batches.
@@ -166,6 +566,12 @@ You are creating 135 GitHub issues for all batches.
 Read docs/ and docs/agile/ for context.
 
 Your job: Implement batch-5a-github-issues.md
+
+⚠️ CRITICAL: DO NOT START until Wave 3 is complete (all schemas merged)!
+
+VERIFICATION BEFORE STARTING:
+1. Check Wave 3 complete: git log --oneline | grep -E "batch4[abcde]"
+2. Verify schemas exist: ls -la docs/reference/atom-subschemas/ | wc -l
 
 CRITICAL INSTRUCTIONS:
 1. cd ../cortex-batch-5a-github-issues
@@ -182,22 +588,78 @@ CRITICAL INSTRUCTIONS:
 7. Execute the script to create all issues
 8. Update CLAUDE.md with issue numbers
 
-DEPENDENCIES: None (can run anytime)
-BLOCKS: None
+⚠️ DEPENDENCIES: All previous waves complete (for accurate issue creation)
+🔒 BLOCKS: None
 
-START NOW!
+START AFTER WAVE 3 COMPLETES!
 ```
+
+#### Batch 5b: Documentation
+
+```
+You are creating/updating 6 documentation files.
+
+Read docs/ and docs/agile/ for context.
+
+Your job: Implement batch-5b-documentation.md
+
+⚠️ CRITICAL: DO NOT START until Wave 3 is complete!
+
+VERIFICATION BEFORE STARTING:
+1. Check Wave 3 complete: git log --oneline | grep -E "batch4[abcde]"
+
+CRITICAL INSTRUCTIONS:
+1. cd ../cortex-batch-5b-documentation
+2. cat docs/agile/batch-5b-documentation.md
+3. Create/update 6 documentation files:
+   - docs/reference/atom-taxonomy-v2.md (100+ taxonomy)
+   - docs/explanation/skill-graph-architecture.md
+   - docs/how-to/implement-new-atom-type.md
+   - docs/how-to/validate-atom-quality.md
+   - docs/reference/greenlight-handoff-v2.md
+   - README.md (update with 100+ taxonomy)
+4. git add, commit (one commit per doc), push
+5. Create GitHub issue: "[Batch 5b] Documentation"
+6. Update CLAUDE.md
+
+⚠️ DEPENDENCIES: All previous waves complete (for accurate documentation)
+🔒 BLOCKS: None
+
+START AFTER WAVE 3 COMPLETES!
+```
+
+### ✅ Wave 4 Success Criteria
+
+- [ ] All 2 batches merged to master
+- [ ] 135 GitHub issues created
+- [ ] 6 documentation files updated
+- [ ] README reflects 100+ taxonomy
+
+---
+
+## 📊 Wave Execution Summary
+
+| Wave | Batches | AI Coders | Duration | Start Condition |
+|------|---------|-----------|----------|-----------------|
+| **Wave 1** | 1a, 1b, 1c, 2a, 2b, 2c | 6 | Days 1-5 | Immediate |
+| **Wave 2** | 3a, 3b, 3c | 3 | Days 6-10 | After Wave 1 complete |
+| **Wave 3** | 4a, 4b, 4c, 4d, 4e | 5 | Days 11-13 | After Wave 2 complete |
+| **Wave 4** | 5a, 5b | 2 | Days 14-16 | After Wave 3 complete |
+
+**Total:** 16 batches, 12-16 days
+
+---
 
 ## Environment Setup Checklist
 
 Before starting ANY batch, verify:
 
-- [ ] PostgreSQL database running (for Batch 1, 2)
-- [ ] Python environment activated
-- [ ] Git configured (user.name, user.email)
-- [ ] GitHub CLI installed and authenticated (`gh auth status`)
-- [ ] Current working directory is the worktree
-- [ ] Master branch is up to date
+- [x] PostgreSQL database running (for Batch 1, 2)
+- [x] Python environment activated
+- [x] Git configured (user.name, user.email)
+- [x] GitHub CLI installed and authenticated (`gh auth status`)
+- [x] Current working directory is the worktree
+- [x] Master branch is up to date
 
 ## Progress Tracking
 
@@ -244,6 +706,7 @@ Update `CLAUDE.md` in your worktree after each milestone:
 6. **Document blockers** - If stuck, write it down and move on
 7. **Follow conventions** - Commit messages, code style, file naming
 8. **Validate dependencies** - Check if prerequisite batches are complete
+9. **Respect wave boundaries** - DO NOT start next wave until previous complete
 
 ## Troubleshooting
 
@@ -270,7 +733,17 @@ git commit --no-verify -m "..."  # Skip hooks temporarily
 # Better: Fix the issue or activate virtualenv
 ```
 
+### "Dependency not met"
+```bash
+# Check if prerequisite batch is merged
+git log --oneline | grep "batch<N>"
+
+# If not merged, wait or switch to a different batch
+# Update your CLAUDE.md with blocker status
+```
+
 ---
 
 **Last Updated:** 2025-12-21
-**Total Batches:** 21 (15 original + 6 subbatches)
+**Total Batches:** 16 (across 4 waves)
+**Strategy:** Wave-based parallelization with dependency management
