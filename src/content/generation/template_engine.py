@@ -382,7 +382,8 @@ class TablesToMatching(TemplateRule):
         atoms = []
 
         # Find markdown tables
-        table_pattern = r"\|(.+?)\|\s*\n\s*\|[\s:-]+\|\s*\n((?:\|.+?\|\s*\n)+)"
+        # Fixed: Handle Markdown separators with internal | delimiters (e.g., | --- | --- |)
+        table_pattern = r"\|(.+?)\|\s*\n\s*\|(?:\s*[-:]+\s*\|)+\s*\n((?:\|.+?\|\s*\n)+)"
         for match in re.finditer(table_pattern, chunk.content):
             header_row = match.group(1)
             data_rows = match.group(2)
