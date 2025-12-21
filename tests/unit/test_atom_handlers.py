@@ -13,8 +13,8 @@ class TestHandlerRegistry:
     """Test the handler registry."""
 
     def test_all_handlers_registered(self):
-        """All 7 atom types should have handlers."""
-        assert len(HANDLERS) == 7
+        """All 12 atom types should have handlers (7 original + 5 batch 3a)."""
+        assert len(HANDLERS) == 12
 
     def test_get_handler_by_string(self):
         """Should get handler by string type name."""
@@ -43,17 +43,23 @@ class TestMCQHandler:
     def sample_atom(self):
         return {
             "front": "What is the default subnet mask for a Class C network?",
-            "back": "255.255.255.0",
-            "options": ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
-            "correct_answer": "255.255.255.0",
+            "options": [
+                {"text": "255.0.0.0", "correct": False},
+                {"text": "255.255.0.0", "correct": False},
+                {"text": "255.255.255.0", "correct": True},
+                {"text": "255.255.255.255", "correct": False},
+            ],
+            "_shuffled_options": [
+                {"text": "255.0.0.0", "correct": False},
+                {"text": "255.255.0.0", "correct": False},
+                {"text": "255.255.255.0", "correct": True},
+                {"text": "255.255.255.255", "correct": False},
+            ],
         }
 
     def test_check_correct_answer(self, handler, sample_atom):
         """Should mark correct answer as correct."""
-        answer = {
-            "picked": "255.255.255.0",
-            "correct": "255.255.255.0",
-        }
+        answer = {"choice": "3", "is_multi": False}
         result = handler.check(sample_atom, answer)
 
         assert result.correct is True
@@ -61,10 +67,7 @@ class TestMCQHandler:
 
     def test_check_incorrect_answer(self, handler, sample_atom):
         """Should mark incorrect answer as incorrect."""
-        answer = {
-            "picked": "255.0.0.0",
-            "correct": "255.255.255.0",
-        }
+        answer = {"choice": "1", "is_multi": False}
         result = handler.check(sample_atom, answer)
 
         assert result.correct is False

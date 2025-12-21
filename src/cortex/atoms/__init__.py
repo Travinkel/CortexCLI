@@ -23,6 +23,12 @@ class AtomType(str, Enum):
     NUMERIC = "numeric"
     MATCHING = "matching"
     PARSONS = "parsons"
+    # Batch 3a: Declarative memory handlers
+    CLOZE_DROPDOWN = "cloze_dropdown"
+    SHORT_ANSWER_EXACT = "short_answer_exact"
+    SHORT_ANSWER_REGEX = "short_answer_regex"
+    LIST_RECALL = "list_recall"
+    ORDERED_LIST_RECALL = "ordered_list_recall"
 
 
 # Handler registry - populated by @register decorator
@@ -55,6 +61,12 @@ from . import numeric
 from . import cloze
 from . import matching
 from . import parsons
+# Batch 3a: Declarative memory handlers
+from . import cloze_dropdown
+from . import short_answer_exact
+from . import short_answer_regex
+from . import list_recall
+from . import ordered_list_recall
 
 __all__ = [
     "AtomType",
