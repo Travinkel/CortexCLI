@@ -1,3 +1,35 @@
+# Batch 2b Progress
+
+**Status:** In Progress
+**Started:** 2025-12-21 16:30
+**AI Coder:** Codex CLI
+
+## Completed
+- [x] Read batch-2b work order
+- [x] Checked dependency status (Batch 2a merge)
+- [x] Implemented Greenlight handoff in Cortex session flow
+- [x] Added Greenlight session integration tests
+
+## In Progress
+- [ ] Validate integration in full session flow
+- [ ] Test with mock Greenlight server
+
+## Blocked
+- [ ] None
+
+## Commits
+- 27c2020: feat(batch2b): Integrate Greenlight handoff into session flow
+- 502c3ae: test(batch2b): Add Greenlight session integration tests
+- 48dcc5e: chore(batch2b): Update progress log
+
+## GitHub Issues
+- #7: [Batch 2b] Greenlight SessionManager Integration (created)
+
+## Notes
+- Batch 2a is now available via origin/master after fetch.
+- Tests: `python -m pytest tests/unit/test_greenlight_session_integration.py -v`
+- Issue labels/milestone missing on repo; created issue without them.
+
 # Batch 1c: Skill-Based Atom Selection - Progress
 
 # Batch 1b: Skill Mastery Tracker - Progress
@@ -306,7 +338,7 @@ Atoms targeting multiple weak skills score higher:
 
 ## Batch 2a: Greenlight HTTP Client
 
-**Status:** ✅ COMPLETE
+**Status:** COMPLETE
 **Date:** 2025-12-21
 **Branch:** batch-2a-greenlight-client
 **Commit:** 4331ec3
@@ -337,36 +369,36 @@ Implemented complete Greenlight HTTP client for runtime atom execution with retr
 
 ### Features Implemented
 
-- ✅ **execute_atom()** - Synchronous execution with exponential backoff retry
+- ? **execute_atom()** - Synchronous execution with exponential backoff retry
   - Max 3 retry attempts
   - Exponential backoff: 2^attempt seconds (1s, 2s, 4s)
   - Retries on timeout and 5xx server errors
   - Fast-fails on 4xx client errors (no retry)
   - Returns error result with feedback on retry exhaustion
 
-- ✅ **queue_atom()** - Queue atom for asynchronous execution
+- ? **queue_atom()** - Queue atom for asynchronous execution
   - Returns execution_id for polling
 
-- ✅ **poll_execution()** - Poll for queued execution results
+- ? **poll_execution()** - Poll for queued execution results
   - Returns execution status (pending/running/complete/failed)
   - Includes result when complete
 
-- ✅ **health_check()** - Service availability testing
+- ? **health_check()** - Service availability testing
   - Returns boolean health status
 
 ### Testing
 
 All 16 unit tests passing:
-- ✅ Request/Result dataclass serialization
-- ✅ Successful execution (full score)
-- ✅ Partial credit scoring
-- ✅ Timeout with retry logic
-- ✅ Server error (5xx) with retry logic
-- ✅ Client error (4xx) fast-fail without retry
-- ✅ Retry exhaustion fallback behavior
-- ✅ Async queuing
-- ✅ Execution polling (pending/complete/failed)
-- ✅ Health check (healthy/unhealthy)
+- ? Request/Result dataclass serialization
+- ? Successful execution (full score)
+- ? Partial credit scoring
+- ? Timeout with retry logic
+- ? Server error (5xx) with retry logic
+- ? Client error (4xx) fast-fail without retry
+- ? Retry exhaustion fallback behavior
+- ? Async queuing
+- ? Execution polling (pending/complete/failed)
+- ? Health check (healthy/unhealthy)
 
 ### Dependencies
 
@@ -393,7 +425,7 @@ None
 
 # Batch 1a: Skill Graph Database Schema - Progress
 
-**Status:** ✅ Complete
+**Status:** ? Complete
 **Started:** 2025-12-21
 **Completed:** 2025-12-21
 **AI Coder:** Claude Sonnet 4.5
@@ -434,7 +466,7 @@ None
 
 ## Testing Status
 
-⚠️ **Database Testing Pending:** PostgreSQL connection issues prevented live database testing. Migration and seed data files are complete and ready to be tested once PostgreSQL is running.
+?? **Database Testing Pending:** PostgreSQL connection issues prevented live database testing. Migration and seed data files are complete and ready to be tested once PostgreSQL is running.
 
 ### Verification Steps (when PostgreSQL is available)
 
@@ -472,6 +504,6 @@ psql -U postgres -d cortex_cli -c "EXPLAIN SELECT * FROM skills WHERE domain = '
 
 ---
 
-**Batch Status:** ✅ Ready for code review and merge
+**Batch Status:** ? Ready for code review and merge
 **Blockers:** None
 **Dependencies Met:** All prerequisites satisfied (Batch 1a merged, Batch 1b complete)

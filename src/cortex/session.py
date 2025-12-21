@@ -10,6 +10,7 @@ Refactored Architecture:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import random
 import sys
@@ -27,7 +28,9 @@ logger.add(
 )
 
 from rich.console import Console
+from rich.panel import Panel
 from rich.prompt import Confirm
+from rich.table import Table
 
 from config import get_settings
 from src.cortex.atoms import get_handler as get_atom_handler
@@ -52,6 +55,12 @@ from src.adaptive.persona_service import PersonaService
 from src.cortex.socratic import SocraticTutor, SocraticSession, Resolution
 from src.cortex.dialogue_recorder import DialogueRecorder
 from src.cortex.remediation_recommender import RemediationRecommender
+from src.integrations.greenlight_client import (
+    GreenlightAtomRequest,
+    GreenlightAtomResult,
+    GreenlightExecutionStatus,
+    GreenlightClient,
+)
 
 console = Console()
 
@@ -86,6 +95,20 @@ class CortexSession:
         self.enable_ncde = enable_ncde
         self.start_time = time.monotonic()
         self.settings = get_settings()
+
+        # Greenlight Integration
+        self.greenlight_config = self.settings.get_greenlight_config()
+        self.greenlight_enabled = self.settings.has_greenlight_configured()
+        self.greenlight_fallback_mode = self.greenlight_config.get(
+            "fallback_mode", "queue"
+        )
+        self.greenlight_client: GreenlightClient | None = None
+        if self.greenlight_enabled:
+            self.greenlight_client = GreenlightClient(
+                api_url=self.greenlight_config["api_url"],
+                timeout_ms=self.greenlight_config["handoff_timeout_ms"],
+                retry_attempts=self.greenlight_config["retry_attempts"],
+            )
 
         # Metrics
         self.correct = 0
@@ -281,6 +304,15 @@ class CortexSession:
 
     def _process_atom_interaction(self, note: dict) -> dict:
         """Handles Ask -> Answer -> Feedback loop for a single atom."""
+        content_json = note.get("content_json") or note.get("content") or {}
+        if isinstance(content_json, str):
+            try:
+                content_json = json.loads(content_json)
+            except json.JSONDecodeError:
+                content_json = {}
+        if self._should_handoff_greenlight(note, content_json):
+            return self._process_greenlight_atom(note, content_json)
+
         handler = get_atom_handler(note.get("atom_type", ""))
         if not handler:
             return {"correct": True, "time_ms": 0, "answer": "skipped", "repeat_queue": False}
@@ -347,8 +379,194 @@ class CortexSession:
             "repeat_queue": False,
         }
 
+    def _should_handoff_greenlight(self, note: dict, content_json: dict) -> bool:
+        """Check whether an atom should be routed to Greenlight."""
+        owner = content_json.get("owner") or note.get("owner", "cortex")
+        grading_mode = content_json.get("grading_mode") or note.get(
+            "grading_mode", "static"
+        )
+        return owner == "greenlight" or grading_mode == "runtime"
+
+    def _process_greenlight_atom(self, note: dict, content_json: dict) -> dict:
+        """Route runtime atoms to Greenlight or apply fallback behavior."""
+        if not self.greenlight_enabled or not self.greenlight_client:
+            logger.warning(
+                "Greenlight atom %s but Greenlight disabled. Applying fallback.",
+                note.get("id"),
+            )
+            return self._queue_for_greenlight(note)
+
+        try:
+            return self._handoff_to_greenlight(note, content_json)
+        except Exception as e:
+            logger.error(f"Greenlight handoff failed: {e}")
+            return self._handle_greenlight_failure(note, e)
+
+    def _build_greenlight_content(self, note: dict, content_json: dict) -> dict:
+        """Build Greenlight content payload from atom fields."""
+        content = dict(content_json) if content_json else {}
+        if "front" not in content and note.get("front"):
+            content["front"] = note.get("front")
+        if "back" not in content and note.get("back"):
+            content["back"] = note.get("back")
+        return content
+
+    def _handoff_to_greenlight(self, note: dict, content_json: dict) -> dict:
+        """Hand off atom to Greenlight for execution."""
+        console.print(
+            Panel(
+                "[bold cyan]Handing off to Greenlight IDE...[/bold cyan]\n\n"
+                f"Atom: {note.get('atom_type', 'runtime')}\n"
+                "This requires execution in a sandboxed environment.\n\n"
+                "[dim]Waiting for results...[/dim]",
+                title="Greenlight Handoff",
+                border_style="cyan",
+            )
+        )
+
+        request = GreenlightAtomRequest(
+            atom_id=str(note.get("id", "")),
+            atom_type=str(note.get("atom_type", "")),
+            content=self._build_greenlight_content(note, content_json),
+            session_context={
+                "modules": self.modules,
+                "war_mode": self.war_mode,
+                "error_streak": self._error_streak,
+            },
+        )
+
+        if content_json.get("async_execution", False):
+            execution_id = self._run_async(self.greenlight_client.queue_atom(request))
+            console.print(f"[yellow]Queued for execution: {execution_id}[/yellow]")
+            status = self._poll_greenlight_execution(execution_id)
+            if status.status != "complete" or not status.result:
+                raise RuntimeError(status.error or "Greenlight execution failed")
+            result = status.result
+        else:
+            result = self._run_async(self.greenlight_client.execute_atom(request))
+
+        self._display_greenlight_result(result)
+
+        return {
+            "correct": result.correct,
+            "time_ms": int(result.meta.get("execution_time_ms", 0)),
+            "answer": result.feedback or "",
+            "repeat_queue": False,
+        }
+
+    def _display_greenlight_result(self, result: GreenlightAtomResult) -> None:
+        """Display Greenlight execution result in terminal."""
+        tests = result.test_results
+        if isinstance(tests, dict):
+            tests = tests.get("tests") or tests.get("results") or []
+
+        if isinstance(tests, list) and tests:
+            test_table = Table(title="Test Results")
+            test_table.add_column("Test", style="cyan")
+            test_table.add_column("Status", style="bold")
+            test_table.add_column("Details")
+
+            for test in tests:
+                status = "PASS" if test.get("passed") else "FAIL"
+                status_style = "green" if test.get("passed") else "red"
+                test_table.add_row(
+                    str(test.get("name", "Unnamed")),
+                    f"[{status_style}]{status}[/{status_style}]",
+                    str(test.get("message", "")),
+                )
+
+            console.print(test_table)
+
+        score = result.partial_score * 100
+        score_color = "green" if result.partial_score >= 0.7 else "yellow"
+        if result.partial_score < 0.4:
+            score_color = "red"
+
+        console.print(f"\n[{score_color}]Score: {score:.0f}%[/{score_color}]")
+
+        if result.feedback:
+            console.print(result.feedback)
+
+        if result.git_suggestions:
+            console.print("\n[bold cyan]Suggestions:[/bold cyan]")
+            for suggestion in result.git_suggestions:
+                console.print(f"  - {suggestion}")
+
+        if result.diff_suggestion:
+            console.print("\n[bold cyan]Diff Suggestion:[/bold cyan]")
+            console.print(result.diff_suggestion)
+
+        if result.error:
+            console.print(f"\n[red]Error: {result.error}[/red]")
+
+    def _poll_greenlight_execution(
+        self,
+        execution_id: str,
+        poll_interval_sec: float = 2.0,
+        max_wait_sec: float = 300.0,
+    ) -> GreenlightExecutionStatus:
+        """Poll Greenlight for queued execution result."""
+        start_time = time.monotonic()
+        while True:
+            status = self._run_async(self.greenlight_client.poll_execution(execution_id))
+            if status.status in {"complete", "failed"}:
+                return status
+            if time.monotonic() - start_time > max_wait_sec:
+                return GreenlightExecutionStatus(
+                    execution_id=execution_id,
+                    status="failed",
+                    error="Greenlight execution timed out",
+                )
+            time.sleep(poll_interval_sec)
+
+    def _handle_greenlight_failure(self, note: dict, error: Exception) -> dict:
+        """Handle Greenlight failure gracefully."""
+        console.print(
+            "[red]Failed to execute atom via Greenlight.[/red]\n"
+            f"Error: {str(error)}\n\n"
+            "This atom will be skipped for now."
+        )
+        return {
+            "correct": False,
+            "time_ms": 0,
+            "answer": "",
+            "repeat_queue": False,
+            "skipped": True,
+        }
+
+    def _queue_for_greenlight(self, note: dict) -> dict:
+        """Queue atom for later Greenlight execution."""
+        console.print(
+            "[yellow]Greenlight is disabled but this atom requires runtime execution.[/yellow]\n"
+            f"Atom {note.get('id', '')} queued for later execution."
+        )
+        # TODO: Persist to greenlight_queue table when available.
+        return {
+            "correct": False,
+            "time_ms": 0,
+            "answer": "",
+            "repeat_queue": False,
+            "skipped": self.greenlight_fallback_mode in {"queue", "skip", "manual"},
+        }
+
+    def _run_async(self, coro):
+        """Run coroutine from sync context."""
+        try:
+            return asyncio.run(coro)
+        except RuntimeError as exc:
+            if "asyncio.run()" not in str(exc):
+                raise
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            return loop.run_until_complete(coro)
+
     def _handle_ncde_pipeline(self, result: dict, note: dict, idx: int) -> None:
         """Runs the Neuro-Cognitive Diagnosis Engine pipeline."""
+        if result.get("skipped"):
+            return
         if not self.ncde or not self.session_context:
             return
 
@@ -593,6 +811,8 @@ class CortexSession:
 
     def _update_metrics(self, result: dict, note: dict) -> None:
         """Updates internal counters and persists to database."""
+        if result.get("skipped"):
+            return
         if result["correct"]:
             self.correct += 1
             self._streak += 1
