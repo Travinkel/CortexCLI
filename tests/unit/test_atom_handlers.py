@@ -13,8 +13,8 @@ class TestHandlerRegistry:
     """Test the handler registry."""
 
     def test_all_handlers_registered(self):
-        """All 17 atom types should have handlers (7 original + 5 batch 3a + 5 batch 3b)."""
-        assert len(HANDLERS) == 17
+        """All 22 atom types should have handlers (7 original + 5 batch 3a + 5 batch 3b + 5 batch 3c)."""
+        assert len(HANDLERS) == 22
 
     def test_get_handler_by_string(self):
         """Should get handler by string type name."""
@@ -269,3 +269,400 @@ class TestMatchingHandler:
 
         assert result.correct is True
         assert "Skipped" in result.feedback
+
+
+# =============================================================================
+# Batch 3c: Metacognitive & Diagnostic Handlers
+# =============================================================================
+
+
+class TestConfidenceSliderHandler:
+    """Test the confidence slider handler for calibration tracking."""
+
+    @pytest.fixture
+    def handler(self):
+        return get_handler(AtomType.CONFIDENCE_SLIDER)
+
+    @pytest.fixture
+    def sample_atom(self):
+        return {
+            "front": "What is the default port for HTTPS?",
+            "back": "443",
+        }
+
+    def test_validate_valid_atom(self, handler, sample_atom):
+        """Should validate atom with front and back."""
+        assert handler.validate(sample_atom) is True
+
+    def test_validate_invalid_atom(self, handler):
+        """Should reject atom without required fields."""
+        assert handler.validate({}) is False
+        assert handler.validate({"front": "Q"}) is False
+
+    def test_check_correct_with_high_confidence(self, handler, sample_atom):
+        """Should report good calibration for correct answer with high confidence."""
+        answer = {"answer": "443", "confidence": 90}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is True
+        assert "calibrat" in result.feedback.lower() or "Correct" in result.feedback
+
+    def test_check_correct_with_low_confidence(self, handler, sample_atom):
+        """Should report underconfidence for correct answer with low confidence."""
+        answer = {"answer": "443", "confidence": 20}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is True
+        assert "80" in result.explanation  # Calibration error = |20 - 100| = 80
+
+    def test_check_incorrect_with_high_confidence(self, handler, sample_atom):
+        """Should report overconfidence for incorrect answer with high confidence."""
+        answer = {"answer": "80", "confidence": 95}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert "Overconfident" in result.feedback or "95" in result.explanation
+
+    def test_check_dont_know(self, handler, sample_atom):
+        """Should handle don't know response."""
+        answer = {"dont_know": True, "confidence": 50}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert result.dont_know is True
+
+    def test_hint_first_attempt(self, handler, sample_atom):
+        """Should provide first letter hint."""
+        hint = handler.hint(sample_atom, attempt=1)
+
+        assert hint is not None
+        assert "4" in hint  # First character of "443"
+
+
+class TestEffortRatingHandler:
+    """Test the effort rating handler for cognitive load tracking."""
+
+    @pytest.fixture
+    def handler(self):
+        return get_handler(AtomType.EFFORT_RATING)
+
+    @pytest.fixture
+    def sample_atom(self):
+        return {
+            "front": "What protocol operates at Layer 4?",
+            "back": "TCP",
+        }
+
+    def test_validate_valid_atom(self, handler, sample_atom):
+        """Should validate atom with front and back."""
+        assert handler.validate(sample_atom) is True
+
+    def test_check_correct_with_effort(self, handler, sample_atom):
+        """Should record effort level with correct answer."""
+        answer = {"answer": "tcp", "effort": 2}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is True
+        assert "2/5" in result.feedback or "2/5" in result.explanation
+
+    def test_check_incorrect_with_high_effort(self, handler, sample_atom):
+        """Should record high effort for difficult incorrect answer."""
+        answer = {"answer": "UDP", "effort": 5}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert "5/5" in result.feedback or "5/5" in result.explanation
+
+    def test_check_dont_know_max_effort(self, handler, sample_atom):
+        """Should record max effort for don't know."""
+        answer = {"dont_know": True, "effort": 5}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert result.dont_know is True
+
+
+class TestCategorizationHandler:
+    """Test the categorization handler for bucket sorting."""
+
+    @pytest.fixture
+    def handler(self):
+        return get_handler(AtomType.CATEGORIZATION)
+
+    @pytest.fixture
+    def sample_atom(self):
+        import json
+
+        return {
+            "front": "Sort these into OSI layers",
+            "back": json.dumps({
+                "categories": {
+                    "Physical": ["Cable", "Hub"],
+                    "Network": ["IP", "Router"],
+                },
+                "items": ["Cable", "Hub", "IP", "Router"],
+            }),
+        }
+
+    def test_validate_valid_atom(self, handler, sample_atom):
+        """Should validate atom with categories and items."""
+        assert handler.validate(sample_atom) is True
+
+    def test_validate_invalid_atom(self, handler):
+        """Should reject atom without categories."""
+        assert handler.validate({}) is False
+        assert handler.validate({"back": "{}"}) is False
+
+    def test_check_correct_categorization(self, handler, sample_atom):
+        """Should accept correct categorization."""
+        sample_atom["_categories"] = {
+            "Physical": ["Cable", "Hub"],
+            "Network": ["IP", "Router"],
+        }
+        sample_atom["_items"] = ["Cable", "Hub", "IP", "Router"]
+
+        answer = {
+            "mapping": {
+                "Physical": ["Cable", "Hub"],
+                "Network": ["IP", "Router"],
+            },
+        }
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is True
+        assert result.partial_score == 1.0
+
+    def test_check_partial_categorization(self, handler, sample_atom):
+        """Should give partial credit for partial correct."""
+        sample_atom["_categories"] = {
+            "Physical": ["Cable", "Hub"],
+            "Network": ["IP", "Router"],
+        }
+        sample_atom["_items"] = ["Cable", "Hub", "IP", "Router"]
+
+        answer = {
+            "mapping": {
+                "Physical": ["Cable"],  # Missing Hub
+                "Network": ["IP", "Router", "Hub"],  # Hub misplaced
+            },
+        }
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert 0 < result.partial_score < 1.0
+
+    def test_check_dont_know(self, handler, sample_atom):
+        """Should handle don't know response."""
+        result = handler.check(sample_atom, {"dont_know": True})
+
+        assert result.correct is False
+        assert result.dont_know is True
+
+
+class TestScriptConcordanceTestHandler:
+    """Test the SCT handler for diagnostic reasoning."""
+
+    @pytest.fixture
+    def handler(self):
+        return get_handler(AtomType.SCRIPT_CONCORDANCE_TEST)
+
+    @pytest.fixture
+    def sample_atom(self):
+        import json
+
+        return {
+            "front": "Diagnostic reasoning test",
+            "back": json.dumps({
+                "scenario": "Network has intermittent connectivity",
+                "hypothesis": "Spanning tree loop",
+                "new_info": "MAC table shows port flapping",
+                "expert_consensus": 2,
+                "expert_distribution": {"-2": 0, "-1": 0, "0": 1, "1": 2, "2": 7},
+            }),
+        }
+
+    def test_validate_valid_atom(self, handler, sample_atom):
+        """Should validate atom with SCT data."""
+        assert handler.validate(sample_atom) is True
+
+    def test_validate_invalid_atom(self, handler):
+        """Should reject atom without SCT data."""
+        assert handler.validate({}) is False
+        assert handler.validate({"back": "{}"}) is False
+
+    def test_check_expert_match(self, handler, sample_atom):
+        """Should score high for matching expert consensus."""
+        sample_atom["_sct_data"] = {
+            "scenario": "Network has intermittent connectivity",
+            "hypothesis": "Spanning tree loop",
+            "new_info": "MAC table shows port flapping",
+            "expert_consensus": 2,
+            "expert_distribution": {"-2": 0, "-1": 0, "0": 1, "1": 2, "2": 7},
+        }
+
+        answer = {"response": 2}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is True
+        assert result.partial_score == 0.7  # 7/10 experts
+
+    def test_check_close_to_consensus(self, handler, sample_atom):
+        """Should accept response within 1 of consensus."""
+        sample_atom["_sct_data"] = {
+            "scenario": "Test",
+            "hypothesis": "Test",
+            "new_info": "Test",
+            "expert_consensus": 2,
+            "expert_distribution": {"-2": 0, "-1": 0, "0": 1, "1": 2, "2": 7},
+        }
+
+        answer = {"response": 1}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is True  # Within 1 of consensus
+        assert result.partial_score == 0.2  # 2/10 experts said +1
+
+    def test_check_far_from_consensus(self, handler, sample_atom):
+        """Should reject response far from consensus."""
+        sample_atom["_sct_data"] = {
+            "scenario": "Test",
+            "hypothesis": "Test",
+            "new_info": "Test",
+            "expert_consensus": 2,
+            "expert_distribution": {"-2": 0, "-1": 0, "0": 1, "1": 2, "2": 7},
+        }
+
+        answer = {"response": -2}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert result.partial_score == 0.0  # 0/10 experts said -2
+
+    def test_hint_reveals_direction(self, handler, sample_atom):
+        """Second hint should reveal direction."""
+        sample_atom["_sct_data"] = {
+            "scenario": "Test",
+            "hypothesis": "Test",
+            "new_info": "Test",
+            "expert_consensus": 2,
+        }
+
+        hint = handler.hint(sample_atom, attempt=2)
+
+        assert hint is not None
+        assert "more likely" in hint.lower()
+
+
+class TestKeyFeatureProblemHandler:
+    """Test the KFP handler for critical step selection."""
+
+    @pytest.fixture
+    def handler(self):
+        return get_handler(AtomType.KEY_FEATURE_PROBLEM)
+
+    @pytest.fixture
+    def sample_atom(self):
+        import json
+
+        return {
+            "front": "Network outage - select critical steps",
+            "back": json.dumps({
+                "scenario": "Network outage affecting 500 users",
+                "options": [
+                    "Check cable connections",
+                    "Restart all switches",
+                    "Verify power to network closet",
+                    "Update firmware",
+                    "Check spanning tree logs",
+                ],
+                "key_features": [0, 2, 4],  # Cable, Power, Spanning tree
+                "required_count": 3,
+                "explanation": "Physical layer first, then L2 diagnostics",
+            }),
+        }
+
+    def test_validate_valid_atom(self, handler, sample_atom):
+        """Should validate atom with KFP data."""
+        assert handler.validate(sample_atom) is True
+
+    def test_validate_invalid_atom(self, handler):
+        """Should reject atom without KFP data."""
+        assert handler.validate({}) is False
+        assert handler.validate({"back": "{}"}) is False
+
+    def test_check_all_correct(self, handler, sample_atom):
+        """Should accept all correct key features."""
+        sample_atom["_kfp_data"] = {
+            "options": [
+                "Check cable connections",
+                "Restart all switches",
+                "Verify power to network closet",
+                "Update firmware",
+                "Check spanning tree logs",
+            ],
+            "key_features": [0, 2, 4],
+            "required_count": 3,
+        }
+
+        answer = {"selections": [0, 2, 4]}
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is True
+        assert result.partial_score == 1.0
+
+    def test_check_partial_correct(self, handler, sample_atom):
+        """Should give partial credit for some correct."""
+        sample_atom["_kfp_data"] = {
+            "options": [
+                "Check cable connections",
+                "Restart all switches",
+                "Verify power to network closet",
+                "Update firmware",
+                "Check spanning tree logs",
+            ],
+            "key_features": [0, 2, 4],
+            "required_count": 3,
+        }
+
+        answer = {"selections": [0, 1, 2]}  # 2 of 3 correct (0, 2)
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert result.partial_score == pytest.approx(2 / 3, rel=0.01)
+
+    def test_check_none_correct(self, handler, sample_atom):
+        """Should give zero score for all wrong."""
+        sample_atom["_kfp_data"] = {
+            "options": [
+                "Check cable connections",
+                "Restart all switches",
+                "Verify power to network closet",
+                "Update firmware",
+                "Check spanning tree logs",
+            ],
+            "key_features": [0, 2, 4],
+            "required_count": 3,
+        }
+
+        answer = {"selections": [1, 3, 1]}  # None are key features
+        result = handler.check(sample_atom, answer)
+
+        assert result.correct is False
+        assert result.partial_score == 0.0
+
+    def test_hint_reveals_one(self, handler, sample_atom):
+        """First hint should reveal one key feature."""
+        sample_atom["_kfp_data"] = {
+            "options": [
+                "Check cable connections",
+                "Restart all switches",
+                "Verify power to network closet",
+            ],
+            "key_features": [0, 2],
+            "required_count": 2,
+        }
+
+        hint = handler.hint(sample_atom, attempt=1)
+
+        assert hint is not None
+        assert "Check cable connections" in hint
