@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Timeline Ordering",
+  "description": "Order events or items chronologically on a timeline",
+  "type": "object",
+  "required": ["events", "correct_order"],
+  "properties": {
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display text for the event"
+          },
+          "description": {
+            "type": "string",
+            "description": "Additional details about the event"
+          },
+          "date": {
+            "type": "string",
+            "description": "Actual date/time (revealed after correct placement)"
+          }
+        }
+      },
+      "minItems": 3,
+      "maxItems": 20,
+      "description": "Events to be ordered"
+    },
+    "correct_order": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Event IDs in correct chronological order"
+    },
+    "timeline_type": {
+      "type": "string",
+      "enum": ["historical", "process", "lifecycle", "project", "custom"],
+      "description": "Type of timeline"
+    },
+    "time_scale": {
+      "type": "string",
+      "enum": ["seconds", "minutes", "hours", "days", "weeks", "months", "years", "decades", "centuries"],
+      "description": "Time scale for the timeline"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}

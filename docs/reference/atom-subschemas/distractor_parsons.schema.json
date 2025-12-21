@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Distractor Parsons Problem",
+  "description": "Parsons problem with extra incorrect lines that should not be used",
+  "type": "object",
+  "required": ["code_lines", "correct_order", "distractor_indices"],
+  "properties": {
+    "code_lines": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 4,
+      "maxItems": 20,
+      "description": "All code lines including distractors"
+    },
+    "correct_order": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "description": "Indices of code_lines in correct order (excludes distractors)"
+    },
+    "distractor_indices": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "minItems": 1,
+      "description": "Indices of distractor lines that should not be used"
+    },
+    "distractor_explanations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["index", "explanation"],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Index of the distractor line"
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Why this line is incorrect"
+          }
+        }
+      },
+      "description": "Explanations for why each distractor is wrong"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["python", "java", "javascript", "typescript", "c", "cpp", "csharp", "go", "rust", "bash", "sql", "html", "css"],
+      "description": "Programming language of the code"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}

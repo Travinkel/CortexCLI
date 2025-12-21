@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Circuit Routing",
+  "description": "Connect circuit components with correct wiring",
+  "type": "object",
+  "required": ["components", "correct_connections"],
+  "properties": {
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "terminals"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the component"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["resistor", "capacitor", "inductor", "diode", "transistor", "led", "switch", "battery", "ground", "ic", "wire", "custom"],
+            "description": "Type of electronic component"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display label for the component"
+          },
+          "value": {
+            "type": "string",
+            "description": "Component value (e.g., '10kΩ', '100μF')"
+          },
+          "terminals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "name"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Terminal identifier"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Terminal name (e.g., 'anode', 'cathode', 'gate')"
+                }
+              }
+            },
+            "minItems": 1,
+            "description": "Component terminals/pins"
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": {"type": "number"},
+              "y": {"type": "number"}
+            },
+            "description": "Position on the circuit board"
+          }
+        }
+      },
+      "minItems": 2,
+      "maxItems": 30,
+      "description": "Circuit components"
+    },
+    "correct_connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Source terminal (format: component_id.terminal_id)"
+          },
+          "to": {
+            "type": "string",
+            "description": "Target terminal (format: component_id.terminal_id)"
+          }
+        }
+      },
+      "minItems": 1,
+      "description": "Correct wire connections between terminals"
+    },
+    "circuit_type": {
+      "type": "string",
+      "enum": ["series", "parallel", "mixed", "logic", "analog", "digital"],
+      "description": "Type of circuit"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}

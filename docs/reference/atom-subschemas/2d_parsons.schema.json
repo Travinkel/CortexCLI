@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "2D Parsons Problem",
+  "description": "Parsons problem where both order and indentation must be correct",
+  "type": "object",
+  "required": ["code_lines", "correct_solution"],
+  "properties": {
+    "code_lines": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 3,
+      "maxItems": 15,
+      "description": "Code lines without indentation (to be arranged and indented)"
+    },
+    "correct_solution": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["line_index", "indent_level"],
+        "properties": {
+          "line_index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Index of the code line in code_lines array"
+          },
+          "indent_level": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Number of indentation levels (e.g., 0, 1, 2)"
+          }
+        }
+      },
+      "description": "Correct order with indentation levels"
+    },
+    "indent_unit": {
+      "type": "string",
+      "enum": ["2spaces", "4spaces", "tab"],
+      "default": "4spaces",
+      "description": "Unit of indentation"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["python", "java", "javascript", "typescript", "c", "cpp", "csharp", "go", "rust", "bash", "sql", "html", "css"],
+      "description": "Programming language of the code"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}

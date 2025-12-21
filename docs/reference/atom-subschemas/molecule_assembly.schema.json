@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Molecule Assembly",
+  "description": "Assemble atoms into correct molecular structures",
+  "type": "object",
+  "required": ["atoms", "correct_bonds"],
+  "properties": {
+    "atoms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "element"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the atom"
+          },
+          "element": {
+            "type": "string",
+            "description": "Element symbol (e.g., 'C', 'H', 'O', 'N')"
+          },
+          "charge": {
+            "type": "integer",
+            "description": "Ionic charge if any"
+          },
+          "max_bonds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6,
+            "description": "Maximum number of bonds this atom can form"
+          }
+        }
+      },
+      "minItems": 2,
+      "maxItems": 50,
+      "description": "Atoms available for assembly"
+    },
+    "correct_bonds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["atom1", "atom2", "bond_type"],
+        "properties": {
+          "atom1": {
+            "type": "string",
+            "description": "First atom ID"
+          },
+          "atom2": {
+            "type": "string",
+            "description": "Second atom ID"
+          },
+          "bond_type": {
+            "type": "string",
+            "enum": ["single", "double", "triple", "ionic", "hydrogen", "coordinate"],
+            "description": "Type of chemical bond"
+          }
+        }
+      },
+      "minItems": 1,
+      "description": "Correct bonds between atoms"
+    },
+    "molecule_name": {
+      "type": "string",
+      "description": "Name of the target molecule"
+    },
+    "molecular_formula": {
+      "type": "string",
+      "description": "Molecular formula (e.g., 'H2O', 'C6H12O6')"
+    },
+    "molecule_type": {
+      "type": "string",
+      "enum": ["organic", "inorganic", "polymer", "biochemical", "ionic"],
+      "description": "Type of molecule"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}

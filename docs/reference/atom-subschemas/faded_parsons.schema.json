@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Faded Parsons Problem",
+  "description": "Parsons problem with blanks that must be filled in while reordering",
+  "type": "object",
+  "required": ["code_lines", "correct_order", "blanks"],
+  "properties": {
+    "code_lines": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 3,
+      "maxItems": 15,
+      "description": "Code lines with {{blank}} placeholders for missing parts"
+    },
+    "correct_order": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "description": "Indices of code_lines in correct order"
+    },
+    "blanks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["line_index", "answer"],
+        "properties": {
+          "line_index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Index of the code line containing this blank"
+          },
+          "placeholder": {
+            "type": "string",
+            "description": "Placeholder identifier within the line"
+          },
+          "answer": {
+            "type": "string",
+            "description": "Correct value to fill in the blank"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Alternative acceptable answers"
+          }
+        }
+      },
+      "minItems": 1,
+      "description": "Blanks to be filled in by the learner"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["python", "java", "javascript", "typescript", "c", "cpp", "csharp", "go", "rust", "bash", "sql", "html", "css"],
+      "description": "Programming language of the code"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}

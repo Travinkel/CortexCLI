@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Gantt Adjustment",
+  "description": "Adjust task scheduling in a Gantt chart based on dependencies and constraints",
+  "type": "object",
+  "required": ["tasks", "correct_schedule"],
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "duration"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the task"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name for the task"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Duration in time units"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "IDs of tasks that must complete before this one"
+          },
+          "resource": {
+            "type": "string",
+            "description": "Resource assigned to this task"
+          }
+        }
+      },
+      "minItems": 3,
+      "maxItems": 20,
+      "description": "Tasks to be scheduled"
+    },
+    "correct_schedule": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "start"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Task ID"
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Correct start time in time units"
+          }
+        }
+      },
+      "description": "Correct start times for each task"
+    },
+    "time_unit": {
+      "type": "string",
+      "enum": ["hours", "days", "weeks", "months"],
+      "default": "days",
+      "description": "Unit of time for duration and scheduling"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["resource_conflict", "deadline", "milestone", "buffer"],
+            "description": "Type of constraint"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the constraint"
+          }
+        }
+      },
+      "description": "Additional scheduling constraints"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint for solving the problem"
+    }
+  }
+}
