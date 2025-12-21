@@ -23,7 +23,7 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -219,13 +219,30 @@ class CleanAtom(Base):
     notion_id: Mapped[str | None] = mapped_column(Text)
     card_id: Mapped[str | None] = mapped_column(Text, unique=True)  # e.g., "NET-M1-015-DEC"
 
-    # Content
+    # Content (legacy front/back for backward compatibility)
     atom_type: Mapped[str] = mapped_column(Text, nullable=False, default="flashcard")
     front: Mapped[str] = mapped_column(Text, nullable=False)
     back: Mapped[str | None] = mapped_column(Text)
     media_type: Mapped[str | None] = mapped_column(Text)
     media_code: Mapped[str | None] = mapped_column(Text)
     derived_from_visual: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # POLYMORPHIC CONTENT (replaces front/back for new atom types)
+    # Stores atom-type-specific content as JSONB (prompt, options, code, etc.)
+    content: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Stores grading configuration as JSONB (mode, correct_answer, pattern, etc.)
+    grading_logic: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    # ICAP Framework (replaces Bloom's Taxonomy)
+    # Engagement mode: passive, active, constructive, interactive
+    engagement_mode: Mapped[str | None] = mapped_column(Text, default="active")
+    # Element interactivity: 0.0-1.0 cognitive load factor
+    element_interactivity: Mapped[Decimal | None] = mapped_column(Numeric(3, 2), default=0.5)
+    # Knowledge dimension: factual, conceptual, procedural, metacognitive
+    knowledge_dimension: Mapped[str | None] = mapped_column(Text, default="factual")
+
+    # Atom ownership: cortex (terminal) or greenlight (IDE/runtime)
+    owner: Mapped[str] = mapped_column(Text, default="cortex")
 
     # Relationships
     concept_id: Mapped[UUID | None] = mapped_column(ForeignKey("concepts.id", ondelete="SET NULL"))
