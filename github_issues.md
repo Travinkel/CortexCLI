@@ -82,3 +82,9 @@
 - Features: Expose Anki sync via API; configurable cloze note type; implement CLI import/config; implement mode strategies.
 - Bugs: diversity weights unused; seeding inconsistency; hardcoded API URL; address atom skew/quality validation.
 
+## New Workstreams (branches via git worktree)
+- Validation & QA harness (`batch-validation`): per-atom subschema validation, atomicity/duplication checks, numeric tolerance, sample QA; test migrations on Postgres/SQLite with constraints/backfill.
+- Tier-1 handlers + meta-cog (`batch-handlers`): short_answer, cloze_advanced, numeric_extended, sequencing, error_spotting; MCQ mode extensions; meta-cog prompts wrapper.
+- Orchestrator & typed feedback (`batch-orchestrator`): session state machine (goal→probe→core→stress→consolidation, no repeat types unless diagnosing); typed feedback (outcome/error class/cognitive signal; hypercorrection); wire latency/attempts/confidence.
+- Greenlight runtime handoff (`batch-greenlight-handoff`): implement `/greenlight/run-atom` per OpenAPI with auth/versioned errors; cortex-cli client delegation; typed `AtomResult` (partial score, test results, git/diff suggestions, meta-cog).
+- Skill graph & tagging (`batch-skill-graph`): enforce atom→skill mapping and misconception/error-class tags; require skills on ingest; ensure response logging updates mastery.
