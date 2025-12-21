@@ -35,6 +35,12 @@ class AtomType(str, Enum):
     TIMELINE_ORDERING = "timeline_ordering"
     SQL_QUERY_BUILDER = "sql_query_builder"
     EQUATION_BALANCING = "equation_balancing"
+    # Metacognitive & Diagnostic handlers (Batch 3c)
+    CONFIDENCE_SLIDER = "confidence_slider"
+    EFFORT_RATING = "effort_rating"
+    CATEGORIZATION = "categorization"
+    SCRIPT_CONCORDANCE_TEST = "script_concordance_test"
+    KEY_FEATURE_PROBLEM = "key_feature_problem"
 
 
 # Handler registry - populated by @register decorator
@@ -79,6 +85,12 @@ from . import distractor_parsons
 from . import timeline_ordering
 from . import sql_query_builder
 from . import equation_balancing
+# Metacognitive & Diagnostic handlers (Batch 3c)
+from . import confidence_slider
+from . import effort_rating
+from . import categorization
+from . import script_concordance_test
+from . import key_feature_problem
 
 __all__ = [
     "AtomType",
