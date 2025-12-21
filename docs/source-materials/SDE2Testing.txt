@@ -1,0 +1,518 @@
+Systems Development II.Testing (E2025)
+EASV Skabelon til nye kurser
+About this course
+Announcements
+
+Course plan
+Curriculum: Curriculum for Systems Development II  (Link to easv.dk)
+
+Executive order: BEK nr 708 af 09/06/2023
+
+Week 
+(opt. lecturer)	Topic	Learning objectives from curriculum
+35
+
+TUnit	K1, S3
+36
+
+Mocking	S3,
+37
+
+Integration Testing I: Flow, DI, Requesting	S3
+38
+
+Integration Testing II: Test reproducability, Providers, TestContainers. Automation	K1, S3
+39
+
+Integration Testing III: Test specification Strategies	K1, S3, S4
+40
+
+Integration Testing IV: Advanced Topics	S3, S4
+41
+
+Assignment	K1, S3, S4
+42
+
+Autumn Holiday	 
+43
+
+End-to-end testing	K1, S3, S4
+44
+
+End-to-end testing	K1, S3, S4
+45
+
+End-to-end testing	K1, S3, S4
+ 
+
+
+Exam Info
+The formalities regarding the exam is described in the curriculum (2024 revision, can be downloaded here https://www.easv.dk/da/uddannelser/datamatiker/?tab=Uddannelsen )
+
+Detailed exam procedure will be announced soon.
+
+Information regarding the project and case can be found in section "3rd semester" in the general info Moodle room.
+
+
+W33: Topic A
+W34: Topic B
+W35: xUnit Testing
+ 
+📅 Wednesday, August 27th: Unit Testing in .NET
+ 
+🎯 Today's Agenda
+Presentation: Unit Testing with xUnit: Creating a service layer and testing basic service logic
+
+Exercise: "Getting Started with xUnit.net v3 (August 2025)"
+
+Exercise: Testing Pet Service
+
+ 
+Exercise: Getting Started with xUnit.net v3 (August 2025)
+The very basics of using the newest xUnit (v3) is covered in this getting started guide: https://xunit.net/docs/getting-started/v3/getting-started
+
+I recommend you go through the guide until(and not including) the chapter "Using Visual Studio".
+
+I also recommend chapters "Using JetBrains Rider" and "Using dotnet test".
+
+ 
+Exercise: Testing Person / Pet Service
+Either use your "Person API" from yesterday OR my demo from yesterday's lesson (Danish: We built uldahlalex/mywebapp & international: We build uldahlalex/myapidemo on Github)  to do the following:
+
+Extract service logic from controller classes into a service class and perform service logic tests on these. (Using a "Fake" database = simple in-memory List<T> of entity objects)
+Simply test for the following:
+Expected exceptions thrown in "not happy path" cases
+Expected successfully created objects in "happy path" cases
+After the lesson I will publish a link here with some boilerplate + partial solution. (You can also build on top of the partial solution, but I recommend doing the "full exercise").
+
+ 
+📚 Relevant literature for today's topics
+Documentation for the testing framework we're using: https://xunit.net/?tabs=cs
+Video about code nesting: https://www.youtube.com/watch?v=CFRhGnuXG-4 (also search for people complaining about "else" keyword + preaching return early)
+ 
+ 
+
+W36: xUnit: Dependencies in Testing
+If this lesson should be cancelled, I will make a Moodle announcement. If you do not get a Moodle announcement, there is still lesson.
+ 
+📅 Wednesday, September 3rd: Dependencies in Testing
+ 
+🎯 Today's Agenda
+Presentation: Dependencies in Testing. Topics: [35-ish minutes]
+
+Using Xunit.DependencyInjection
+Explicit Program.cs for DRY service setup in testing
+Replacing DbContext for a test DB
+Revisit to xUnit testing (Asserting equivalence vs equality, testing validation rules vs succesful outcomes)
+Exercise: Testing app based on a spec sheet (with the new Dependency Injection setup) [50-ish minutes]
+
+Walk-through of solution [20 minutes]
+
+ 
+Exercise: Testing based on a spec sheet
+Task: You must write tests that prove the functionality of PetService (or another similar API) (functionality listed as spec sheet below).
+
+If your tests uncover any bugs, they must be fixed.
+
+Description:
+
+The API should use a SQLite database and the tests should use dependency injection + replace the DbContext instance with a new in-memory DbContext instance for each test to ensure a clean slate. (The guided solution uses this approach. See /xdeps/Startup.cs file: https://github.com/uldahlalex/xdeps/blob/master/xdeps/Startup.cs )
+
+Spec sheet (properties can be swapped for other equivalent Entity's property, such as "Person"):
+
+Create Pet should insert and return a Pet entity from a CreatePetRequestDto. It should add a valid timestamp(createdAt) + an ID (Guid). Validation rules are: Age of pet should be between 0 and 15 and names cannot be shorter than 3 characters.
+Update Pet should follow same validation rules as pet insertion. Updating with a non-existing ID/primary key should throw an exception.
+Delete Pet should throw exception if no pet is found. If found it should be capable of removing a pet from the database.
+GetAllPets should return all pets.
+ 
+📚 Relevant literature for today's topics
+The library for xUnit Dependency Injection we'll use is this one: https://umplify.github.io/xunit-dependency-injection/
+Guided solution for the PetShop Testing project: https://github.com/uldahlalex/xdeps
+What we built during the Danish class: https://github.com/uldahlalex/testwithdependencies
+ 
+ 
+
+W37: TestContainers
+ 
+📅 Wednesday, September 10th: TestContainers
+ 
+   Today's Agenda
+Presentation: TestContainers: How to manage persistence for tests in parallel [25 minutes]
+
+Exercise: Setting up xUnit "Startup" Dependency Injection With Postgres TestContainer for DbContext [35 minutes]
+
+Presentation: Generating Typescript definitions straight from C# upon program startup + Options Pattern for seamless application configuration
+
+Exercise: Adding NSwag.CodeGeneration.TypeScript to existing project + options pattern
+
+ 
+🎯 Exercise: Setting up xUnit "Startup" Dependency Injection With Postgres TestContainer for DbContext
+Task: Use the Nuget package Testcontainers.PostgreSql to make a temporary Postgres Database for tests.
+
+Description:
+
+Step 1) In an existing project that has an API + database (with Entity Framework), add an xunit3 project.
+
+You must include the Nuget packages  Testcontainers.PostgreSql and Xunit.DependencyInjection 
+
+Here's an example .csproj file from an xunit3 project with the right dependencies: (in this case I have an API project with relative path from the test project "../api/api.csproj")
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+<ImplicitUsings>enable</ImplicitUsings>
+<Nullable>enable</Nullable>
+<OutputType>Exe</OutputType>
+<RootNamespace>xunittests</RootNamespace>
+<TargetFramework>net9.0</TargetFramework>
+<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+<UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+</PropertyGroup>
+
+<ItemGroup>
+<Using Include="Xunit"/>
+<Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
+<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0"/>
+<PackageReference Include="xunit.v3" Version="3.0.1"/>
+<PackageReference Include="xunit.runner.visualstudio" Version="3.1.4"/>
+<ProjectReference Include="../api/api.csproj"/>
+<PackageReference Include="Testcontainers.PostgreSql" Version="4.7.0"/>
+<PackageReference Include="Xunit.DependencyInjection" Version="10.7.0"/>
+</ItemGroup>
+
+</Project>
+
+Step 2) Make sure your API's Program.cs has a distinct "ConfigureServices" method. 
+
+Here's an example: 
+
+public class Program
+{
+    public static void ConfigureServices(IServiceCollection services)
+    {
+        //THIS IS WHERE YOU HAVE ALL YOUR DEPENDENCY INJECTION LIKE services.AddScoped... and services.AddDbContext ...
+    }
+
+    public static void Main()
+    {
+        var builder = WebApplication.CreateBuilder();
+        
+        ConfigureServices(builder.Services);
+
+        var app = builder.Build();
+
+        //and this is where you typically configure other stuff like app.MapControllers(); and such...
+
+        app.Run();
+    }
+}
+Step 3) Make Startup.cs in your test project
+
+namespace xunittests;
+public class Startup
+{
+    public static void ConfigureServices(IServiceCollection services)
+    {
+        Program.ConfigureServices(services);
+        services.RemoveAll(typeof(MyDbContext));
+
+        services.AddScoped<MyDbContext>(factory =>
+        {
+            var postgreSqlContainer = new PostgreSqlBuilder().Build();
+            postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
+            var connectionString = postgreSqlContainer.GetConnectionString();
+            var options = new DbContextOptionsBuilder<MyDbContext>()
+                .UseNpgsql(connectionString)
+                .Options;
+            
+            var ctx = new MyDbContext(options);
+            ctx.Database.EnsureCreated();
+            return ctx;
+        });
+    }
+}
+Step 4) Add tests (in same namespace or nested within same namespace as the Startup.cs)
+
+namespace xunittests;
+
+public class MyTest(PetService petService, MyDbContext ctx, ITestOutputHelper outputHelper)
+{
+    [Fact]
+    public void Test1()
+    {
+        var result = petService.CreateSellerWithPet(new CreateSellerDto()
+        {
+            Description = "bob who loves cats",
+            Name = "Bob"
+        });
+        outputHelper.WriteLine(JsonSerializer.Serialize(result));
+        Assert.Equal(1, ctx.Sellers.Count());
+    }
+  
+}
+ 
+🎯 Exercise: Using Nswag.CodeGeneration.Typescript
+Step 1) Install Nuget to your API project: NSwag.CodeGeneration.TypeScript 
+
+Step 2) Add boilerplate code
+
+This is my personal configuration which both saves the openapi as a JSON file + the Typescript file in the path provided by the parameter
+
+using NJsonSchema.CodeGeneration.TypeScript;
+using NSwag;
+using NSwag.CodeGeneration.TypeScript;
+using NSwag.Generation;
+
+namespace api.Etc;
+
+public static class GenerateApiClientsExtensions
+{
+    public static async Task GenerateApiClientsFromOpenApi(this WebApplication app, string path)
+    {
+        // Step 1: Generate OpenAPI document with full documentation
+        var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>()
+            .GenerateAsync("v1");
+
+        // Step 2: Serialize the document to JSON to verify it contains documentation
+        var openApiJson = document.ToJson();
+        
+        // Optional: Save the OpenAPI JSON to verify it has documentation
+        var openApiPath = Path.Combine(Directory.GetCurrentDirectory(), "openapi-with-docs.json");
+        await File.WriteAllTextAsync(openApiPath, openApiJson);
+        
+        // Step 3: Parse the document back from JSON to ensure we're only using what's in the OpenAPI spec
+        var documentFromJson = await OpenApiDocument.FromJsonAsync(openApiJson);
+
+        // Step 4: Generate TypeScript client from the parsed OpenAPI document
+        var settings = new TypeScriptClientGeneratorSettings
+        {
+            Template = TypeScriptTemplate.Fetch,
+             // = true,  // Enable JSDoc generation
+            TypeScriptGeneratorSettings =
+            {
+                TypeStyle = TypeScriptTypeStyle.Interface,
+                DateTimeType = TypeScriptDateTimeType.String,
+                NullValue = TypeScriptNullValue.Undefined,
+                TypeScriptVersion = 5.2m,
+                GenerateCloneMethod = false,
+                MarkOptionalProperties = true,
+                GenerateConstructorInterface = true,
+                ConvertConstructorInterfaceData = true
+            }
+        };
+
+        // Step 5: Generate TypeScript client from the parsed OpenAPI document
+        var generator = new TypeScriptClientGenerator(documentFromJson, settings);
+        var code = generator.GenerateFile();
+
+        var outputPath = Path.Combine(Directory.GetCurrentDirectory() + path);
+        Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+
+        await File.WriteAllTextAsync(outputPath, code);
+        
+            
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("OpenAPI JSON with documentation saved at: " + openApiPath);
+        logger.LogInformation("TypeScript client generated at: " + outputPath);
+    }
+}
+Step 3) Call boilerplate code in your "App" phase:
+
+The line below should be called just before app.Run(); in Program.cs:
+
+app.GenerateApiClientsFromOpenApi("/../../client/src/models/generated-client.ts").GetAwaiter().GetResult();
+You should adjust the relative path (the string argument) to wherever your want the TS file to be.
+
+ 
+🎯 Exercise: Using Options Pattern
+Task: Implement a "lazy" options pattern: (without hot reloading and IOptionsMonitor<T>)
+
+Step 1) Define an AppOptions class which can hold properties you want (like Database connection string):
+
+public sealed class AppOptions
+{
+    [Required] [MinLength(20)] public string DbConnectionString { get; set; } = string.Empty!;
+}
+Step 2) Anywhere in the "builder" phase in Program.cs you can use this boilerplate:
+
+(if you're using top level statements / no "Main()" method), the syntax would be builder.Services ...
+
+services.AddSingleton<AppOptions>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var appOptions = new AppOptions();
+    configuration.GetSection(nameof(AppOptions)).Bind(appOptions);
+    return appOptions;
+});
+Step 3a) Configure sensitive secrets as environment variables prefixed with APPOPTIONS__{KeyName} like this 
+
+(note that there are 2 underscores after APPTIONS)
+
+export APPOPTIONS__DbConnectionString="blablablablabla";
+
+Step 3b) Or configure as gitignored appsettings.json scope named AppOptions:
+
+{
+  "AppOptions": {
+    "DbConnectionString": "Host=ep-super-bird-a2nd20bg-pooler.eu-central-1.aws.neon.tech; Database=neondb; Username=neondb_owner; Password=MYAMAZINGSECUREPASSWORD; SSL Mode=VerifyFull; Channel Binding=Require;"
+
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
+    }
+  }
+}
+Test that your configuration works by setting environment variables and running the app with "dotnet run". Log the AppOptions object like this just after the "app" phase has started in Program.cs:
+
+var app = builder.Build();
+var appOptions = app.Services.GetRequiredService<AppOptions>();
+Console.WriteLine(JsonSerializer.Serialize(appOptions));
+Step 4) Configure non-sensitive secrets (like localhost strings and configurations for local development) in appsettings.Development.json (not gitignored)
+
+
+
+In development mode (normal "dotnet run" and debugging), the configurations in the .Development.json file will take highest priority.
+
+ 
+📚 Relevant references for today's topics
+Live demo from Danish class: https://github.com/uldahlalex/testcontainersdemo
+
+Live demo from International class: https://github.com/uldahlalex/testcontainersdemointernational
+
+Relevant documentation about TestContainers specifically with Postgres & .NET C#: https://dotnet.testcontainers.org/modules/postgres/
+
+ 
+ 
+
+W38+39+40: Project
+Please see the Programming II Moodle course/room for project info.
+
+With specific regards to Wednesday 17th, this lesson is dedicated to work on the joint Programming+Systems Development project. I am available either via Zoom https://easv-dk.zoom.us/j/5425519295 from 10:00 -> 13:30 or via email throughout the entire day.
+
+
+W41: Testing advanced queries
+ 
+📅 Wednesday, October 8th: Testing Queries
+ 
+Agenda
+Presentation: XUnit Tests for querying with chunking & ordering (+ revisit to testing theory such as logging and configuration for testing)
+Exercise: Book query tests
+ 
+Today's Exercise: Book query tests
+Based on an existing LibraryService, you must test GetBooks featuring ordering and pagination.
+
+If you don't already have a working Library Service, you can clone my repository here: https://github.com/uldahlalex/ProjectSolution/ go to the "ordering" branch and build the pagination + ordering for the existing method for getting books (in the same style as the finished GetAuthors )
+
+Update: I have committed the test code from the demo now - you can always delete the test code or revert the recent commit if you wish to start from a clean slate 
+
+Test the following specifications are met:
+If invalid pagination is set, exception is thrown (like skipping/taking negatives or large unwanted numbers)
+If invalid enum for ordering option is passed, exception is thrown
+Pagination can correctly skip X number of elements and return desired amount of elements.
+Ordering can correctly sort elements to expected outcome.
+If you have 5 different ways to order your list, make a test for each
+ 
+ 
+ 
+
+W42: Autumn holiday
+W43: Cancelled/Postponed
+Today's lesson is cancelled/postponed.
+
+In the meantime I recommend spending time with the exercises in https://github.com/uldahlalex/TestDrivenExercises (and of course going to networking!)
+
+
+W44: Advanced Testing Cases
+ 
+📅 Wednesday, October 29th: Query Testing
+ 
+Agenda
+Presentation: Query testing with more sophisticated seeding, query building and assertions
+Change tracking
+Seeders and referencing state without breaking tests
+Bogus data generator
+Nuget Sieve.Query.Builder for typesafe query building for .NET testing
+Exercise: Testing a complex query
+ 
+Exercise: Testing a complex query
+1. Based on an API with Sieve, add an Xunit3 testing project (same test setup as previous weeks). 
+
+You may also use this repo: https://github.com/uldahlalex/testinqueries (go to commit number 2 to get the setup without the testing code finished)
+
+The "done" branch has samples from the live demo: https://github.com/uldahlalex/testinqueries/tree/done
+
+2. Add a seeder that will introduce a lot of data such that we can verify complex filtering queries. I recommend using Bogus for this. https://github.com/bchavez/Bogus
+
+3. Install Nuget package Sieve.Query.Builder to the testing project https://www.nuget.org/packages/Sieve.Query.Builder
+
+4. Follow the 3xA pattern when building a test
+
+Arrange by invoking seeder and preparing the query request
+Act by calling the service method with the query
+Assert by expressing expectations for the actual data fetched)
+I recommend expressing tests that combine a variety of filters + ordering (and pagination, although that is generally less complex).
+
+ 
+ 
+
+W45: Structuring Client App
+ 
+📅 Wednesday, November 5th: Structuring Client App
+ 
+Agenda
+Presentation: Structuring client app using Typescript project references & where to put what
++ Dependency Cruiser for visualizing TS projects
+Activity: More work on the boilerplate template: Setting up TS references for more "opinionated" setup
+Activity: Visualizing your setup with Dependency Cruiser
+ 
+Activity: Setting up src folders in client template
+Task: Implement Typescript Project References in your "boilerplate template" (started yesterday during Programming II) such that your React app is already "structured" when you start the exam project.
+
+A possible reference structure can be:
+
+/src/components (for all visuals)
+
+/src/core (for things that should be globally accessible such as models, nswag TS client, etc)
+
+/src/utilities (for helpers like custom hooks, reusable functions, etc)
+
+You can find an example here: https://github.com/uldahlalex/todo
+
+ 
+Activity: Visualizing Dependencies with Dependency Cruiser
+Task: Follow the README here in order to setup dependency cruiser for your project and check the .svg file afterwards: https://www.npmjs.com/package/dependency-cruiser?activeTab=readme
+
+When generating the chart, please copy this docker-compose.yml file into same directory as package.json, and run "docker compose up" in order to make the diagram. (Do this instead of "npx depcruise src --include-only "^src" --output-type dot | dot -T svg > dependency-graph.svg")
+
+https://gist.github.com/uldahlalex/3b9030b98c6d6061d84cae7858fbd8b4
+
+
+
+ 
+ 
+ 
+
+W46: Exam project work [No Lessons]
+The exam case will be announced Thursday, November 13th (the day after the Cisco CCNA1 final quiz). 
+
+Danish class: 10 o'clock in D18.
+
+International class: 12 o'clock in D16.
+
+Information regarding the exams can be found under "About this course" ->  "Exam info" in each course room.
+
+Information regarding the project can be found on the 3rd semester section of the general semester info room. [Not yet public as of writing this, but it will of course be uploaded by the time the exam project is announced]
+
+No lessons are scheduled from week 46. Time is dedicated entirely towards the exam project.
+
+Group for exam project should be create here: https://moodle.easv.dk/mod/groupselect/view.php?id=259459&forceview=1 - Please create them as soon as possible.
+
+
+W47: Topic N
+W48: Topic O
+W49: Topic P
+W50: Topic Q
+W51: Topic R
+W52: Topic S

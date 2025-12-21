@@ -1,14 +1,23 @@
 #  Cortex-CLI
 
-**The "Swiss Army Knife" for the Right Learning Platform.**
+**The DARPA Digital Tutor for Developers**
 
-`cortex-cli` is a powerful, terminal-based cognitive learning companion. It is designed for developers, content creators, and power-users within the Right Learning ecosystem. While `right-learning` provides the full web-based platform experience, `cortex-cli` offers speed, scriptability, and offline capabilities.
+`cortex-cli` is a terminal-based adaptive learning system designed to rival DARPA's Digital Tutor and Knewton's adaptive engine. It is a **personalized learning companion optimized for developers and technical learners** who live in the command line.
+
+Built on cognitive science (FSRS, Cognitive Load Theory, Testing Effect), Cortex-CLI provides:
+- 🧠 **Mastery-based learning** - Not time-based, but capability-based
+- 🎯 **Adaptive content selection** - Z-Score algorithm prioritizes what you need most
+- 📊 **Diagnostic feedback** - Identifies error classes, not just "right" or "wrong"
+- 🔬 **Science-backed** - Every feature grounded in peer-reviewed research
+- 💻 **Terminal-native** - Offline-first, scriptable, zero latency
+
+While `right-learning` provides the full web-based platform experience and `greenlight` accelerates TDD/BDD workflows, `cortex-cli` owns the **knowledge consolidation** space—building deep, durable knowledge that compounds over time.
 
 ---
 
 ## The Right Learning Ecosystem
 
-`cortex-cli` is not a standalone application; it is a specialized client for the `right-learning` platform.
+`cortex-cli` is not a standalone application; it is a specialized client for the `right-learning` platform and integrates with Greenlight for IDE-first, runtime learning atoms.
 
 ```
 +-----------------------------------------------------------------------+
@@ -27,11 +36,53 @@
 +----------------------------------+-------------------------------+----------------------------+
 ```
 
+### Greenlight Integration (IDE-first)
+
+Greenlight is the IDE/workbench sibling to cortex-cli. It owns the high-friction, runtime atoms that benefit from an editor, diff view, and git safety rails, while cortex-cli keeps the fast terminal drills.
+
+- Owned by Greenlight: code submission with tests/perf gates, debugging/fault isolation, diff review and “minimal fix” tasks, code understanding/trace, code construction/skeleton fill, config/CLI sequencing with terminal emulator, project-scale tasks with branches/worktrees and git guidance, architecture/trade-off reasoning tied to a codebase, testing/verification on real code.
+- Owned by cortex-cli: recognition/recall (MCQ variants, cloze, short answer, numeric), structural drills (matching, sequencing, Parsons), lightweight meta-cognitive prompts, comparison/explanation/creative text atoms.
+- Shared wrappers: confidence/difficulty ratings, reflection/self-correction flows, error tagging. If an atom requires running code, inspecting diffs, or suggesting git commands, it routes to Greenlight; cortex-cli can still show the result in the terminal.
+
 ### Three Core Roles
 
 1.  **Developer's Companion (API Mode):** For quick, focused study sessions directly in your terminal. It connects to the `right-learning` API to fetch your profile and sync results.
 2.  **Content Pipeline (Pipeline Mode):** A powerful ETL and validation tool. It can parse, validate, and ingest learning content from various sources (including Notion) into the `right-learning` platform. It's designed to run in CI/CD environments.
 3.  **Offline Fallback (Offline Mode):** Export your study profile, use `cortex-cli` with a local SQLite database in an air-gapped environment (like on a plane), and import your progress back to the platform later.
+
+---
+
+## Learning Atom Types
+
+Cortex-CLI implements a **universal taxonomy of learning atoms** based on cognitive science research:
+
+### Recognition & Recall
+- **Binary Choice** (True/False)
+- **Multiple Choice** (with diagnostic distractors)
+- **Cloze Deletion** (fill-in-the-blank)
+- **Short Answer** (exact or fuzzy match)
+- **Numeric Entry** (with unit awareness)
+
+### Structural & Relational
+- **Parsons Problems** (reorder code blocks)
+- **Matching** (concept ↔ definition)
+- **Sequencing** (order procedural steps)
+- **Graph Construction** (prerequisite mapping)
+
+### Production & Application
+- **Code Submission** (sandboxed execution)
+- **Debugging Challenges** (spot and fix bugs)
+- **Design Decisions** (architecture trade-offs)
+- **CLI Simulation** (terminal command sequences)
+
+### Meta-Cognitive
+- **Confidence Rating** (calibrate self-assessment)
+- **Reflection Prompts** ("explain your reasoning")
+- **Error Classification** (slip vs misconception)
+
+**Total:** 80+ distinct atom types organized by cognitive operation.
+
+See [Universal Taxonomy of Learning Atoms](docs/reference/learning-atoms.md) for the complete reference.
 
 ---
 
@@ -137,6 +188,68 @@ cortex start -m 11
 - `cortex sync`: Sync progress from offline mode to the platform.
 - `cortex export`: Export your profile and due cards for offline study.
 - `cortex import <file>`: Import progress from an offline session.
+
+---
+
+## Split-Pane Interactive Learning
+
+Cortex-CLI features a **Terminal User Interface (TUI)** with multiple layout modes optimized for different learning scenarios:
+
+### Horizontal Split (Theory + Practice)
+```
+┌─────────────────────────────────────────────────┐
+│ LEARN PANE                                      │
+│ • Concept explanation                           │
+│ • Examples                                      │
+│ • ASCII diagrams                                │
+├─────────────────────────────────────────────────┤
+│ PRACTICE PANE                                   │
+│ • Live coding                                   │
+│ • Quiz area                                     │
+│ • Terminal simulation                           │
+├─────────────────────────────────────────────────┤
+│ FEEDBACK PANE                                   │
+│ • Diagnostic feedback (error class, hints)      │
+└─────────────────────────────────────────────────┘
+```
+
+### Vertical Split (Side-by-side)
+Perfect for comparing reference code with your solution.
+
+### 3-Pane (Advanced)
+Reference + Workspace + Console for complex CLI exercises.
+
+See [TUI Design Documentation](docs/explanation/tui-design.md) for full details.
+
+---
+
+## Scientific Foundations
+
+Every feature in Cortex-CLI is grounded in peer-reviewed cognitive science research:
+
+| Research Area | Implementation |
+|---------------|----------------|
+| **Testing Effect** (Roediger & Butler) | Active recall atoms (Cloze, Short Answer) |
+| **Cognitive Load Theory** (Sweller) | Parsons Problems, faded scaffolding |
+| **Interleaving Effect** (Bjork) | Z-Score mixing algorithm |
+| **Metacognition** (Zimmerman) | Confidence ratings, reflection prompts |
+| **Hypercorrection Effect** (Metcalfe) | High-confidence errors trigger intervention |
+| **Expertise Reversal** (Kalyuga) | Adaptive scaffolding based on mastery |
+
+**Zero pseudoscience:** No Learning Styles, no Learning Pyramid, no Left/Right Brain myths.
+
+See [Scientific Foundations](docs/reference/scientific-foundations.md) for complete research references.
+
+---
+
+## Documentation
+
+- **[Vision: DARPA Digital Tutor](docs/explanation/vision-darpa-tutor.md)** - Strategic positioning and ecosystem architecture
+- **[Learning Atoms Reference](docs/reference/learning-atoms.md)** - Complete taxonomy of 80+ atom types
+- **[Scientific Foundations](docs/reference/scientific-foundations.md)** - Cognitive science research backing
+- **[TUI Design](docs/explanation/tui-design.md)** - Split-pane interface architecture
+- **[API Endpoints](docs/reference/api-endpoints.md)** - REST API reference
+- **[Database Schema](docs/reference/database-schema.md)** - PostgreSQL schema documentation
 
 ---
 

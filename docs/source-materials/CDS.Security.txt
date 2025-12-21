@@ -1,0 +1,415 @@
+CDS.Security (E2025)
+EASV Skabelon til nye kurser
+Announcements
+
+
+
+The first lesson in CDS.Sec for international class is Thu 8/28/2025 8:15 - 11:30 in D16.
+
+Den første lektion i CDS.Sec for dansk klasse er Fredag 8/29/2025 8:15 - 11:30 i D18.
+
+Please notice the change in rooms.
+
+
+About this course
+Announcements
+
+Course plan
+Curriculum: Curriculum for Computer Science
+
+Executive order: BEK nr 708 af 09/06/2023
+
+Week 
+(opt. lecturer)	Topic	Learning objectives from curriculum
+33/TGT
+
+ 	
+ 
+
+34/TGT
+
+ 	 
+35
+
+Introduction	K1
+36
+
+Virtualization	S1
+37
+
+Docker	S1, K2
+38
+
+Deployment	K2
+39
+
+Authentication	S3
+40
+
+Session	S2, S3
+41
+
+Authorization	S3
+42
+
+ 	 
+43
+
+Web security	S3
+44
+
+Cloud 1	K1, S4, C1
+45
+
+Cloud 2	K1, S4, C2
+46
+
+Recap	 
+47
+
+ 	 
+48
+
+ 	 
+49
+
+ 	 
+50
+
+ 	 
+51
+
+ 	 
+52
+
+ 	 
+Exam
+
+The interdisciplinary semester project with exam in January. Information regarding this exam will be uploaded in the general semester information Moodle room.
+
+
+Exam Info
+The formalities regarding the exam is described in the curriculum (2024 revision, can be downloaded here https://www.easv.dk/da/uddannelser/datamatiker/?tab=Uddannelsen )
+
+Detailed exam procedure will be announced soon.
+
+Information regarding the project and case can be found in section "3rd semester" in the general info Moodle room.
+
+
+W35: Introduction
+About this week
+This first week will be an introduction to the course and the subjects within.
+
+Agenda:
+
+What the course is about
+Introduction to distributed systems
+Basics of IT/cybersecurity
+Play board game
+
+Slides
+
+Learning activities
+Board game (Kampen mod Cybermørket)
+
+Game rules
+
+Spilleregler
+
+W36: Virtualisation
+About this week
+The topic for today is virtualization. You already had some theory about it last semester. So the lecture will just be a brief refresher before we get into some hands-on exercises.
+
+Presentation on virtualization.
+Experience the power of VMs by exploring most popular Linux flavor straight from your desktop.
+Introduction to Linux command line
+Host React on a Linux server
+Cheat sheets
+
+Videos
+Windows: Install Ubuntu Server in VM
+Mac: Install Ubuntu Server in VM
+Linux: Install Ubuntu Server in VM
+Host an SPA with Nginx
+
+Slides
+
+Learning activities
+Before you can start this week's exercises, you will need to install some desktop virtualization software on your laptop. Download and install, either:
+
+VirtualBox
+For Windows and Intel based Macs (old Macs)
+UTM
+For Mac with Apple Silicon (all newer Macs)
+Ask if you are unsure which program to install.
+
+Next you need to download file to install a guest OS. You will need two variations of Ubuntu for the exercises.
+
+For Windows, download:
+
+ubuntu-25.04-desktop-amd64.iso
+ubuntu-24.04.3-live-server-amd64.iso
+For Mac, download:
+
+ubuntu-25.04-desktop-arm64.iso
+ubuntu-24.04.3-live-server-arm64.iso
+Desktop Linux
+First you need to create a VM with Ubuntu Desktop file.
+
+Explorer how it works and what programs are available.
+
+Desktop Linux - alternative
+Already familiar with Ubuntu/GNOME ? Try this instead:
+
+Create a VM with Ubuntu Desktop. Once your VM is booted, open a Terminal and run the following.
+
+sudo apt install sway* sfwbar
+Logout after installation is complete.
+Click the gear icon down in the corner.
+Select "Sway" and login again
+Can you figure out how to navigate it?
+
+Linux/Unix CLI
+Use either Ubuntu Server VM or Ubuntu Desktop VM.
+
+In this exercise you will learn how to navigate the command line of Linux by playing a small game.
+
+Open a terminal inside Ubuntu and execute the following commands to get started.
+
+curl -O https://gitlab.com/slackermedia/bashcrawl/-/archive/stable-2024.02.09/bashcrawl-stable-2024.02.09.tar.gz
+tar zxf bashcrawl-stable-2024.02.09.tar.gz
+mv bashcrawl-stable-2024.02.09 bashcrawl
+cd bashcrawl/entrance/
+cat scroll
+Web server in VM
+Use Ubuntu Server VM.
+
+Let's see how we can deploy a React app to a traditional web-server on a VM.
+
+
+Host an SPA with Nginx
+
+W37: Docker
+About this week
+What are containers
+How can we use them
+How can we make our own
+Please bring headphones or earbuds to class.
+
+
+Slides
+
+Learning activities
+Download and install Docker (if you haven't got it already)
+Windows
+Mac
+Linux
+IMPORTANT: Make sure you have version 4.44.3 or newer, because it fixes CVE-2025-9074
+
+On first startup, it will ask you to create an account. Just click "skip".
+
+
+Docker CLI Introduction
+
+React Docker Tutorial - text
+
+React Docker Tutorial - video
+
+W38: Deployment
+About this week
+Docker for local development
+Managing secrets
+Deploy containers
+
+Slides
+
+Learning resources
+An environment variable is a user-definable value that can affect the way running processes will behave on a computer. Environment variables are part of the environment in which a process runs.
+
+
+📺 Secrets in .NET
+
+Tools and Best Practices for Secret Management in .NET
+
+Learning activities
+
+Deploy React and ASP.NET to Fly.io
+
+W39: Authentication
+About this week
+What are good passwords
+How to store passwords
+How to authenticate users with passwords
+
+Slides
+
+Learning resources
+
+Describe authentication and authorization in cybersecurity
+
+Learning activities
+Clone the starter project. Then complete the exercise.
+
+
+Exercise video
+
+Exercise text
+
+Links
+Is your password strong
+
+Password Strength Testing Tool
+Password Cracking Calculator
+Passphrase Cracking Calculator
+Password storage
+
+Password Storage Cheat Sheet
+Password managers
+
+Using a password manager for your personal accounts is an excellent idea. Here is a short list of options:
+
+Proton Pass (service)
+Bitwarden (service)
+KeePassXC (local)
+
+W40: Session
+About this week
+We can authenticate user. Now what?
+
+HTTP is a stateless protocol. So, how do we keep track of users across requests? We don't want our users to have to re-authentication each time they click something, right?
+
+The answer is session management.
+
+We will discuss tokens and cookies.
+
+
+Slides
+
+Learning resources
+Note: Session and cookie authentication means the same
+
+
+Session Vs JWT: The Differences You May Not Know!
+
+Why is JWT popular?
+
+Learning activities
+In last weeks workshop we implemented password-based authentication using secure hashing.
+
+This week's workshop builds on the previous week. Today we're going to add session management.
+
+
+Teacher and course evaluation
+
+Exercise text
+
+Exercise video
+
+W41: Authorization
+About this week
+Knowing who the user are doesn't make a web app secure. We need to be able to specify rule on what they can and can't access.
+
+This concludes our 3 part series on implementing authentication, session management and authorization.
+
+
+Slides
+
+Learning activities
+
+Exercise text
+
+Exercise video
+
+W42: Autumn holiday
+W43: Web security
+About this week
+Welcome back from vacation. Hope you enjoyed it.
+
+We are just going to jump right into a deeply technical topic. This week is all about "hacking". Yes you read correctly, that is exactly what we will be doing do. You will all be competing in a hacking competition. Better do your homework. Remember "Learning resources" means homework that you need to do before class.
+
+The idea is that by discussing web security from an attackers point of way, you will learn to think like an attacker, thereby teaching you the foundation for what to protect against.
+
+We will also touch on what we can do as a developer to protect against these attacks.
+
+Don't try any of this on other peoples systems. It is illegal and will get you in jail!
+
+
+🇩🇰 Husk lektionen er flyttet til torsdag over middag.
+
+
+Demo
+
+Score
+
+Learning resources
+Install Burp Suite as shown
+
+
+Getting started with Burp Suite
+
+Only do step 1, 2 & 3
+Watch the videos. Nothing else.
+
+
+Create Administrative User Without Admin Privileges | Demo
+
+IDOR Attack | Demo
+
+📺 What are SQL Injections? // Explained in 180 seconds
+
+📺 Cross-Site Scripting (XSS) Explained
+
+Learning activities
+The learning activity this week will be a hacking competition. You will compete to solve small challenges.
+
+Points for each challenge you solve. Bonus points for being first.
+
+
+W44: Cloud 1
+About this week
+Follow up on deployment
+Cloud providers
+Services offered by cloud providers
+Inside a data center
+
+Slides
+
+Learning resources
+
+Describe cloud computing
+
+Only unit 3, 4, 6
+
+Unit 3 - What is cloud computing
+Unit 4 - Describe the shared responsibility model
+Unit 6 - Describe the consumption-based model
+Learning activities
+
+Cloud storage project
+
+W45: Cloud 2
+About this week
+I won't be here this week, so you have to work on you own. Continue with the project from last week.
+
+I've been working for a while on getting Head of Product & Development at the local company WebLager to do a presentation. I'll update as soon as I know more.
+
+Since I'm not here to help, if you get really badly stuck, then you can check out my solution here.
+
+
+Learning activities
+Continue with cloud storage project from last week.
+
+
+Cloud storage hand-in
+
+Submit a link to your repository.
+It doesn't need to 100% perfect or fully complete.
+W46: Recap + project start
+About this week
+I will go over some of the key theory from previous lessons. No way I can cover it all in just a couple of hours, so I'll focus on the parts that relates to deployment and security requirements for exam project.
+
+I have a simplified version on how authentication and session is setup by the script for flyimager assignment.
+
+See: Bootstrap Identity
+
+Official docs: How to use Identity to secure a Web API backend for SPAs

@@ -6,6 +6,221 @@
 
 ---
 
+## Routing: cortex-cli vs Greenlight
+
+`cortex-cli` remains the terminal-native study client; Greenlight is the IDE/workbench integration. Atom families route as follows:
+
+- **Greenlight-owned (runtime/IDE atoms):** code submission with tests/perf gates, debugging/fault isolation, diff review and “minimal fix” tasks, code understanding/trace, code construction/skeleton fill, config/CLI sequencing with terminal emulator, project-scale tasks with branches/worktrees and git guidance, architecture/trade-off reasoning tied to a codebase, testing/verification on real code, state/puzzle manipulation, interactive parameter sliders.
+- **cortex-cli-owned (terminal atoms):** recognition/recall (binary choice, MCQ variants, cloze, short answer, numeric), structural drills (matching, sequencing, Parsons, associations), light meta-cognitive prompts, comparison/explanation/creative text atoms, error-spotting without runtime execution.
+- **Shared wrappers:** confidence/difficulty ratings, reflection/self-correction flows, error tagging. Runtime atoms can return results back to cortex-cli for display when invoked from the terminal.
+
+## Shared Atom Schema (cortex-cli <> Greenlight)
+
+Common envelope fields to support routing and grading:
+
+- `owner`: `cortex` | `greenlight` (who presents/executes the atom)
+- `grading_mode`: `static` | `runtime` | `human` | `hybrid`
+- `runner` (for runtime): `language`, `entrypoint`, `tests` (path or inline), `time_limit_ms`, `memory_limit_mb`, `sandbox_policy`
+- `diff_context` (optional): `base_path`, `patch`, `review_rubric`, `assertions/tests`
+- `git_guidance` (optional): whether to suggest/apply git commands (branch, worktree, stash, cherry-pick)
+- `attachments` (optional): allowed inputs (file, audio, image)
+- `meta_wrappers`: `collect_confidence`, `collect_difficulty`, `allow_self_correction`, `error_tagging`
+
+See `docs/reference/atom-envelope.schema.json` for the JSON Schema and `docs/reference/greenlight-handoff.openapi.yaml` for the handoff contract used when routing runtime atoms to Greenlight.
+
+Example envelope:
+
+```json
+{
+  "atom_type": "code_submission",
+  "owner": "greenlight",
+  "grading_mode": "runtime",
+  "runner": {
+    "language": "python",
+    "entrypoint": "main.py",
+    "tests": "tests/test_main.py",
+    "time_limit_ms": 3000,
+    "memory_limit_mb": 256,
+    "sandbox_policy": "isolated"
+  },
+  "meta_wrappers": {
+    "collect_confidence": true,
+    "collect_difficulty": true,
+    "allow_self_correction": true,
+    "error_tagging": true
+  }
+}
+```
+
+---
+
+## Implementation Status
+
+### Currently Implemented (7 atom types)
+
+Cortex-CLI has **7 production-ready handlers** as of 2025-12:
+
+| Atom Type | Category | Handler | Status | Notes |
+|-----------|----------|---------|--------|-------|
+| **flashcard** | Recall & Entry | `FlashcardHandler` | ✓ Production | Simple front/back with self-evaluation |
+| **cloze** | Recall & Entry | `ClozeHandler` | ✓ Production | Fill-in-the-blank with progressive hints |
+| **mcq** | Recognition & Discrimination | `MCQHandler` | ✓ Production | Single/multi-select with JSON/legacy format support |
+| **true_false** | Recognition & Discrimination | `TrueFalseHandler` | ✓ Production | Binary choice with LLM error explanations |
+| **numeric** | Recall & Entry | `NumericHandler` | ✓ Production | Supports decimal, binary, hex, IP, CIDR with tolerance |
+| **matching** | Structural & Relational | `MatchingHandler` | ✓ Production | Term-definition pairing with partial credit |
+| **parsons** | Structural & Relational | `ParsonsHandler` | ✓ Production | Code/step ordering with LLM error analysis |
+
+**Coverage:** ~12% of taxonomy (7 of 60+ atom types)
+
+### Missing Atom Types by Priority
+
+#### High Priority (High ROI, Terminal-Compatible)
+- [ ] **Short Answer** (exact/fuzzy/multi-acceptable) - Active recall, high retention
+- [ ] **Advanced Cloze** (dropdown, hints, progressive reveal) - Scaffolded learning
+- [ ] **Numeric Extensions** (units, tolerance, scientific notation) - CCNA calculations
+- [ ] **MCQ Variants** (best-answer, least-incorrect, negative) - Deeper discrimination
+- [ ] **Error-Spotting** (highlight incorrect parts) - Debugging foundation
+
+#### Medium Priority (Structural Understanding)
+- [ ] **Sequencing** (timeline/process ordering) - Procedural knowledge
+- [ ] **Association** (bucket sorting, grouping) - Category understanding
+- [ ] **Hotspot** (ASCII region selection or Greenlight handoff) - Visual identification
+- [ ] **Graph Construction** (text DSL: "A->B, B->C") - Systems thinking
+
+#### Meta-Cognitive Wrappers (Enhances All Types)
+- [ ] **Confidence Rating** (pre/post) - Calibration, misconception detection
+- [ ] **Difficulty Rating** - Adaptive difficulty
+- [ ] **Reflection Prompts** (why/how) - Metacognition
+- [ ] **Self-Correction Retry** with hints - Hypercorrection effect
+
+#### Greenlight-Delegated (Runtime Required)
+These are designed for Greenlight IDE integration:
+- **Code Submission** with test execution
+- **Debugging** (interactive debugger)
+- **Code Understanding** (output/state tracing)
+- **Code Construction** (fill line/function)
+- **CLI Emulator** (terminal with state)
+- **Diff Review** (side-by-side with annotations)
+- **Project-Scale** (git workflows, multi-file)
+
+See [Greenlight Integration](../explanation/greenlight-integration.md) for runtime atom details.
+
+---
+
+## TUI Widget Requirements by Atom Family
+
+### Terminal-Compatible Widgets (Cortex-CLI)
+
+| Atom Family | Widget Type | Input Method | Example |
+|-------------|-------------|--------------|---------|
+| **Recognition** (MCQ, T/F) | Rich Table with numbered rows | Number selection (single/multi) | "1" or "1 3 5" |
+| **Recall** (Cloze, Short Answer) | Text Prompt with validation | Free-form text | "192.168.1.0" |
+| **Numeric** | Text Prompt with parsers | Number/IP/Binary/Hex | "0b11000000" |
+| **Matching** | Dual-column table | Pair notation | "1A 2B 3C" |
+| **Sequencing** | Numbered list | Index ordering | "3 1 2 4" |
+| **Parsons** | Numbered code blocks | Index ordering | "3 1 2 4" |
+| **Error-Spot** | Numbered lines | Line number selection | "2 5 7" |
+| **Hotspot** (text-based) | Labeled regions | Letter/number selection | "C" or "3" |
+| **Association** | Multi-column buckets | Drag notation | "A:1,2 B:3,4" |
+
+**Design Pattern:** Keyboard-first, no mouse required, works over SSH.
+
+### IDE-Required Widgets (Greenlight Handoff)
+
+| Atom Family | Widget Type | Why IDE Needed |
+|-------------|-------------|----------------|
+| **Code Submission** | Editor + Test Console | Syntax highlighting, test runner, compilation |
+| **Debugging** | Interactive Debugger | Breakpoints, variable inspection, step execution |
+| **Diff Review** | Side-by-side Diff Viewer | Visual diff, annotation, patch application |
+| **CLI Emulator** | Full Terminal Emulator | Stateful shell, command history, completion |
+| **Graph Construction** (visual) | Graph Editor Canvas | Node/edge dragging, layout algorithms |
+| **Diagram Drawing** | Canvas Widget | UML/network topology visual editing |
+
+**Design Pattern:** Mouse/keyboard hybrid, requires GUI for visualization.
+
+---
+
+## Visual Taxonomy Hierarchy
+
+```
+Learning Atom Taxonomy (60+ types across 11 categories)
+═══════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│                    COGNITIVE OPERATION                      │
+│           Recognition → Recall → Construction               │
+│                  → Application → Synthesis                  │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────────────┐
+│  I. Recognition &  │ ─────┐
+│   Discrimination   │  6   │  Binary Choice, MCQ, Multi-Select,
+└────────────────────┘      │  Hotspot, Error-Spotting
+                             │  ✓ Implemented: 2/6 (MCQ, T/F)
+┌────────────────────┐      │
+│ II. Recall & Entry │ ─────┤
+└────────────────────┘  8   │  Short Answer, Cloze, Numeric, Formula
+                             │  ✓ Implemented: 3/8 (Flashcard, Cloze, Numeric)
+┌────────────────────┐      │
+│ III. Structural &  │ ─────┤
+│    Relational      │  7   │  Matching, Association, Sequencing, Parsons, Graph
+└────────────────────┘      │  ✓ Implemented: 2/7 (Matching, Parsons)
+                             │
+┌────────────────────┐      │
+│ IV. Production &   │ ─────┤
+│   Generative       │  5   │  Free Text, Code Submission, Diagram, Audio, File Upload
+└────────────────────┘      │  ✓ Implemented: 0/5 (Greenlight-delegated)
+                             │
+┌────────────────────┐      │
+│ V. Simulation &    │ ──────  4 types: Sliders, CLI Emulator, Dialogue, State Puzzles
+│    Dynamic         │         ✓ Implemented: 0/4 (Greenlight-delegated)
+└────────────────────┘
+
+┌────────────────────┐
+│ VI. Meta-Cognitive │ ───────  5 types: Confidence, Difficulty, Reflection,
+└────────────────────┘          Self-Correction, Error Tagging
+                                ✓ Implemented: 0/5 (Wrappers pending)
+
+┌────────────────────┐
+│ VII. CS-Specific   │ ───────  7 subtypes: Code Understanding, Construction,
+└────────────────────┘          Debugging, Config/CLI, Architecture, Algorithms, Testing
+                                ✓ Implemented: 0/7 (Greenlight-delegated)
+
+┌────────────────────┐
+│ VIII. Error-Focused│ ───────  2 types: Error ID, Error Correction
+└────────────────────┘          ✓ Implemented: 0/2 (Partial: Parsons has error analysis)
+
+┌────────────────────┐
+│ IX. Comparison &   │ ───────  6 types: Compare A vs B, Similarities, Differences,
+│   Discrimination   │          Trade-offs, When-to-use, Boundary Cases
+└────────────────────┘          ✓ Implemented: 0/6 (Text-based possible)
+
+┌────────────────────┐
+│ X. Explanation &   │ ───────  6 types: Own words, Teach-back, Why/Why-not,
+│   Elaboration      │          Mechanism, Causal Chain
+└────────────────────┘          ✓ Implemented: 0/6 (Free-text requires LLM grading)
+
+┌────────────────────┐
+│ XI. Creative &     │ ───────  6 types: Generate example/counterexample/analogy,
+│    Generative      │          Test case, Design, Propose alternative
+└────────────────────┘          ✓ Implemented: 0/6 (Expert-level, LLM grading)
+
+═══════════════════════════════════════════════════════════════════
+
+Total Coverage: 7 of 60+ types (12%)
+Terminal-Ready Backlog: ~15 high-priority types
+Greenlight-Delegated: ~20 runtime-dependent types
+Meta-Wrappers: 5 cross-cutting enhancements
+```
+
+**Legend:**
+- ✓ Implemented: Production-ready handler in `src/cortex/atoms/`
+- Terminal-Ready: Can be implemented with Rich library widgets
+- Greenlight-Delegated: Requires IDE (code execution, debugging, visual editors)
+- Meta-Wrappers: Enhance existing atom types (confidence, reflection, etc.)
+
+---
+
 ## Table of Contents
 
 1. [Recognition & Discrimination Atoms](#i-recognition--discrimination-atoms)

@@ -55,6 +55,59 @@ This document defines the unique positioning of Cortex-CLI within the broader Ri
 
 ---
 
+## Cortex-CLI Integration Partners
+
+While Cortex-CLI is a standalone terminal-based learning tool, it integrates with two complementary systems to extend its capabilities:
+
+### 1. Right-Learning Platform (Cloud Integration)
+**Role:** Cloud-based adaptive learning platform
+**Integration Type:** Mastery sync, curriculum mapping, Z-Score signals
+
+**How It Works:**
+- **Data Flow:** Bidirectional sync of learning progress and mastery scores
+- **Use Case:** Study offline with cortex-cli, sync progress to Right-Learning for multi-device access
+- **Content Pipeline:** Cortex-CLI validates and prepares atoms; Right-Learning serves them in web courses
+- **Status:** Active integration (see [`adaptive-learning.md`](./adaptive-learning.md))
+
+**Example Workflow:**
+1. Complete a course module in Right-Learning (web platform)
+2. Export progress → cortex-cli for offline study (airplane, secure network)
+3. Study with FSRS-optimized spaced repetition in terminal
+4. Re-sync mastery updates → Right-Learning when back online
+5. Continue course with updated knowledge state
+
+### 2. Greenlight IDE (Runtime Integration)
+**Role:** IDE-based coding lab for runtime-dependent atoms
+**Integration Type:** Atom handoff via REST API, shared telemetry
+
+**How It Works:**
+- **Data Flow:** Cortex-CLI → Greenlight (atom execution request), Greenlight → Cortex-CLI (test results, feedback)
+- **Use Case:** When a learning atom requires code execution, debugging, or IDE tools
+- **Handoff Protocol:** Terminal displays "Opening in Greenlight..." → IDE opens → learner codes/debugs → results sync back
+- **Status:** Planned integration (see [`greenlight-integration.md`](./greenlight-integration.md))
+
+**Example Workflow:**
+1. Studying CCNA subnetting in cortex-cli (terminal drills)
+2. Encounter atom: "Write Python function to calculate network address"
+3. Cortex-CLI hands off to Greenlight IDE (requires code execution)
+4. Write code in IDE, run tests, get feedback
+5. Results (3/5 tests passed, partial credit) sync back to cortex-cli
+6. Continue terminal session with next atom
+
+### Integration Summary
+
+| Aspect | Right-Learning | Greenlight |
+|--------|----------------|------------|
+| **Purpose** | Cloud sync for multi-device learning | Runtime execution for code atoms |
+| **Direction** | Bidirectional (sync) | Request-Response (handoff) |
+| **Atoms Handled** | All atom types (mirrors cortex-cli) | Code, debugging, CLI, projects |
+| **When Used** | Multi-device access, team learning | Code execution, visual debugging |
+| **Required?** | No (cortex-cli works standalone) | No (cortex-cli works without Greenlight) |
+
+**Key Principle:** Cortex-CLI is the primary orchestrator. Both integrations are optional and extend functionality without breaking the standalone terminal experience.
+
+---
+
 ## What a CLI Can Do That a Website Cannot
 
 Cortex-CLI's power comes from capabilities that are impossible or impractical in a web browser:

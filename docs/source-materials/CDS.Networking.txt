@@ -1,0 +1,469 @@
+I will add the courses here. Just write Confimed:
+
+CDS.Networking (E2025)
+CDS.Networking
+Welcome to CDS networking  👋🏻
+
+Lecturer: Anne-Mette Tønnesen, amt@easv.dk, 41775702, assisted by Mads Reese, mre@easv.dk
+
+About this course
+Announcements
+
+Course Plan
+
+Course Files
+
+ZoomLink (just in case)
+
+Cisco Networking Academy Webpage
+
+Examfiles
+
+All Labs, Packet Tracers and Assignment
+
+All Powerpoints
+
+Networking today and Switch Config
+About this week
+
+Welcome to the first week of your networking journey with Cisco Networking Academy!
+
+We’ll begin with Module 1: Networking Today, where you’ll explore how networks connect people and devices, the types of networks (LAN, WAN, Internet), and trends like cloud computing, BYOD, and smart homes. You’ll also learn about basic network security and career paths in IT.
+
+Then we move into Module 2: Basic Switch and End Device Configuration, where you’ll get hands-on with Cisco IOS. You’ll learn how to:
+
+Access and navigate network devices via CLI
+Configure hostnames, passwords, and IP addresses
+Save and verify device configurations
+You’ll also be introduced to NetAcad.com, your learning platform, and Packet Tracer, Cisco’s simulation tool for practicing network setups.
+
+
+Learning resources
+
+Module 1
+
+
+
+Module 2
+
+
+
+
+This weeks Presentation
+
+Learning activities
+
+On our first day of the CDS.net class, we will:
+
+Get to know each other and talk about your experience with networking
+
+Explore the NetAcad.com platform together
+
+Try out a small network setup in Packet Tracer
+
+✨ Please make sure you’ve downloaded and installed Packet Tracer before class so you’re ready to jump in!
+
+On the second day of this week, we will:
+
+Work hands-on with Packet Tracer
+
+Get an introduction to the lab setup
+
+Practice a basic switch configuration
+
+Learn about Cisco IOS and the basic CLI commands
+
+https://moodle.easv.dk/pluginfile.php/301096/mod_label/intro/01_Lab%20Basic%20Switch.pkt
+
+https://moodle.easv.dk/pluginfile.php/301096/mod_label/intro/02_Exercise%20PT%20-%20Implementing%20Basic%20Connectivity.docx
+
+
+Video: Initial Switch configuration
+
+Protocols and Models
+About this week
+
+This week, we’ll explore how devices communicate across networks using protocols and models. You’ll learn:
+
+Why rules and standards matter in network communication.
+How protocols like TCP/IP and OSI structure data exchange.
+The role of organizations like IEEE and IETF in ensuring interoperability.
+How data is packaged (encapsulation) and addressed for delivery.
+📌 Note: Tuesday’s classes are cancelled as I’ll be attending a sector conference.
+📎 I’ll upload an extra Packet Tracer assignment so you can practise the Cisco IOScommands once more.
+
+
+Learning resources
+
+Read Module 3, Network Protocols and models and/or watch the videos:
+
+Module 3
+
+
+
+This weeks Presentations
+
+Learning activities
+
+You will work with this 02_Exercise PT - Implementing Basic Connectivity Tuesday since classes are cancelled.
+
+This exercise is specifically designed to practice using the CLI and configuring switches via command-line commands in Packet Tracer. You'll be setting up switch names, passwords, VLAN interfaces, and verifying connectivity—all through the CLI.
+
+Look at this poster to remember the modes and promst in CLI
+
+If you like to check your understanding - see this walkthrough of the exercise.
+
+
+
+Wendesday
+
+On Wednesday, you'll be working with protocols, focusing on both reference models and real-life implementations. The OSI Model and TCP/IP Model are the two primary reference models used to understand how network protocols operate across layers. Each layer in these models has distinct responsibilities—from physical transmission to application-level interactions.
+
+We will work with this exercise and hopefully we will dive into a labsetup.
+
+
+ 
+
+The Physical Layer and Numbering systems
+About this week
+
+We’ll explore how data moves through cabels and networking media, and how it’s represented digitally.
+
+Module 4: Physical Layer
+Learn about cables, connectors, wireless media, and how signals carry data. You’ll compare copper vs. fiber optics and understand bandwidth, encoding, and interference.
+
+Module 5: Number Systems
+Understand binary and hexadecimal systems used in IP addressing. You’ll practice converting between decimal, binary, and hex—essential for working with IPv4 and IPv6.
+
+
+Learning resources
+
+Read Module 4, Physical Layer and/or watch the videos:
+
+Module 4
+
+
+ 
+Read Module 5, Numbering Systems and/or watch the videos:
+
+Module 5
+
+
+ 
+
+Learning activities
+
+Tuesday – Physical Layer
+Learn about different types of copper cables (UTP, STP, coaxial).
+Hands-on task: Create your own Ethernet cable.
+04_Exercise - Building an Ethernet Crossover Cable
+Wednesday – Number Systems
+Practice converting decimal ↔ binary.
+Learn how to convert binary ↔ hexadecimal
+05_Exercise - Numbering systems
+
+This weeks presentations
+
+The Datalink layer and Ethernet Switching
+About this week
+
+This week, we’ll focus on how devices communicate over local area networks and how switches manage data traffic.
+
+Module 6: Data Link Layer
+Learn how the data link layer prepares data for transmission, manages error detection, and controls access to network media. You’ll explore network topologies (star, bus, ring, mesh), duplex communication, and how frames are structured for reliable delivery.
+
+Module 7: Ethernet Switching
+Discover how Ethernet works in switched networks. You’ll study Ethernet frames, MAC addresses, how switches learn and forward data, and the impact of duplex and speed settings. You’ll also see how switches use different forwarding methods to optimize network performance
+
+
+Learning resources
+
+Read Module 6, the data link layer and/or watch the videos:
+
+Module 6
+
+
+ 
+Read Module 7, the Ethernet switch and/or watch the videos:
+
+Module 7
+
+
+ 
+ 
+
+Learning activities
+
+Tuesday – The Datalink Layer
+The LLC and Mac sublayers in the Datalink Laye
+The difference betweel Physical and logical topology
+What is Media Access Control
+06_Exercise - The datalink Layer
+Wednesday – Ethernet switches
+The Ethernet frame
+Mac Adresses 
+The concept of switching and switching methods
+07_Exercise - Viewing Network MAC Addresses
+
+This weeks presentations
+
+Network Layer and Address resolution
+About this week
+
+Note: Class times have changed this week!
+
+International class: Meets only Friday from 8:15 to 11:30
+Danish class: Meets only Tuesday from 11:00 to 14:00
+Thursday from 09:00 you can join the recap lab i A11
+ 
+This Week’s Focus: Network Layer & Address Resolution
+Module 8: Network Layer
+Learn how the network layer enables communication between devices using IP (IPv4 and IPv6).
+Explore the structure and key fields of IPv4 and IPv6 packets.
+Understand how hosts and routers use routing tables to direct packets across networks.
+Discover the basics of static and dynamic routing, and how routers make forwarding decisions.
+Module 9: Address Resolution
+Understand the roles of MAC addresses (Layer 2) and IP addresses (Layer 3) in network communication.
+Learn how Address Resolution Protocol (ARP) maps IPv4 addresses to MAC addresses, and how ARP tables work.
+Explore IPv6 Neighbor Discovery (ND) and how it enables devices to find each other on a network
+
+Learning resources
+
+Read module 8, the Network layer and/or watch the video
+
+Module 8
+
+
+Read module 9, address resolution and/or watch the video
+
+Module 9
+
+
+
+Learning activities
+
+We are going to work with the network layer and the concept of routing.
+
+In the lab we will use this setup 
+
+Labsetup
+
+
+You can also find the Setup in a Packet Tracer file
+
+
+This weeks presentations
+
+Basic Router Config and ipv4
+About this week
+
+Alex is still on leave, so you will have all my lessons on one day!
+International class will meet Tueday from 10:00 to 13:30 in A17
+Danish class will meet  Wednesday from 10:00 til 13:30 in A17
+I have updated the class calendar 📅
+ 
+Module 10: Basic Router Configuration
+Learn how to set up a Cisco router from scratch.
+Configure the router’s name, passwords, and security settings.
+Set up and activate interfaces with both IPv4 and IPv6 addresses.
+Module 11: IPv4 Addressing
+Understand the structure of an IPv4 address, including the network and host portions, and the subnet mask.
+Learn the difference between unicast, broadcast, and multicast addresses.
+Get familiar with public, private, and special IPv4 addresses.
+
+Learning resources
+
+Read module 10, Basic router configuration and/or watch the video
+
+Module 10
+
+
+Read module 11, Ipv4 addressing and/or watch the videos:
+
+Module 11
+
+
+
+This weeks presentations
+
+Learning activities
+
+We will work with basic router configuration and IPv4 addresses. To practice, you’ll use these exercises:
+
+Router Configuration
+Exercise:10_Exercise - Routing Table Config 
+Exercise:11  Build a Switch and Router Network
+Classful IP Addresses
+Exercise: 08 Exercise Classfull IP addresses
+Classless IP Addresses
+Exercise: 09 Exercise Classless IP addressesWhat you’ll do:
+
+Ipv4 addressing
+About this week
+
+This week, we’ll concentrate on two essential networking skills: subnetting and understanding classless IPv4 addressing.
+
+Key Topics
+Subnetting Fundamentals:
+Learn how to divide networks into smaller segments using subnet masks and prefix lengths (slash notation). You’ll practice calculating subnets for various network sizes and requirements.
+Classless IPv4 Addressing (CIDR):
+Move beyond traditional classful addressing and discover how Classless Inter-Domain Routing (CIDR) allows for flexible network design. You’ll work with different prefix lengths (e.g., /24, /16, /8) and see how they impact the number of hosts and subnets.
+Efficient Network Segmentation:
+Explore how subnetting and classless addressing help optimize IP address usage, minimize waste, and improve network performance and security.
+
+Learning resources
+
+Read module 11 and/or see 
+
+
+
+
+Learning activities
+
+In our next sessions, we will dive into classless addressing (CIDR)  and move on to subnetting IPv4. This is one of the most challenging – but also most important – topics in networking.
+
+We will:
+
+Recap how classful addressing (A, B, C) worked historically.
+
+Understand how CIDR (classless addressing) replaced it, making IP address use far more efficient.
+
+Review subnetting (breaking a network into smaller parts).
+
+Practice calculating subnets, masks, and address ranges.
+
+This is tricky at first, but don’t worry – we’ll work step by step with examples and exercises
+
+09_Classless ipv4 
+
+09_Classless ipv4 - Here is my solution - with all the binary calculations.
+
+12 Subnetting 1
+
+12 Subnetting 1 - Here is my solution
+
+13 Subnetting 2
+
+13 Subnetting 2 - Here is my solution
+
+14 Subnetting 3
+
+14 Subnetting 3 - Here is my solution
+
+
+This weeks presentations
+
+Ipv6 addressing
+About this week
+
+Why IPv6?
+
+Learn why we need IPv6 and how it solves IPv4’s limitations.
+
+IPv6 Address Basics: Understand how IPv6 addresses are written and types like unicast, multicast, and link-local.
+
+Configuration: Practice setting IPv6 addresses manually and dynamically.
+
+
+Learning resources
+
+Read module 12, Ipv6 addressing and/or watch the videos:
+
+Module 12
+
+
+
+Learning activities
+
+IPv6 Addresses Hands-on Practice:
+
+You’ll work with IPv6 global unicast addresses and link-local addresses.
+
+Tools: We’ll use both Packet Tracer simulations and real equipment in the lab.
+
+Focus: You’ll configure, test, and verify IPv6 addresses in different scenarios.
+
+
+This weeks presentations
+
+ICMP and the Transport layer
+About this week
+
+ICMP & Transport Layer
+We’ll focus on how networks test connections and move data reliably:
+
+Use ICMP tools (like ping and traceroute) to check and troubleshoot network connectivity.
+Understand how the transport layer (TCP and UDP) manages end-to-end data delivery, including reliability, speed, and port numbers.
+By the end of the week, you’ll be able to test network paths and explain how data gets from one application to another—reliably or fast, depending on the protocol.
+
+
+Learning resources
+
+Read module 13 and/or Watch the video:
+
+Module 13
+
+
+ 
+Read module 14 and/or Watch the video:
+
+Module 14
+
+
+
+Learning activities
+
+We will work in the lab, and use icmp both for ping and tracert in this topology. And ofcourse you will configure the entire setup :)
+
+icmp
+
+
+
+This weeks presentations
+
+The application layer, securing the network and building a small network
+About this week
+
+This Week: Application Layer & Network Security
+
+See how web, email, file sharing, and name/address protocols (like HTTP, DNS, DHCP, SMTP, FTP) support applications.
+Learn the basics of network security: common threats, attacks, and how to protect devices with strong passwords, updates, and firewalls.
+
+Learning resources
+
+Read module 15 and/or watch the videos:
+
+Module 15
+
+
+Read Module 16 network security fundamentales and/or watch the videos:
+
+Module 16
+
+
+ 
+ 
+
+This weeks presentations and exercises
+
+Learning activities
+
+We will work both in Packet Tracer and in the lab with the following :
+
+https://moodle.easv.dk/pluginfile.php/368202/mod_label/intro/23%20Exercise%20-DNS%20og%20HTTP.docx
+
+https://moodle.easv.dk/pluginfile.php/368202/mod_label/intro/24%20Exercise%20%20DNS%20resolution%20.docx
+
+https://moodle.easv.dk/pluginfile.php/368202/mod_label/intro/26%20Exercise%20-Securing%20Network%20Devices.docx
+
+
+CCNA Final test
+Wednesday November 12th - Final Exam
+
+09.00 Room A17 - for the international class
+
+12.00 Room A17 - for the danish class
+
+Make sure that you have done the End of Course Survey.
+
+You have 2 hours for the exam. 
