@@ -6,5 +6,12 @@ Each extractor handles a specific content format or source type.
 """
 
 from .base import BaseExtractor, ExtractorRegistry
+from .pdf_extractor import PDFExtractor, PDFExtractionConfig, CCNAPDFExtractor
 
-__all__ = ["BaseExtractor", "ExtractorRegistry"]
+__all__ = [
+    "BaseExtractor",
+    "ExtractorRegistry",
+    "PDFExtractor",
+    "PDFExtractionConfig",
+    "CCNAPDFExtractor",
+]
