@@ -6,6 +6,12 @@
 
 ---
 
+## Scope and Routing (cortex-cli vs Greenlight)
+
+- cortex-cli remains terminal-native: fast recognition/recall/structural drills (MCQ variants, cloze, short answer, numeric, sequencing, matching, Parsons), light meta-cog, comparison/explanation/creative text tasks.
+- Greenlight (IDE) owns runtime/code/diff/git atoms: code submission with tests, debugging/fault isolation, diff review/minimal fix, code construction/trace, config/CLI emulator tasks, project-scale tasks with branches/worktrees, testing/verification on real code. cortex-cli can display returned results when invoked from the terminal.
+- Practice pane widgets to support: selection grids (multi-select variants), ordering lists (sequencing/Parsons), matching/bucket grids, hotspot/label overlays for images, lightweight text DSL for graphs until graphical available, CLI emulator pane, slider-style inputs (text fallback), and partial-credit feedback visualizations.
+
 ## Table of Contents
 
 1. [Design Principles](#design-principles)

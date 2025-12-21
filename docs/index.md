@@ -114,6 +114,58 @@ Conceptual explanations of system design.
 | [Session Remediation](explanation/session-remediation.md) | Hints, retry logic, and study notes |
 | [Struggle-Aware System](explanation/struggle-aware-system.md) | Targeted weakness identification |
 | [Transfer Testing](explanation/transfer-testing.md) | Memorization detection via format consistency |
+| [Vision: DARPA Digital Tutor](explanation/vision-darpa-tutor.md) | Overall architecture and cortex-cli positioning |
+| [TUI Design](explanation/tui-design.md) | Terminal interface patterns and widgets |
+
+---
+
+## Integrations
+
+Cortex-CLI integrates with two complementary systems to extend its capabilities:
+
+### Right-Learning Platform
+- **Purpose:** Cloud-based adaptive learning platform for multi-device access
+- **Integration:** Mastery sync, curriculum mapping, Z-Score signals
+- **Data Flow:** Bidirectional sync of learning progress and mastery scores
+- **Status:** Active integration
+- **Learn More:** [Adaptive Learning](explanation/adaptive-learning.md)
+
+### Greenlight IDE
+- **Purpose:** IDE-based coding lab for runtime-dependent atoms
+- **Integration:** Atom handoff via REST API, shared telemetry
+- **Data Flow:** Cortex-CLI → Greenlight (code execution), Greenlight → Cortex-CLI (test results)
+- **Status:** Planned integration
+- **Learn More:** [Greenlight Integration](explanation/greenlight-integration.md) | [How-To Guide](how-to/integrate-with-greenlight.md)
+
+**Note:** Both integrations are optional. Cortex-CLI works standalone as a terminal-based learning tool.
+
+---
+
+## Learning Atom Types
+
+Cortex-CLI supports **60+ learning atom types** across 11 cognitive categories, designed to rival DARPA Digital Tutor and Knewton-class adaptive engines.
+
+### Currently Implemented (7 types)
+
+| Type | Category | Handler | Description |
+|------|----------|---------|-------------|
+| **flashcard** | Recall & Entry | `FlashcardHandler` | Question/answer with self-evaluation |
+| **cloze** | Recall & Entry | `ClozeHandler` | Fill-in-the-blank with progressive hints |
+| **mcq** | Recognition | `MCQHandler` | Single/multi-select with JSON support |
+| **true_false** | Recognition | `TrueFalseHandler` | Binary choice with LLM explanations |
+| **numeric** | Recall & Entry | `NumericHandler` | Decimal, binary, hex, IP, CIDR with tolerance |
+| **matching** | Structural | `MatchingHandler` | Term-definition pairing with partial credit |
+| **parsons** | Structural | `ParsonsHandler` | Code/step ordering with error analysis |
+
+**Coverage:** ~12% of taxonomy (7 of 60+ types)
+
+### Roadmap
+
+- **High Priority (Terminal-Compatible):** Short answer, advanced cloze, error-spotting, sequencing, association
+- **Meta-Cognitive Wrappers:** Confidence rating, difficulty rating, reflection prompts, self-correction
+- **Greenlight-Delegated (Runtime Required):** Code submission, debugging, CLI emulator, diff review, project-scale tasks
+
+**See:** [Complete Atom Taxonomy](reference/learning-atoms.md) for all 60+ types with implementation status and [Atom Handlers Reference](reference/atom-handlers.md) for handler details.
 
 ---
 
@@ -123,16 +175,7 @@ Conceptual explanations of system design.
 
 A **learning atom** is the fundamental unit of content in Cortex. Each atom represents a single, atomic piece of knowledge that can be tested.
 
-**Atom Types:**
-
-| Type | Description | Example |
-|------|-------------|---------|
-| `flashcard` | Question/answer pair | "What does TCP stand for?" / "Transmission Control Protocol" |
-| `cloze` | Fill-in-the-blank | "TCP provides {{c1::reliable}} data delivery" |
-| `mcq` | Multiple choice question | Four options, one correct |
-| `true_false` | Binary true/false | Statement verification |
-| `parsons` | Code ordering problem | Arrange Cisco commands in sequence |
-| `matching` | Term-definition pairs | Match protocols to port numbers |
+**See [Learning Atom Types](#learning-atom-types) above for the complete list of supported atom types (60+ across 11 cognitive categories).**
 
 ### Anki Integration
 

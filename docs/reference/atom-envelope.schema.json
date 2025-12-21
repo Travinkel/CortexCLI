@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://right-learning.example.com/schemas/atom-envelope.json",
+  "title": "AtomEnvelope",
+  "description": "Shared atom envelope for cortex-cli and Greenlight integrations.",
+  "type": "object",
+  "required": ["atom_type", "owner", "grading_mode"],
+  "properties": {
+    "atom_id": {
+      "type": "string",
+      "description": "Unique atom identifier (UUID or slug)."
+    },
+    "atom_type": {
+      "type": "string",
+      "description": "Atom type identifier (e.g., mcq, cloze, code_submission, debugging)."
+    },
+    "owner": {
+      "type": "string",
+      "enum": ["cortex", "greenlight"],
+      "description": "Which surface executes/presents the atom."
+    },
+    "grading_mode": {
+      "type": "string",
+      "enum": ["static", "runtime", "human", "hybrid"],
+      "description": "How the atom is graded."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Type-specific atom payload (question, answers, code, etc.).",
+      "additionalProperties": true
+    },
+    "runner": {
+      "type": "object",
+      "description": "Runtime execution settings for Greenlight-owned atoms.",
+      "properties": {
+        "language": { "type": "string", "description": "Language/runtime (e.g., python, csharp, node)." },
+        "entrypoint": { "type": "string", "description": "Path to entrypoint file/module." },
+        "tests": { "type": "string", "description": "Path to tests or inline test identifier." },
+        "time_limit_ms": { "type": "integer", "minimum": 1 },
+        "memory_limit_mb": { "type": "integer", "minimum": 16 },
+        "sandbox_policy": { "type": "string", "description": "Isolation level (isolated, privileged, etc.)." }
+      },
+      "required": ["language", "entrypoint", "tests"],
+      "additionalProperties": false
+    },
+    "diff_context": {
+      "type": "object",
+      "description": "Context for diff-based atoms.",
+      "properties": {
+        "base_path": { "type": "string" },
+        "patch": { "type": "string" },
+        "review_rubric": { "type": "array", "items": { "type": "string" } },
+        "assertions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "git_guidance": {
+      "type": "boolean",
+      "description": "If true, allow git command suggestions (branch/worktree/cherry-pick/etc.)."
+    },
+    "attachments": {
+      "type": "array",
+      "description": "Allowed attachment types for this atom.",
+      "items": { "type": "string", "enum": ["file", "audio", "image"] }
+    },
+    "meta_wrappers": {
+      "type": "object",
+      "description": "Common meta-cognitive captures.",
+      "properties": {
+        "collect_confidence": { "type": "boolean" },
+        "collect_difficulty": { "type": "boolean" },
+        "allow_self_correction": { "type": "boolean" },
+        "error_tagging": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

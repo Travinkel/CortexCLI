@@ -1,0 +1,76 @@
+openapi: 3.1.0
+info:
+  title: Greenlight Handoff API
+  version: 0.1.0
+  description: Minimal contract for cortex-cli delegating runtime atoms to Greenlight.
+paths:
+  /greenlight/run-atom:
+    post:
+      summary: Execute or grade a runtime atom via Greenlight.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtomEnvelope"
+      responses:
+        "200":
+          description: Atom graded/executed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AtomResult"
+        "400":
+          description: Invalid atom payload.
+        "500":
+          description: Execution error.
+components:
+  schemas:
+    AtomEnvelope:
+      $ref: ./atom-envelope.schema.json
+    AtomResult:
+      type: object
+      required: [atom_id, correct, partial_score]
+      properties:
+        atom_id:
+          type: string
+        correct:
+          type: boolean
+        partial_score:
+          type: number
+          description: 0.0-1.0 partial credit.
+        feedback:
+          type: string
+        test_results:
+          type: object
+          properties:
+            passed:
+              type: array
+              items: { type: string }
+            failed:
+              type: array
+              items: { type: string }
+            logs:
+              type: string
+            stdout:
+              type: string
+            stderr:
+              type: string
+        diff_suggestion:
+          type: string
+          description: Optional suggested patch.
+        git_suggestions:
+          type: array
+          items: { type: string }
+        meta:
+          type: object
+          properties:
+            confidence:
+              type: integer
+              description: 1-5 scale if collected.
+            difficulty:
+              type: integer
+              description: 1-5 scale if collected.
+            error_tag:
+              type: string
+              description: Learner-tagged error class.

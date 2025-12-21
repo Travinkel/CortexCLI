@@ -21,6 +21,74 @@ REST API specification for Cortex.
 
 ---
 
+## Greenlight Handoff (conceptual contract)
+
+Purpose: cortex-cli can delegate runtime/IDE atoms to Greenlight and receive a graded result.
+
+See `docs/reference/atom-envelope.schema.json` for the shared envelope and `docs/reference/greenlight-handoff.openapi.yaml` for the OpenAPI draft.
+
+### Request
+
+```
+POST /greenlight/run-atom
+{
+  "atom_id": "uuid",
+  "owner": "greenlight",
+  "grading_mode": "runtime",
+  "atom_type": "code_submission" | "debugging" | "diff_review" | "cli_task",
+  "runner": {
+    "language": "python",
+    "entrypoint": "main.py",
+    "tests": "tests/test_main.py",
+    "time_limit_ms": 3000,
+    "memory_limit_mb": 256,
+    "sandbox_policy": "isolated"
+  },
+  "diff_context": {
+    "base_path": "src/",
+    "patch": "...",
+    "review_rubric": ["passes tests", "matches spec", "minimal change"]
+  },
+  "meta_wrappers": {
+    "collect_confidence": true,
+    "collect_difficulty": true,
+    "allow_self_correction": true,
+    "error_tagging": true
+  }
+}
+```
+
+### Response
+
+```
+{
+  "atom_id": "uuid",
+  "correct": true,
+  "partial_score": 0.8,
+  "feedback": "Tests 1-4 passed; fix off-by-one in edge case.",
+  "test_results": {
+    "passed": ["test_basic", "test_perf"],
+    "failed": ["test_edge"],
+    "logs": "...",
+    "stdout": "...",
+    "stderr": "..."
+  },
+  "diff_suggestion": null,
+  "git_suggestions": ["git switch -c fix-edge", "git add -p", "git commit -m 'Fix edge case'"],
+  "meta": {
+    "confidence": 3,
+    "difficulty": 4,
+    "error_tag": "off_by_one"
+  }
+}
+```
+
+Notes:
+- `owner`/`grading_mode`/`runner` fields align with the shared atom schema (see `docs/reference/learning-atoms.md`).
+- cortex-cli may present the returned result in the terminal; Greenlight provides the full IDE UX when invoked directly.
+
+---
+
 ## Response Codes
 
 | Code | Meaning |
