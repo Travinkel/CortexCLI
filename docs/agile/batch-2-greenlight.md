@@ -132,6 +132,8 @@ gh issue create \
 
 ## Testing
 
+### Manual Validation
+
 ```python
 # Test synchronous execution
 client = GreenlightClient("http://localhost:8080")
@@ -151,6 +153,28 @@ while not result:
     result = await client.poll_execution(execution_id)
 assert result.status == "complete"
 ```
+
+
+
+### BDD Testing Requirements
+
+**See:** [BDD Testing Strategy](../explanation/bdd-testing-strategy.md)
+
+Create tests appropriate for this batch:
+- Unit tests for all new classes/functions
+- Integration tests for database interactions
+- Property-based tests for complex logic (use hypothesis)
+
+### CI Checks
+
+**See:** [CI/CD Pipeline](../explanation/ci-cd-pipeline.md)
+
+This batch must pass:
+- Linting (ruff check)
+- Type checking (mypy --strict)
+- Security scan (bandit)
+- Unit tests (85% coverage minimum)
+- Integration tests (all critical paths)
 
 ## Success Metrics
 

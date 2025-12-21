@@ -329,6 +329,8 @@ class GreenlightClient:
 
 ## Testing
 
+### Manual Validation
+
 ```bash
 # Unit tests with mocked httpx
 pytest tests/integrations/test_greenlight_client.py -v
@@ -364,6 +366,28 @@ async def test():
 asyncio.run(test())
 "
 ```
+
+
+
+### BDD Testing Requirements
+
+**See:** [BDD Testing Strategy](../explanation/bdd-testing-strategy.md)
+
+Create tests appropriate for this batch:
+- Unit tests for all new classes/functions
+- Integration tests for database interactions
+- Property-based tests for complex logic (use hypothesis)
+
+### CI Checks
+
+**See:** [CI/CD Pipeline](../explanation/ci-cd-pipeline.md)
+
+This batch must pass:
+- Linting (ruff check)
+- Type checking (mypy --strict)
+- Security scan (bandit)
+- Unit tests (85% coverage minimum)
+- Integration tests (all critical paths)
 
 ## Commit Strategy
 
@@ -414,8 +438,16 @@ gh issue create \
 
 ## Reference
 
+### Strategy Documents
+- [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
+- [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
+- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
+
+### Work Orders
 - **Master Plan:** `C:\\Users\\Shadow\\.claude\\plans\\tidy-conjuring-moonbeam.md` lines 533-724
 - **Parent Work Order:** `docs/agile/batch-2-greenlight.md`
+
 
 ---
 

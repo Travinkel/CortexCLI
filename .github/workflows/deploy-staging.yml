@@ -1,0 +1,55 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build wheel
+        run: |
+          pip install build
+          python -m build
+
+      - name: Backup database
+        run: |
+          pg_dump $STAGING_DB_URL > backup-$(date +%Y%m%d-%H%M%S).sql
+        env:
+          STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
+
+      - name: Apply migrations
+        run: |
+          for f in src/db/migrations/*.sql; do
+            psql $STAGING_DB_URL -f "$f" || exit 1
+          done
+        env:
+          STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
+
+      - name: Deploy package
+        run: |
+          scp dist/*.whl deploy@staging:/opt/cortex/
+          ssh deploy@staging 'pip install --upgrade /opt/cortex/*.whl'
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -f https://staging.cortex.example.com/health || exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          psql $STAGING_DB_URL < backup-*.sql
+          ssh deploy@staging 'systemctl restart cortex'
+        env:
+          STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}

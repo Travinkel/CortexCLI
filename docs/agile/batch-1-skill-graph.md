@@ -325,11 +325,27 @@ def test_hypercorrection():
 
 ## Reference
 
+### Strategy Documents
+- [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
+- [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
+- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
+
+### Work Orders
+### Strategy Documents
+- [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
+- [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
+- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
+
+### Work Orders
 - **Master Plan:** `C:\Users\Shadow\.claude\plans\tidy-conjuring-moonbeam.md`
 - **Section:** Batch 1: Skill Graph Foundation (lines 218-499)
 - **Database Schema:** Lines 223-271
 - **Bayesian Formula:** Lines 361-398
 - **Skill Selection:** Lines 400-470
+
+
 
 ---
 

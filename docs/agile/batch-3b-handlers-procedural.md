@@ -51,7 +51,16 @@ One commit per handler + final registration commit.
 
 ## Reference
 
+### Strategy Documents
+- [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
+- [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
+- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
+
+### Work Orders
+
 Plan lines 894-1079 (Tier 1 handlers section)
+
 
 ---
 

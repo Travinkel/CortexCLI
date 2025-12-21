@@ -128,7 +128,16 @@ jsonschema.validate(instance=atom, schema=schema)  # Should pass
 
 ## Reference
 
+### Strategy Documents
+- [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
+- [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
+- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
+
+### Work Orders
+
 Plan lines 1084-1160 (Batch 4: JSONB Schema section)
+
 
 ---
 

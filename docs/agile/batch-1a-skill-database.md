@@ -142,6 +142,8 @@ INSERT INTO skills (id, skill_code, name, description, domain, cognitive_level) 
 
 ## Testing
 
+### Manual Validation
+
 ```bash
 # Apply migration
 psql -U postgres -d cortex_cli < src/db/migrations/030_skill_graph.sql
@@ -158,6 +160,59 @@ psql -U postgres -d cortex_cli -c "SELECT skill_code, name, domain FROM skills L
 # Test index usage
 psql -U postgres -d cortex_cli -c "EXPLAIN SELECT * FROM skills WHERE domain = 'networking';"
 ```
+
+### BDD Testing Requirements
+
+**See:** [BDD Testing Strategy](../explanation/bdd-testing-strategy.md)
+
+Create integration tests to validate schema correctness:
+
+```python
+# tests/integration/test_skill_graph_schema.py
+
+@scenario('features/skill_graph.feature', 'Skill taxonomy is created')
+def test_skill_taxonomy_created():
+    pass
+
+@given('the database is initialized')
+def database_initialized(db_session):
+    # Migration already applied
+    pass
+
+@when('I query the skills table')
+def query_skills(db_session):
+    result = db_session.execute("SELECT COUNT(*) FROM skills")
+    return result.scalar()
+
+@then('all 3 skill graph tables exist')
+def verify_tables_exist(db_session):
+    tables = ['skills', 'atom_skill_weights', 'learner_skill_mastery']
+    for table in tables:
+        result = db_session.execute(f"SELECT to_regclass('{table}')")
+        assert result.scalar() is not None
+
+@then('all 5 indexes are created')
+def verify_indexes_created(db_session):
+    indexes = [
+        'idx_atom_skill_primary',
+        'idx_learner_skill_mastery_level',
+        'idx_learner_skill_retrievability',
+        'idx_skills_domain',
+        'idx_skills_cognitive_level'
+    ]
+    for index in indexes:
+        result = db_session.execute(f"SELECT to_regclass('{index}')")
+        assert result.scalar() is not None
+```
+
+### CI Checks
+
+**See:** [CI/CD Pipeline](../explanation/ci-cd-pipeline.md)
+
+This batch must pass:
+- Migration validation (`.github/workflows/pr-checks.yml` - migrations job)
+- Schema verification (tables and indexes created)
+- Integration tests (pytest tests/integration/test_skill_graph_schema.py)
 
 ## Commit Strategy
 
@@ -202,6 +257,13 @@ gh issue create \
 
 ## Reference
 
+### Strategy Documents
+- [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
+- [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
+- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
+
+### Work Orders
 - **Master Plan:** `C:\Users\Shadow\.claude\plans\tidy-conjuring-moonbeam.md` lines 223-271
 - **Parent Work Order:** `docs/agile/batch-1-skill-graph.md`
 

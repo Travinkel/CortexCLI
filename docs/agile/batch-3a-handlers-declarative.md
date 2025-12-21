@@ -150,6 +150,8 @@ git push -u origin batch-3a-handlers-declarative
 
 ## Testing
 
+### Manual Validation
+
 ```python
 # Test cloze_dropdown
 atom = ClozeDropdownAtom(
@@ -169,6 +171,28 @@ result = handler.present(atom, console)
 # User enters: "Application, Physical, Network, Transport, Data Link, Session, Presentation"
 assert result.partial_score == 1.0  # Order doesn't matter
 ```
+
+
+
+### BDD Testing Requirements
+
+**See:** [BDD Testing Strategy](../explanation/bdd-testing-strategy.md)
+
+Create tests appropriate for this batch:
+- Unit tests for all new classes/functions
+- Integration tests for database interactions
+- Property-based tests for complex logic (use hypothesis)
+
+### CI Checks
+
+**See:** [CI/CD Pipeline](../explanation/ci-cd-pipeline.md)
+
+This batch must pass:
+- Linting (ruff check)
+- Type checking (mypy --strict)
+- Security scan (bandit)
+- Unit tests (85% coverage minimum)
+- Integration tests (all critical paths)
 
 ## GitHub Issues
 
