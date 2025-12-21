@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Debugging Fix",
+  "description": "Modify code to satisfy tests or expected behavior.",
+  "type": "object",
+  "required": ["prompt", "language", "starter_code", "tests"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Task instructions describing the failure and goal."
+    },
+    "language": {
+      "type": "string",
+      "enum": ["python", "javascript", "java", "csharp", "c", "cpp", "go", "rust", "bash", "sql"],
+      "description": "Language/runtime used for the fix."
+    },
+    "starter_code": {
+      "type": "string",
+      "description": "Initial code with the defect."
+    },
+    "tests": {
+      "type": "string",
+      "description": "Path or inline test specification used for grading."
+    },
+    "expected_behavior": {
+      "type": "string",
+      "description": "Human-readable description of correct behavior."
+    },
+    "solution_code": {
+      "type": "string",
+      "description": "Reference solution code for internal validation."
+    },
+    "hints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional hints to guide the fix."
+    }
+  },
+  "additionalProperties": false
+}

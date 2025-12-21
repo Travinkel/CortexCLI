@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fault Isolation",
+  "description": "Probe test points to isolate a fault in a system.",
+  "type": "object",
+  "required": ["scenario", "test_points", "fault_point"],
+  "properties": {
+    "scenario": {
+      "type": "string",
+      "description": "System description and observed symptoms."
+    },
+    "system_map": {
+      "type": "string",
+      "description": "Optional diagram reference or ASCII map of the system."
+    },
+    "test_points": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the probe point."
+          },
+          "description": {
+            "type": "string",
+            "description": "What the probe point measures or observes."
+          },
+          "normal_reading": {
+            "type": "string",
+            "description": "Expected reading under normal operation."
+          },
+          "fault_reading": {
+            "type": "string",
+            "description": "Reading observed when the fault is present."
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Probe locations available to the learner."
+    },
+    "probes_allowed": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum number of probes allowed."
+    },
+    "fault_point": {
+      "type": "string",
+      "description": "Identifier of the component or location of the fault."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Rationale for why the fault is at this point."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Key Feature Problem",
+  "description": "Select the most critical steps from a list for a scenario.",
+  "type": "object",
+  "required": ["scenario", "options", "key_features", "required_count"],
+  "properties": {
+    "scenario": {
+      "type": "string",
+      "description": "Case vignette or urgent situation description."
+    },
+    "options": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 3,
+      "description": "Available actions to choose from."
+    },
+    "key_features": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 },
+      "minItems": 1,
+      "description": "Indices of the most critical options."
+    },
+    "required_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "How many options the learner must select."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Why these steps are the most critical."
+    }
+  },
+  "additionalProperties": false
+}
