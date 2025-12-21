@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Audio Recording Atom",
+  "description": "Record spoken explanation for later analysis.",
+  "type": "object",
+  "required": ["prompt", "max_duration_sec"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Prompt for the recorded response.",
+      "minLength": 1
+    },
+    "max_duration_sec": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum recording duration in seconds."
+    },
+    "language": {
+      "type": "string",
+      "description": "Language expected in the recording."
+    },
+    "sample_rate_hz": {
+      "type": "integer",
+      "minimum": 8000,
+      "description": "Audio sample rate in Hz."
+    },
+    "key_points": {
+      "type": "array",
+      "description": "Key points expected in the response.",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "transcript_required": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

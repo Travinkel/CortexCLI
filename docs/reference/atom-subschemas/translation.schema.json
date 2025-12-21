@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Translation Atom",
+  "description": "Translate text or code between languages.",
+  "type": "object",
+  "required": ["prompt", "source_text", "source_language", "target_language"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Instruction describing the translation task.",
+      "minLength": 1
+    },
+    "source_text": {
+      "type": "string",
+      "description": "Text or code to translate.",
+      "minLength": 1
+    },
+    "source_language": {
+      "type": "string",
+      "description": "Language of the source text."
+    },
+    "target_language": {
+      "type": "string",
+      "description": "Language of the translated output."
+    },
+    "glossary": {
+      "type": "array",
+      "description": "Preferred term mappings to apply.",
+      "items": {
+        "type": "object",
+        "required": ["source", "target"],
+        "properties": {
+          "source": {"type": "string"},
+          "target": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "preserve_formatting": {
+      "type": "boolean",
+      "default": true
+    },
+    "allow_paraphrase": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

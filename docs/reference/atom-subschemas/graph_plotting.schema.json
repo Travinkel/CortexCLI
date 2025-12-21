@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Graph Plotting Atom",
+  "description": "Plot data points or functions to match a target graph.",
+  "type": "object",
+  "required": ["prompt", "plot_type"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Instruction describing the graph to create.",
+      "minLength": 1
+    },
+    "plot_type": {
+      "type": "string",
+      "enum": ["line", "scatter", "bar", "histogram", "function", "area"],
+      "description": "Graph style to plot."
+    },
+    "x_axis_label": {"type": "string"},
+    "y_axis_label": {"type": "string"},
+    "x_range": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": {"type": "number"},
+        "max": {"type": "number"}
+      },
+      "additionalProperties": false
+    },
+    "y_range": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": {"type": "number"},
+        "max": {"type": "number"}
+      },
+      "additionalProperties": false
+    },
+    "target_expression": {
+      "type": "string",
+      "description": "Equation or expression defining the expected plot."
+    },
+    "target_points": {
+      "type": "array",
+      "description": "Explicit points that should be plotted.",
+      "items": {
+        "type": "object",
+        "required": ["x", "y"],
+        "properties": {
+          "x": {"type": "number"},
+          "y": {"type": "number"}
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}
