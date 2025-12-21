@@ -1,3 +1,7 @@
+"""Skill-Based Atom Selector.
+
+This module extends atom selection with skill gap targeting capabilities.
+Uses learner skill mastery data to select atoms that address weaknesses.
 """
 Atom Selection for Adaptive Learning.
 
@@ -11,32 +15,54 @@ Provides intelligent atom selection based on:
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class AtomSelector:
-    """
-    Select atoms for study sessions using adaptive strategies.
+@dataclass
+class AtomCandidate:
+    """Candidate atom with selection metadata."""
 
-    Strategies:
-    - Skill-based: Target learner's weakest skills
-    - Difficulty-matched: Choose atoms appropriate to mastery level
-    - Z-score ranked: Prioritize by spaced repetition signals
+    atom_id: str
+    atom_type: str
+    difficulty: float  # IRT difficulty (0-1)
+    primary_skills: list[str]  # Primary skill codes
+    secondary_skills: list[str]  # Secondary skill codes
+    z_score: float  # Selection score (higher = better match)
+
+
+class SkillBasedAtomSelector:
+    """
+    Select atoms based on learner skill gaps.
+
+    Strategy:
+    1. Identify learner's weakest skills for module
+    2. Find atoms primarily targeting those skills
+    3. Filter by difficulty appropriate to mastery level
+    4. Rank candidates by Z-score
+    5. Return top N atoms
+
+    Uses SkillMasteryTracker for skill gap identification.
     """
 
-    def __init__(self, db_connection: Any):
+    def __init__(self, db_connection, skill_tracker):
         """
-        Initialize atom selector with database connection.
+        Initialize SkillBasedAtomSelector.
 
         Args:
-            db_connection: AsyncPG connection or SQLAlchemy session
+            db_connection: Database connection for querying atoms
+            skill_tracker: SkillMasteryTracker instance for gap analysis
         """
         self.db = db_connection
+        self.skill_tracker = skill_tracker
 
     async def select_atoms_by_skill_gap(
-        self, learner_id: str, module_id: str, limit: int = 5
+        self,
+        learner_id: str,
+        module_id: str,
+        limit: int = 5
     ) -> list[dict[str, Any]]:
         """
         Select atoms targeting learner's weakest skills.
@@ -46,168 +72,103 @@ class AtomSelector:
         2. Find atoms primarily targeting those skills
         3. Filter by difficulty appropriate to mastery level
         4. Return top N by Z-score ranking
-
-        Args:
-            learner_id: Learner UUID
-            module_id: Module UUID
-            limit: Number of atoms to return
-
-        Returns:
-            List of atom dicts targeting skill gaps
         """
-        # Step 1: Identify weak skills
-        weak_skills_query = """
-        SELECT
-            s.id AS skill_id,
-            s.skill_code,
-            s.name,
-            COALESCE(lsm.mastery_level, 0.0) AS mastery_level,
-            COALESCE(lsm.retrievability, 0.0) AS retrievability,
-            COUNT(DISTINCT a.id) AS available_atoms
-        FROM skills s
-        JOIN atom_skill_weights asw ON s.id = asw.skill_id AND asw.is_primary = TRUE
-        JOIN learning_atoms a ON asw.atom_id = a.id
-        LEFT JOIN learner_skill_mastery lsm ON s.id = lsm.skill_id AND lsm.learner_id = $1
-        WHERE a.module_id = $2 AND s.is_active = TRUE
-        GROUP BY s.id, s.skill_code, s.name, lsm.mastery_level, lsm.retrievability
-        HAVING COUNT(DISTINCT a.id) > 0
-        ORDER BY
-            COALESCE(lsm.mastery_level, 0.0) ASC,  -- Lowest mastery first
-            COALESCE(lsm.retrievability, 0.0) ASC  -- Most forgotten first
-        LIMIT 3  -- Focus on top 3 weakest skills
-        """
-
-        weak_skills = await self.db.fetch(weak_skills_query, learner_id, module_id)
-
-        if not weak_skills:
-            logger.warning(f"No skills found for module {module_id} - falling back to random selection")
-            return await self._select_random_atoms(module_id, limit)
-
-        # Extract skill IDs for targeting
-        target_skill_ids = [str(skill["skill_id"]) for skill in weak_skills]
-
-        # Step 2: Find atoms targeting these weak skills
-        # Filter by difficulty: mastery_level ± 0.1 tolerance
-        atoms_query = """
-        SELECT DISTINCT
-            a.id,
-            a.front,
-            a.back,
-            a.atom_type,
-            a.difficulty,
-            asw.skill_id,
-            asw.weight,
-            s.skill_code,
-            COALESCE(lsm.mastery_level, 0.0) AS skill_mastery,
-            -- Z-score components
-            COALESCE(a.stability, 1.0) AS stability,
-            COALESCE(a.retrievability, 1.0) AS retrievability,
-            a.last_reviewed
-        FROM learning_atoms a
-        JOIN atom_skill_weights asw ON a.id = asw.atom_id AND asw.is_primary = TRUE
-        JOIN skills s ON asw.skill_id = s.id
-        LEFT JOIN learner_skill_mastery lsm ON s.id = lsm.skill_id AND lsm.learner_id = $1
-        WHERE
-            a.module_id = $2
-            AND asw.skill_id = ANY($3::uuid[])  -- Target weak skills
-            AND a.difficulty >= (COALESCE(lsm.mastery_level, 0.0) - 0.1)  -- Not too easy
-            AND a.difficulty <= (COALESCE(lsm.mastery_level, 0.0) + 0.2)  -- Not too hard
-            AND s.is_active = TRUE
-        ORDER BY
-            -- Prioritize by retrievability (lowest first = most forgotten)
-            COALESCE(a.retrievability, 1.0) ASC,
-            -- Then by skill gap (lowest mastery first)
-            COALESCE(lsm.mastery_level, 0.0) ASC,
-            -- Finally by weight (higher weight = better match)
-            asw.weight DESC
-        LIMIT $4
-        """
-
-        atoms = await self.db.fetch(atoms_query, learner_id, module_id, target_skill_ids, limit)
-
-        # Convert to list of dicts
-        result = [dict(atom) for atom in atoms]
-
-        # If we didn't get enough atoms, backfill with random selection
-        if len(result) < limit:
-            backfill_count = limit - len(result)
-            backfill_atoms = await self._select_random_atoms(
-                module_id, backfill_count, exclude_ids=[a["id"] for a in result]
-            )
-            result.extend(backfill_atoms)
-
-        logger.info(
-            f"Selected {len(result)} atoms for learner {learner_id} targeting skills: "
-            f"{[s['skill_code'] for s in weak_skills]}"
+        skill_gaps = await self.skill_tracker.get_learner_skill_gaps(
+            learner_id=learner_id,
+            module_id=module_id,
+            limit=3
         )
 
-        return result
+        if not skill_gaps:
+            return []
 
-    async def _select_random_atoms(
-        self, module_id: str, limit: int, exclude_ids: list[str] | None = None
-    ) -> list[dict[str, Any]]:
-        """
-        Fallback: Select random atoms from module.
+        weak_skill_ids = [gap["skill_id"] for gap in skill_gaps]
+        avg_mastery = sum(gap["mastery_level"] for gap in skill_gaps) / len(skill_gaps)
 
-        Args:
-            module_id: Module UUID
-            limit: Number of atoms to select
-            exclude_ids: List of atom IDs to exclude
+        candidates = await self._get_atom_candidates(
+            module_id=module_id,
+            skill_ids=weak_skill_ids,
+            limit=limit * 3
+        )
 
-        Returns:
-            List of random atom dicts
-        """
-        exclude_clause = ""
-        params = [module_id, limit]
+        target_difficulty = avg_mastery + 0.1
+        filtered = self._filter_by_difficulty(candidates, target_difficulty, 0.3)
+        ranked = self._rank_by_zscore(filtered, avg_mastery, skill_gaps)
 
-        if exclude_ids:
-            exclude_clause = "AND a.id != ALL($3::uuid[])"
-            params.append(exclude_ids)
+        return ranked[:limit]
 
-        query = f"""
-        SELECT
-            a.id,
-            a.front,
-            a.back,
-            a.atom_type,
-            a.difficulty
-        FROM learning_atoms a
-        WHERE a.module_id = $1
-        {exclude_clause}
-        ORDER BY RANDOM()
-        LIMIT $2
-        """
-
-        atoms = await self.db.fetch(query, *params)
-        return [dict(atom) for atom in atoms]
-
-    async def get_skill_coverage_for_module(
-        self, learner_id: str, module_id: str
-    ) -> dict[str, Any]:
-        """
-        Get skill coverage statistics for a module.
-
-        Args:
-            learner_id: Learner UUID
-            module_id: Module UUID
-
-        Returns:
-            Dict with skill coverage stats
-        """
+    async def _get_atom_candidates(
+        self,
+        module_id: str,
+        skill_ids: list[str],
+        limit: int = 15
+    ) -> list[AtomCandidate]:
+        """Get candidate atoms that target specified skills."""
         query = """
-        SELECT
-            COUNT(DISTINCT s.id) AS total_skills,
-            COUNT(DISTINCT CASE WHEN lsm.mastery_level >= 0.7 THEN s.id END) AS mastered_skills,
-            COUNT(DISTINCT CASE WHEN lsm.mastery_level < 0.5 THEN s.id END) AS weak_skills,
-            AVG(COALESCE(lsm.mastery_level, 0.0)) AS average_mastery,
-            MIN(COALESCE(lsm.mastery_level, 0.0)) AS lowest_mastery,
-            MAX(COALESCE(lsm.mastery_level, 0.0)) AS highest_mastery
-        FROM skills s
-        JOIN atom_skill_weights asw ON s.id = asw.skill_id
-        JOIN learning_atoms a ON asw.atom_id = a.id
-        LEFT JOIN learner_skill_mastery lsm ON s.id = lsm.skill_id AND lsm.learner_id = $1
-        WHERE a.module_id = $2 AND s.is_active = TRUE
+        SELECT DISTINCT
+            a.id AS atom_id,
+            a.atom_type,
+            a.irt_difficulty,
+            ARRAY_AGG(s.skill_code) FILTER (WHERE asw.is_primary) AS primary_skills
+        FROM learning_atoms a
+        JOIN atom_skill_weights asw ON a.id = asw.atom_id
+        JOIN skills s ON asw.skill_id = s.id
+        WHERE a.module_id = $1
+          AND asw.skill_id = ANY($2)
+          AND asw.is_primary = TRUE
+        GROUP BY a.id, a.atom_type, a.irt_difficulty
+        ORDER BY RANDOM()
+        LIMIT $3
         """
 
-        row = await self.db.fetchrow(query, learner_id, module_id)
-        return dict(row) if row else {}
+        rows = await self.db.fetch(query, module_id, skill_ids, limit)
+
+        return [
+            AtomCandidate(
+                atom_id=row["atom_id"],
+                atom_type=row["atom_type"],
+                difficulty=float(row["irt_difficulty"] or 0.5),
+                primary_skills=row["primary_skills"] or [],
+                secondary_skills=[],
+                z_score=0.0
+            )
+            for row in rows
+        ]
+
+    def _filter_by_difficulty(
+        self,
+        candidates: list[AtomCandidate],
+        target_difficulty: float,
+        tolerance: float = 0.3
+    ) -> list[AtomCandidate]:
+        """Filter candidates by difficulty appropriateness."""
+        min_d = max(0.0, target_difficulty - tolerance)
+        max_d = min(1.0, target_difficulty + tolerance)
+
+        return [c for c in candidates if min_d <= c.difficulty <= max_d]
+
+    def _rank_by_zscore(
+        self,
+        candidates: list[AtomCandidate],
+        learner_mastery: float,
+        skill_gaps: list[dict[str, Any]]
+    ) -> list[AtomCandidate]:
+        """Rank candidates by Z-score."""
+        skill_weakness = {
+            gap["skill_code"]: (1.0 - gap["mastery_level"])
+            for gap in skill_gaps
+        }
+
+        target_diff = learner_mastery + 0.1
+
+        for candidate in candidates:
+            skill_match = sum(
+                skill_weakness.get(sc, 0.0) for sc in candidate.primary_skills
+            ) / max(len(candidate.primary_skills), 1)
+
+            diff_delta = abs(candidate.difficulty - target_diff)
+            diff_match = 1.0 - min(diff_delta / 0.5, 1.0)
+
+            candidate.z_score = (0.7 * skill_match) + (0.3 * diff_match)
+
+        return sorted(candidates, key=lambda c: c.z_score, reverse=True)
