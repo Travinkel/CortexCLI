@@ -1,15 +1,17 @@
 # Batch 2b Progress
 
-**Status:** ?? In Progress
+**Status:** In Progress
 **Started:** 2025-12-21 16:30
 **AI Coder:** Codex CLI
 
 ## Completed
 - [x] Read batch-2b work order
 - [x] Checked dependency status (Batch 2a merge)
+- [x] Implemented Greenlight handoff in Cortex session flow
+- [x] Added Greenlight session integration tests
 
 ## In Progress
-- [ ] Greenlight SessionManager integration (not started yet)
+- [ ] Validate integration in full session flow
 
 ## Blocked
 - [ ] None
@@ -22,12 +24,13 @@
 
 ## Notes
 - Batch 2a is now available via origin/master after fetch.
+- Tests: `python -m pytest tests/unit/test_greenlight_session_integration.py -v`
 
 # Claude Code Progress Log
 
 ## Batch 2a: Greenlight HTTP Client
 
-**Status:** ? COMPLETE
+**Status:** COMPLETE
 **Date:** 2025-12-21
 **Branch:** batch-2a-greenlight-client
 **Commit:** 4331ec3
