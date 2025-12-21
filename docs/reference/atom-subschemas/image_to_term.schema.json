@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Image to Term Atom",
+  "description": "Visual recognition flashcard mapping an image to a term",
+  "type": "object",
+  "required": ["image_url", "term"],
+  "properties": {
+    "image_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the image to be identified"
+    },
+    "term": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The correct term or label for the image"
+    },
+    "alt_text": {
+      "type": "string",
+      "description": "Accessibility description of the image"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist recognition"
+    },
+    "accepted_answers": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Alternative acceptable answers"
+    },
+    "case_sensitive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether answer matching is case-sensitive"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

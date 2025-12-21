@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reverse Flashcard Atom",
+  "description": "Back-to-front flashcard for bidirectional recall training",
+  "type": "object",
+  "required": ["front", "back"],
+  "properties": {
+    "front": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The original front (shown as answer in reverse mode)"
+    },
+    "back": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The original back (shown as prompt in reverse mode)"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist recall"
+    },
+    "reverse_hint": {
+      "type": "string",
+      "description": "Optional hint specific to reverse recall direction"
+    },
+    "media": {
+      "type": "object",
+      "properties": {
+        "front_image": {
+          "type": "string",
+          "format": "uri",
+          "description": "Optional image URL for the front"
+        },
+        "back_image": {
+          "type": "string",
+          "format": "uri",
+          "description": "Optional image URL for the back"
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

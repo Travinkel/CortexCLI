@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "List Recall Atom",
+  "description": "Unordered list recall where all items must be remembered",
+  "type": "object",
+  "required": ["prompt", "items"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The question asking for list items"
+    },
+    "items": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 2,
+      "description": "The correct list items (order does not matter)"
+    },
+    "accepted_alternatives": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"}
+      },
+      "description": "Map of items to their acceptable alternative forms"
+    },
+    "min_required": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Minimum number of items required for partial credit"
+    },
+    "case_sensitive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether item matching is case-sensitive"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint (e.g., 'There are 7 items')"
+    },
+    "partial_credit": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to award partial credit for incomplete lists"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

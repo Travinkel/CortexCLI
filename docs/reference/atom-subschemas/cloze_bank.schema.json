@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cloze Bank Atom",
+  "description": "Cloze deletion with a word bank for drag-and-drop or selection",
+  "type": "object",
+  "required": ["cloze_text", "word_bank"],
+  "properties": {
+    "cloze_text": {
+      "type": "string",
+      "pattern": ".*\\{\\{c\\d+::[^}]+\\}\\}.*",
+      "description": "Text with {{c1::answer}} cloze placeholders"
+    },
+    "word_bank": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 2,
+      "description": "Available words/phrases to fill blanks (may include distractors)"
+    },
+    "distractors": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Incorrect options included in word bank"
+    },
+    "reusable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether word bank items can be used multiple times"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist completion"
+    },
+    "case_sensitive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether answer matching is case-sensitive"
+    },
+    "context": {
+      "type": "string",
+      "description": "Additional context shown during the exercise"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

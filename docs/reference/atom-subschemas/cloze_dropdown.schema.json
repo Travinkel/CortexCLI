@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cloze Dropdown Atom",
+  "description": "Cloze deletion with dropdown selection (lower difficulty)",
+  "type": "object",
+  "required": ["cloze_text", "options", "correct_answer"],
+  "properties": {
+    "cloze_text": {
+      "type": "string",
+      "pattern": ".*\\{\\{c\\d+::[^}]+\\}\\}.*",
+      "description": "Text with {{c1::answer}} placeholder"
+    },
+    "options": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 2,
+      "maxItems": 6,
+      "description": "Dropdown options (2-6 choices)"
+    },
+    "correct_answer": {
+      "type": "string",
+      "description": "Correct option (must be in options array)"
+    },
+    "case_sensitive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether answer matching is case-sensitive"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist selection"
+    },
+    "context": {
+      "type": "string",
+      "description": "Additional context shown during the exercise"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}

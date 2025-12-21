@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Short Answer Exact Atom",
+  "description": "Short answer question with exact string matching",
+  "type": "object",
+  "required": ["question", "correct_answer"],
+  "properties": {
+    "question": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The question prompt"
+    },
+    "correct_answer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The exact correct answer"
+    },
+    "accepted_answers": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Alternative acceptable answers"
+    },
+    "case_sensitive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether answer matching is case-sensitive"
+    },
+    "trim_whitespace": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to trim leading/trailing whitespace before matching"
+    },
+    "hint": {
+      "type": "string",
+      "description": "Optional hint to assist recall"
+    },
+    "max_length": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum allowed answer length in characters"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Optional categorization tags"
+    }
+  }
+}
