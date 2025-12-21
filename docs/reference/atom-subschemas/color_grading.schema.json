@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Color Grading Atom",
+  "description": "Adjust color grading controls to match a target.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "reference_image",
+    "target_palette"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "reference_image": {
+      "type": "string"
+    },
+    "target_palette": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "grading_controls": {
+      "type": "object",
+      "description": "Normalized grading controls.",
+      "properties": {
+        "exposure": {
+          "type": "number"
+        },
+        "contrast": {
+          "type": "number"
+        },
+        "saturation": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tolerance": {
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

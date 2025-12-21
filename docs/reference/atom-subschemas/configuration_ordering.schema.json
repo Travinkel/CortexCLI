@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Configuration Ordering Atom",
+  "description": "Order configuration steps correctly.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "config_steps",
+    "constraints",
+    "valid_ordering"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "config_steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "valid_ordering": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    }
+  },
+  "additionalProperties": false
+}

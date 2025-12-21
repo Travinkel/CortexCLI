@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Load Balancing Strategy Atom",
+  "description": "Select a load balancing strategy for a system.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "system_context",
+    "constraints",
+    "strategy",
+    "reasoning"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "system_context": {
+      "type": "string"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "strategy": {
+      "type": "string"
+    },
+    "reasoning": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

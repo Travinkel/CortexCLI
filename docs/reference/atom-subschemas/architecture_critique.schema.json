@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Architecture Critique Atom",
+  "description": "Critique an architecture and propose improvements.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "architecture_description",
+    "critique_points",
+    "recommendations"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "architecture_description": {
+      "type": "string"
+    },
+    "critique_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}

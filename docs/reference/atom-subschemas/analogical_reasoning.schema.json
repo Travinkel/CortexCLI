@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Analogical Reasoning Atom",
+  "description": "Map a source domain to a target domain by analogy.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "source_domain",
+    "target_domain",
+    "mapping"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "source_domain": {
+      "type": "string"
+    },
+    "target_domain": {
+      "type": "string"
+    },
+    "mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "target"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "distractors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Constraint Satisfaction Atom",
+  "description": "Satisfy constraints over variables and domains.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "variables",
+    "constraints",
+    "solution"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "domain"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "number"
+              ]
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "solution": {
+      "type": "object",
+      "description": "Variable assignments."
+    },
+    "allow_multiple_solutions": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

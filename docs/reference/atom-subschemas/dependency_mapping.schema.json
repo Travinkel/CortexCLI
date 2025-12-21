@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dependency Mapping Atom",
+  "description": "Map dependencies between components.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "components",
+    "dependencies"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to"
+        ],
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "relation": {
+            "type": "string",
+            "description": "Dependency relationship."
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "acyclic": {
+      "type": "boolean",
+      "description": "Whether cycles are allowed.",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

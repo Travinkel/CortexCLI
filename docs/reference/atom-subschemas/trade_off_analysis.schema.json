@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Trade Off Analysis Atom",
+  "description": "Analyze trade-offs and recommend an option.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "options",
+    "criteria",
+    "recommendation",
+    "rationale"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

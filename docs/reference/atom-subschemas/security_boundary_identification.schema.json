@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Security Boundary Identification Atom",
+  "description": "Identify trust boundaries in a system.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "system_description",
+    "boundaries"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "system_description": {
+      "type": "string"
+    },
+    "boundaries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "threat_model": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

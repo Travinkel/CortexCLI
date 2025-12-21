@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Edge Case Identification Atom",
+  "description": "Identify edge cases for an algorithm or system.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "domain_description",
+    "edge_cases",
+    "expected_behavior"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "domain_description": {
+      "type": "string"
+    },
+    "edge_cases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "expected_behavior": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

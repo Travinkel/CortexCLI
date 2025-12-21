@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bug Identification Atom",
+  "description": "Identify a bug in the provided code.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "code",
+    "bug_description"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "bug_description": {
+      "type": "string"
+    },
+    "bug_location": {
+      "type": "string",
+      "description": "Location hint (line, function, file)."
+    }
+  },
+  "additionalProperties": false
+}

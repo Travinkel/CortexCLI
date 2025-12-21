@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hierarchy Construction Atom",
+  "description": "Build a hierarchy from nodes and relationships.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "nodes",
+    "edges",
+    "root"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 2
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "parent",
+          "child"
+        ],
+        "properties": {
+          "parent": {
+            "type": "string"
+          },
+          "child": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "root": {
+      "type": "string",
+      "description": "Root node id."
+    },
+    "allow_multiple_roots": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

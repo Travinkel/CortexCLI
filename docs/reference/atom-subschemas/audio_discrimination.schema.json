@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Audio Discrimination Atom",
+  "description": "Discriminate audio characteristics or sources.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "audio_ref",
+    "choices",
+    "correct_choice"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "audio_ref": {
+      "type": "string"
+    },
+    "choices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "correct_choice": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

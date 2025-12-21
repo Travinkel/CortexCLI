@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Interface Segregation Atom",
+  "description": "Split a large interface into focused contracts.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "interface_definition",
+    "proposed_interfaces",
+    "rationale"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "interface_definition": {
+      "type": "string"
+    },
+    "proposed_interfaces": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

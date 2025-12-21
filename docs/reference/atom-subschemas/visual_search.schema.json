@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Visual Search Atom",
+  "description": "Find all instances of a target in an image.",
+  "type": "object",
+  "required": [
+    "prompt",
+    "image_ref",
+    "target_description"
+  ],
+  "properties": {
+    "prompt": {
+      "type": "string"
+    },
+    "image_ref": {
+      "type": "string"
+    },
+    "target_description": {
+      "type": "string"
+    },
+    "expected_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "allow_false_positives": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}
