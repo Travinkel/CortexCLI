@@ -2,9 +2,9 @@
 
 **Branch:** `batch-3a-handlers-declarative`
 **Worktree:** `../cortex-batch-3a-handlers-declarative`
-**Priority:** 🟡 HIGH (Content - 5 new atom types)
+**Priority:** HIGH (Content - 5 new atom types)
 **Estimated Effort:** 3-4 days
-**Status:** 🔴 Pending
+**Status:** Pending
 
 ## Objective
 
@@ -20,8 +20,8 @@ Implement 5 atom handlers for declarative memory types (factual recall, recognit
 
 ## Dependencies
 
-- ✅ Existing `AtomHandler` base class
-- ✅ Batch 1 complete (for skill linking)
+- Existing `AtomHandler` base class
+- Batch 1 complete (for skill linking)
 
 ## Checklist
 
@@ -41,12 +41,12 @@ Implement 5 atom handlers for declarative memory types (factual recall, recognit
 
 ```
 src/cortex/atoms/
-├── cloze_dropdown.py        (~100 lines)
-├── short_answer_exact.py    (~80 lines)
-├── short_answer_regex.py    (~120 lines)
-├── list_recall.py           (~150 lines)
-├── ordered_list_recall.py   (~160 lines)
-└── __init__.py              (update)
+- cloze_dropdown.py        (~100 lines)
+- short_answer_exact.py    (~80 lines)
+- short_answer_regex.py    (~120 lines)
+- list_recall.py           (~150 lines)
+- ordered_list_recall.py   (~160 lines)
+- __init__.py              (update)
 ```
 
 ## Implementation Guide
@@ -59,7 +59,7 @@ The OSI model has ___ layers.
 
 Options:
  1. five
- 2. seven  ✓
+ 2. seven
  3. nine
  4. twelve
 
@@ -199,7 +199,7 @@ This batch must pass:
 ```bash
 gh issue create \
   --title "[Batch 3a] Declarative Memory Handlers (5 types)" \
-  --body "Implement cloze_dropdown, short_answer_exact, short_answer_regex, list_recall, ordered_list_recall\n\n**Status:** ✅ Complete" \
+  --body "Implement cloze_dropdown, short_answer_exact, short_answer_regex, list_recall, ordered_list_recall\n\n**Status:** Complete" \
   --label "batch-3a,atom-handlers,declarative-memory,enhancement"
 ```
 
@@ -214,4 +214,12 @@ gh issue create \
 ---
 
 **Reference:** Plan lines 894-1079
-**Status:** 🔴 Pending
+**Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+
+

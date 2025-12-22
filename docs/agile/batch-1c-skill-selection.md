@@ -2,9 +2,9 @@
 
 **Branch:** `batch-1c-skill-selection`
 **Worktree:** `../cortex-batch-1c-skill-selection`
-**Priority:** 🟡 HIGH (Infrastructure - Depends on Batch 1a)
+**Priority:** HIGH (Infrastructure - Depends on Batch 1a)
 **Estimated Effort:** 2 days
-**Status:** 🔴 Pending
+**Status:** Pending
 
 ## Objective
 
@@ -13,8 +13,8 @@ Extend AtomSelector with skill-based queries to target learner's weakest skills 
 ## Dependencies
 
 **Required:**
-- ✅ Batch 1a complete (needs `skills`, `atom_skill_weights` tables)
-- ✅ Existing `src/learning/atom_selector.py`
+- Batch 1a complete (needs `skills`, `atom_skill_weights` tables)
+- Existing `src/learning/atom_selector.py`
 
 **Blocks:**
 - All Batch 3 handlers (they will use skill-based selection)
@@ -109,7 +109,7 @@ async def select_atoms_by_skill_gap(
         return []
 
     # Filter by difficulty appropriateness
-    # (Mastery 0.3 → difficulty 0.4, Mastery 0.7 → difficulty 0.8, etc.)
+    # (Mastery 0.3 -> difficulty 0.4, Mastery 0.7 -> difficulty 0.8, etc.)
     filtered = []
     for atom in candidates:
         # Get target skills for this atom
@@ -177,7 +177,7 @@ async def get_skill_coverage_for_module(
     Get skill coverage statistics for a module.
 
     Returns:
-        dict with skill_code → atom_count mapping
+        dict with skill_code -> atom_count mapping
     """
     query = """
     SELECT
@@ -305,14 +305,14 @@ Added methods:
 - select_atoms_by_skills(): Target specific skills
 - get_skill_coverage_for_module(): Coverage statistics
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 git add tests/learning/test_atom_selector.py
 git commit -m "test(batch1c): Add tests for skill-based atom selection
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
@@ -324,7 +324,7 @@ git push -u origin batch-1c-skill-selection
 ```bash
 gh issue create \
   --title "[Batch 1c] Skill-Based Atom Selection" \
-  --body "Extend AtomSelector with skill-based queries.\\n\\n**File:** src/learning/atom_selector.py\\n\\n**Features:**\\n- Select atoms by skill gap\\n- Select atoms by specific skills\\n- Skill coverage statistics\\n\\n**Status:** ✅ Complete" \
+  --body "Extend AtomSelector with skill-based queries.\\n\\n**File:** src/learning/atom_selector.py\\n\\n**Features:**\\n- Select atoms by skill gap\\n- Select atoms by specific skills\\n- Skill coverage statistics\\n\\n**Status:** Complete" \
   --label "batch-1c,skill-graph,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -342,7 +342,7 @@ gh issue create \
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
@@ -353,6 +353,14 @@ gh issue create \
 
 ---
 
-**Status:** 🔴 Pending
+**Status:** Pending
 **AI Coder:** Ready for assignment
-**Start Condition:** ⏳ Wait for Batch 1a to complete and merge to master
+**Start Condition:** Wait for Batch 1a to complete and merge to master
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+
+

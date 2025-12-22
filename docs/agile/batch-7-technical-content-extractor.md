@@ -81,12 +81,24 @@ The ResearchEngine is implemented as a hardcoded evidence map:
 - `pymupdf` (fitz) - PDF parsing
 - Existing ETL models and base classes
 
+## SharedKernel Migration
+
+> **Note:** The extractors and classifiers from this batch will be migrated to SharedKernel
+> in [Batch 9](batch-9-shared-kernel-extractor.md) for reuse across all Astartes products.
+>
+> **Migration path:**
+> - `src/etl/extractors/pdf_extractor.py` → `SharedKernel/ContentExtractor/`
+> - `src/etl/transformers/gemini_classifier.py` → `SharedKernel/ContentExtractor/`
+>
+> After migration, CortexCLI will import from `astartes-content-extractor` package.
+
 ## Future Enhancements
 
-- [ ] Gemini API integration for LLM-powered classification
+- [x] ~~Gemini API integration for LLM-powered classification~~ (Done in gemini_classifier.py)
 - [ ] ResearchEngine vector search for dynamic evidence lookup
 - [ ] Bulk textbook ingestion (CCNA Official Guide, ASP.NET Core in Action)
 - [ ] Atom hydration pipeline (raw → study-ready)
+- [ ] Move to SharedKernel (see Batch 9)
 
 ## Success Criteria
 

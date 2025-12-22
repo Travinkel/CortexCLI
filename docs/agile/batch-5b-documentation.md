@@ -1,7 +1,7 @@
 # Batch 5b: Documentation
 
 **Branch:** `batch-5b-documentation`
-**Priority:** 🟢 MEDIUM | **Effort:** 2-3 days | **Status:** 🔴 Pending
+**Priority:** MEDIUM | **Effort:** 2-3 days | **Status:** Pending
 
 ## Objective
 
@@ -87,7 +87,7 @@ The skill graph enables many-to-many mapping between atoms and skills for target
 
 ### skills Table
 - Hierarchical skill taxonomy
-- Bloom's taxonomy levels
+- ICAP engagement mode + element interactivity
 - Cognitive levels
 
 ### atom_skill_weights Table
@@ -138,4 +138,11 @@ git push -u origin batch-5b-documentation
 
 ---
 
-**Reference:** Plan lines 1262-1293 | **Status:** 🔴 Pending
+**Reference:** Plan lines 1262-1293 | **Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

@@ -1,7 +1,7 @@
 # Batch 5a: GitHub Issues
 
 **Branch:** `batch-5a-github-issues`
-**Priority:** 🟢 MEDIUM | **Effort:** 1 day | **Status:** 🔴 Pending
+**Priority:** MEDIUM | **Effort:** 1 day | **Status:** Pending
 
 ## Objective
 
@@ -90,4 +90,11 @@ chmod +x scripts/create_gh_issues.sh
 
 ---
 
-**Reference:** Plan lines 1262-1293 | **Status:** 🔴 Pending
+**Reference:** Plan lines 1262-1293 | **Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

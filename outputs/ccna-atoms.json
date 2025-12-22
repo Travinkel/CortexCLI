@@ -1,0 +1,606 @@
+[
+  {
+    "id": "73870609-7f23-4693-819e-19a9ebf6d51b",
+    "card_id": "networking_aa5e5310-9a30-4a4c-a820-436fe9fc8703",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 1",
+      "answer": "> **CCNA: Introduction to Networks** \u2014 Module 1 from the Cisco NetAcad course covering foundational networking concepts including network components, types, connections, reliability, trends, security, and IT professional pathways.\n> \n\n---\n\n## Module Objectives\n\n| Topic | Objective |\n| --- | --- |\n| Networks Affect our Lives | Explain how networks affect our daily lives |\n| Network Components | Explain how host and network devices are used |\n| Network Representations and Topologies | Explain netw"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "aa5e5310-9a30-4a4c-a820-436fe9fc8703",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 1.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.7999999999999999,
+    "tags": [
+      "ip address",
+      "router",
+      "switch",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 1",
+    "back": "> **CCNA: Introduction to Networks** \u2014 Module 1 from the Cisco NetAcad course covering foundational networking concepts including network components, types, connections, reliability, trends, security, and IT professional pathways.\n> \n\n---\n\n## Module Objectives\n\n| Topic | Objective |\n| --- | --- |\n| Networks Affect our Lives | Explain how networks affect our daily lives |\n| Network Components | Explain how host and network devices are used |\n| Network Representations and Topologies | Explain netw"
+  },
+  {
+    "id": "3b6d07f1-b4e8-4d06-8468-644e442b0ca1",
+    "card_id": "networking_6264daf3-dc35-4c91-a0f5-54e39a6655d5",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 10",
+      "answer": "# 10.0 Introduction\n\nScroll to begin\n\n# **10.0.1 Why should I take this module?**\n\nWelcome to Basic Router Configuration!\n\nHave you ever run a relay? The first person runs the first leg of the race and hands off the baton to the next runner, who continues forward in the second leg of the race and hands off the baton to the third runner, and on it goes. Routing packets is very similar to a relay. But if the first runner does not know where to find the second runner, or drops the baton in the firs"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "6264daf3-dc35-4c91-a0f5-54e39a6655d5",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 10.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.95,
+    "tags": [
+      "ip address",
+      "router",
+      "switch"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 10",
+    "back": "# 10.0 Introduction\n\nScroll to begin\n\n# **10.0.1 Why should I take this module?**\n\nWelcome to Basic Router Configuration!\n\nHave you ever run a relay? The first person runs the first leg of the race and hands off the baton to the next runner, who continues forward in the second leg of the race and hands off the baton to the third runner, and on it goes. Routing packets is very similar to a relay. But if the first runner does not know where to find the second runner, or drops the baton in the firs"
+  },
+  {
+    "id": "09b532ab-68f4-4aa5-aeaf-3ddc108f53e6",
+    "card_id": "networking_47f1c99e-4e2e-44d4-b6f2-0dc55f415357",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 11",
+      "answer": "**Source:** CCNA: Introduction to Networks\n\n---\n\n# 11.0 Introduction\n\n# **11.0.1 Why should I take this module?**\n\nWelcome to IPv4 Addressing!\n\nCurrently, there are still plenty of networks using IPv4 addressing, even as the organizations which use them are making the transition to IPv6. So it is still very important for network administrators to know everything they can about IPv4 addressing. This module covers the fundamental aspects of IPv4 addressing in detail. It includes how to segment a n"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "47f1c99e-4e2e-44d4-b6f2-0dc55f415357",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 11.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.95,
+    "tags": [
+      "subnet mask",
+      "default gateway",
+      "http",
+      "https",
+      "dns"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 11",
+    "back": "**Source:** CCNA: Introduction to Networks\n\n---\n\n# 11.0 Introduction\n\n# **11.0.1 Why should I take this module?**\n\nWelcome to IPv4 Addressing!\n\nCurrently, there are still plenty of networks using IPv4 addressing, even as the organizations which use them are making the transition to IPv6. So it is still very important for network administrators to know everything they can about IPv4 addressing. This module covers the fundamental aspects of IPv4 addressing in detail. It includes how to segment a n"
+  },
+  {
+    "id": "26e9f822-9473-46d1-b1ff-ca4fa91a2313",
+    "card_id": "networking_4efd7163-581c-4ff3-aa22-748129ff7686",
+    "atom_type": "short_answer",
+    "content": {
+      "prompt": "CCNA Module 12",
+      "answer": "**Source:** CCNA: Introduction to Networks\n\n# 12.0 Introduction\n\n# **12.0.1 Why should I take this module?**\n\nWelcome to IPv6 Addressing!\n\nIt is a great time to be (or become) a network administrator! Why? Because in many networks, you will find both IPv4 and IPv6 working together. After the hard work of learning to subnet an IPv4 network, you may find that subnetting an IPv6 network is much easier. You probably didn\u2019t expect that, did you? A Packet Tracer at the end of this module will give you"
+    },
+    "grading_logic": {
+      "mode": "rubric",
+      "case_sensitive": false
+    },
+    "engagement_mode": "constructive",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "conceptual",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "4efd7163-581c-4ff3-aa22-748129ff7686",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 12.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Generation effect: explaining enhances understanding (Chi et al., 1994)",
+    "quality_score": 0.85,
+    "tags": [
+      "http",
+      "https",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 12",
+    "back": "**Source:** CCNA: Introduction to Networks\n\n# 12.0 Introduction\n\n# **12.0.1 Why should I take this module?**\n\nWelcome to IPv6 Addressing!\n\nIt is a great time to be (or become) a network administrator! Why? Because in many networks, you will find both IPv4 and IPv6 working together. After the hard work of learning to subnet an IPv4 network, you may find that subnetting an IPv6 network is much easier. You probably didn\u2019t expect that, did you? A Packet Tracer at the end of this module will give you"
+  },
+  {
+    "id": "0ff3c2cc-ab6c-4646-8a03-128be266e50a",
+    "card_id": "networking_8b387c70-ad2f-4670-9bab-4fe03323ba4e",
+    "atom_type": "short_answer",
+    "content": {
+      "prompt": "CCNA Module 13",
+      "answer": "# 13.0 Introduction\n\nScroll to begin\n\n# **13.0.1 Why should I take this module?**\n\nWelcome to ICMP!\n\nImagine that you have an intricate model train set. Your tracks and trains are all connected and powered up and ready to go. You throw the switch. The train goes halfway around the track and stops. You know right away that the problem is most likely located where the train has stopped, so you look there first. It is not as easy to visualize this with a network. Fortunately, there are tools to hel"
+    },
+    "grading_logic": {
+      "mode": "rubric",
+      "case_sensitive": false
+    },
+    "engagement_mode": "constructive",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "conceptual",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "8b387c70-ad2f-4670-9bab-4fe03323ba4e",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 13.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Generation effect: explaining enhances understanding (Chi et al., 1994)",
+    "quality_score": 0.85,
+    "tags": [
+      "router",
+      "switch",
+      "tcp",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 13",
+    "back": "# 13.0 Introduction\n\nScroll to begin\n\n# **13.0.1 Why should I take this module?**\n\nWelcome to ICMP!\n\nImagine that you have an intricate model train set. Your tracks and trains are all connected and powered up and ready to go. You throw the switch. The train goes halfway around the track and stops. You know right away that the problem is most likely located where the train has stopped, so you look there first. It is not as easy to visualize this with a network. Fortunately, there are tools to hel"
+  },
+  {
+    "id": "678bf302-5198-4296-ba21-b533d20fb63f",
+    "card_id": "networking_fd2eb64f-af75-4595-8ea5-ba5ef20e0c85",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 14",
+      "answer": "14.0 Introduction\nScroll to begin\n\n14.0.1 Why should I take this module?\nWelcome to Transport Layer!\n\nThe transport layer is where, as the name implies, data is transported from one host to another. This is where your network really gets moving! The transport layer uses two protocols: TCP and UDP. Think of TCP as getting a registered letter in the mail. You have to sign for it before the mail carrier will let you have it. This slows down the process a bit, but the sender knows for certain that y"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "fd2eb64f-af75-4595-8ea5-ba5ef20e0c85",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 14.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.75,
+    "tags": [
+      "tcp",
+      "udp",
+      "http",
+      "dns",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 14",
+    "back": "14.0 Introduction\nScroll to begin\n\n14.0.1 Why should I take this module?\nWelcome to Transport Layer!\n\nThe transport layer is where, as the name implies, data is transported from one host to another. This is where your network really gets moving! The transport layer uses two protocols: TCP and UDP. Think of TCP as getting a registered letter in the mail. You have to sign for it before the mail carrier will let you have it. This slows down the process a bit, but the sender knows for certain that y"
+  },
+  {
+    "id": "a58ed3f9-7e2d-4fed-a15d-e33b29a558e7",
+    "card_id": "networking_68e02ab4-3ae1-4012-9296-2ca952e1877a",
+    "atom_type": "short_answer",
+    "content": {
+      "prompt": "CCNA Module 15",
+      "answer": "15.0 Introduction\nScroll to begin\n\n15.0.1 Why should I take this module?\nWelcome to Application Layer!\n\nAs you have learned, the transport layer is where data actually gets moved from one host to another. But before that can take place, there are a lot of details that have to be determined so that this data transport happens correctly. This is why there is an application layer in both the OSI and the TCP/IP models. As an example, before there was streaming video over the internet, we had to watc"
+    },
+    "grading_logic": {
+      "mode": "rubric",
+      "case_sensitive": false
+    },
+    "engagement_mode": "constructive",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "conceptual",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "68e02ab4-3ae1-4012-9296-2ca952e1877a",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 15.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Generation effect: explaining enhances understanding (Chi et al., 1994)",
+    "quality_score": 0.85,
+    "tags": [
+      "tcp",
+      "http",
+      "dns",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 15",
+    "back": "15.0 Introduction\nScroll to begin\n\n15.0.1 Why should I take this module?\nWelcome to Application Layer!\n\nAs you have learned, the transport layer is where data actually gets moved from one host to another. But before that can take place, there are a lot of details that have to be determined so that this data transport happens correctly. This is why there is an application layer in both the OSI and the TCP/IP models. As an example, before there was streaming video over the internet, we had to watc"
+  },
+  {
+    "id": "4d38880e-681c-49de-a3ed-b962f41e6c79",
+    "card_id": "networking_49a974f8-a872-48dc-bf68-447e33bfb6c8",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 16",
+      "answer": "16.0 Introduction\nScroll to begin\n\n16.0.1 Why should I take this module?\nWelcome to Network Security Fundamentals!\n\nYou may have already set up a network, or you may be getting ready to do just that. Here is something to think about. Setting up a network without securing it is like opening all the doors and windows to your home and then going on vacation. Anyone could come by, gain entry, steal or break items, or just make a mess. As you have seen on the news, it is possible to break into any ne"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.6,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "49a974f8-a872-48dc-bf68-447e33bfb6c8",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 16.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.95,
+    "tags": [
+      "router",
+      "switch"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 16",
+    "back": "16.0 Introduction\nScroll to begin\n\n16.0.1 Why should I take this module?\nWelcome to Network Security Fundamentals!\n\nYou may have already set up a network, or you may be getting ready to do just that. Here is something to think about. Setting up a network without securing it is like opening all the doors and windows to your home and then going on vacation. Anyone could come by, gain entry, steal or break items, or just make a mess. As you have seen on the news, it is possible to break into any ne"
+  },
+  {
+    "id": "f8d34f68-37e9-40a5-9f47-d51a48e8e5cf",
+    "card_id": "networking_932ef27b-1acf-49d0-95c0-e289007fa3a5",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 17",
+      "answer": "# 17.0 Introduction\n\nScroll to begin\n\n# **17.0.1 Why should I take this module?**\n\nWelcome to Build a Small Network!\n\nHooray! You have come to the final module in the Introduction to Networks v7.0 course. You have most of the foundational knowledge needed to set up your own network. Where do you go from here? You build a network, of course. And not only do you build one, you verify that it is working, and even troubleshoot some common network problems. This module has labs and Packet Tracer acti"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "932ef27b-1acf-49d0-95c0-e289007fa3a5",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 17.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.8999999999999999,
+    "tags": [
+      "ip address",
+      "router",
+      "switch"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 17",
+    "back": "# 17.0 Introduction\n\nScroll to begin\n\n# **17.0.1 Why should I take this module?**\n\nWelcome to Build a Small Network!\n\nHooray! You have come to the final module in the Introduction to Networks v7.0 course. You have most of the foundational knowledge needed to set up your own network. Where do you go from here? You build a network, of course. And not only do you build one, you verify that it is working, and even troubleshoot some common network problems. This module has labs and Packet Tracer acti"
+  },
+  {
+    "id": "8e5f4406-d03b-4843-8689-b208375b4063",
+    "card_id": "networking_ff940499-8f5b-492b-9d78-754b9be2422b",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 2",
+      "answer": "# CCNA Module 2: Basic Switch and End Device Configuration\n\n**Source:** Cisco Networking Academy \u2014 Introduction to Networks v7.0 (ITN)\n\n---\n\n## 2.0.1 Why should I take this module?\n\nWelcome to Basic Switch and End Device Configuration!\n\nAs part of your career in networking, you might have to set up a new network or maintain and upgrade an existing one. In either case, you'll configure switches and end devices so that they are secure and perform effectively based on your requirements.\n\nOut of the"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.6,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "ff940499-8f5b-492b-9d78-754b9be2422b",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 2.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.8999999999999999,
+    "tags": [
+      "ip address",
+      "default gateway",
+      "router",
+      "switch",
+      "http"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 2",
+    "back": "# CCNA Module 2: Basic Switch and End Device Configuration\n\n**Source:** Cisco Networking Academy \u2014 Introduction to Networks v7.0 (ITN)\n\n---\n\n## 2.0.1 Why should I take this module?\n\nWelcome to Basic Switch and End Device Configuration!\n\nAs part of your career in networking, you might have to set up a new network or maintain and upgrade an existing one. In either case, you'll configure switches and end devices so that they are secure and perform effectively based on your requirements.\n\nOut of the"
+  },
+  {
+    "id": "fb252b25-c0a7-49ab-b556-4a2e2a858c7e",
+    "card_id": "networking_37440725-b13c-4eae-9a53-6c62fb86e6ee",
+    "atom_type": "short_answer",
+    "content": {
+      "prompt": "CCNA Module 3",
+      "answer": "# 3.0 Introduction\n\n## 3.0.1 Why should I take this module?\n\nWelcome to Protocols and Models!\n\nYou know the basic components of a simple network, as well as initial configuration. But after you have configured and connected these components, how do you know they will work together? Protocols! Protocols are sets of agreed upon rules that have been created by standards organizations. But, because you cannot pick up a rule and look closely at it, how do you truly understand why there is such a rule"
+    },
+    "grading_logic": {
+      "mode": "rubric",
+      "case_sensitive": false
+    },
+    "engagement_mode": "constructive",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "conceptual",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "37440725-b13c-4eae-9a53-6c62fb86e6ee",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 3.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Generation effect: explaining enhances understanding (Chi et al., 1994)",
+    "quality_score": 0.85,
+    "tags": [
+      "tcp",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 3",
+    "back": "# 3.0 Introduction\n\n## 3.0.1 Why should I take this module?\n\nWelcome to Protocols and Models!\n\nYou know the basic components of a simple network, as well as initial configuration. But after you have configured and connected these components, how do you know they will work together? Protocols! Protocols are sets of agreed upon rules that have been created by standards organizations. But, because you cannot pick up a rule and look closely at it, how do you truly understand why there is such a rule"
+  },
+  {
+    "id": "d2f5a1dc-8096-4a34-93ed-8f4393e378ff",
+    "card_id": "networking_eecf63fe-7248-4f41-9f4b-57785ad1eea3",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 4",
+      "answer": "Scroll to begin\n\n**Source:** CCNA: Introduction to Networks\n\n# **4.0.1 Why should I take this module?**\n\nWelcome to Physical Layer!\n\nThe physical layer of the OSI model sits at the bottom of the stack. It is part of the Network Access layer of the TCP/IP model. Without the physical layer, you would not have a network. This module explains, in detail, the three ways to connect to the physical layer. Packet Tracer activities and labs will give you the confidence you need to cable up your own netwo"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "eecf63fe-7248-4f41-9f4b-57785ad1eea3",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 4.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.7999999999999999,
+    "tags": [
+      "router",
+      "switch",
+      "tcp",
+      "http",
+      "https"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 4",
+    "back": "Scroll to begin\n\n**Source:** CCNA: Introduction to Networks\n\n# **4.0.1 Why should I take this module?**\n\nWelcome to Physical Layer!\n\nThe physical layer of the OSI model sits at the bottom of the stack. It is part of the Network Access layer of the TCP/IP model. Without the physical layer, you would not have a network. This module explains, in detail, the three ways to connect to the physical layer. Packet Tracer activities and labs will give you the confidence you need to cable up your own netwo"
+  },
+  {
+    "id": "350b74b4-2187-41c9-b929-c596501d6dda",
+    "card_id": "networking_533ac6ad-2c7c-4d30-9c87-f6af1d43a4d6",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 5",
+      "answer": "# CCNA Module 5: Number Systems\n\n**Source:** Cisco Networking Academy \u2014 Introduction to Networks v7.0 (ITN)\n\n---\n\n## \ud83d\udccb Module Overview\n\n**Module Title:** Number Systems\n\n**Module Objective:** Convert between binary, decimal, and hexadecimal numbering systems for network addressing.\n\n### Why This Module Matters\n\nIPv4 addresses in binary: `11000000.10101000.00001010.00001010`\n\nIPv4 addresses in decimal: `192.168.10.10`\n\nIPv6 addresses in hexadecimal: `2001:0db8:85a3:0000:0000:8a2e:0370:7334`\n\nNetw"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.6,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "533ac6ad-2c7c-4d30-9c87-f6af1d43a4d6",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 5.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.7999999999999999,
+    "tags": [],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 5",
+    "back": "# CCNA Module 5: Number Systems\n\n**Source:** Cisco Networking Academy \u2014 Introduction to Networks v7.0 (ITN)\n\n---\n\n## \ud83d\udccb Module Overview\n\n**Module Title:** Number Systems\n\n**Module Objective:** Convert between binary, decimal, and hexadecimal numbering systems for network addressing.\n\n### Why This Module Matters\n\nIPv4 addresses in binary: `11000000.10101000.00001010.00001010`\n\nIPv4 addresses in decimal: `192.168.10.10`\n\nIPv6 addresses in hexadecimal: `2001:0db8:85a3:0000:0000:8a2e:0370:7334`\n\nNetw"
+  },
+  {
+    "id": "3ec62375-e3d7-46dd-b42f-b4e0fad63e56",
+    "card_id": "networking_de670505-9fe4-473a-8bd1-cc928a9bd584",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 6",
+      "answer": "# 6.0 Introduction\n\n**Source:** CCNA: Introduction to Networks\n\n# **6.0.1 Why should I take this module?**\n\nWelcome to Data Link Layer!\n\nEvery network has physical components and media connecting the components. Different types of media need different information about the data in order to accept it and move it across the physical network. Think of it this way: A well-hit golf ball moves through the air fast and far. It can also move through water but not as fast or as far unless it is helped by"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "de670505-9fe4-473a-8bd1-cc928a9bd584",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 6.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.85,
+    "tags": [
+      "ip address",
+      "router",
+      "switch",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 6",
+    "back": "# 6.0 Introduction\n\n**Source:** CCNA: Introduction to Networks\n\n# **6.0.1 Why should I take this module?**\n\nWelcome to Data Link Layer!\n\nEvery network has physical components and media connecting the components. Different types of media need different information about the data in order to accept it and move it across the physical network. Think of it this way: A well-hit golf ball moves through the air fast and far. It can also move through water but not as fast or as far unless it is helped by"
+  },
+  {
+    "id": "0486ac9b-6e43-4b6e-9a25-72397fc03422",
+    "card_id": "networking_0e017174-93a9-4709-8670-5fd0ddb2635b",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 7",
+      "answer": "# 7.0 Introduction\n\nScroll to begin\n\n# **7.0.1 Why should I take this module?**\n\nWelcome to Ethernet Switching!\n\nIf you are planning to become a network administrator or a network architect, you will definitely need to know about Ethernet and Ethernet switching. The two most prominent LAN technologies in use today are Ethernet and WLAN. Ethernet supports bandwidths of up to 100 Gbps, which explains its popularity. This module contains a lab using Wireshark in which you can look at Ethernet frame"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "0e017174-93a9-4709-8670-5fd0ddb2635b",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 7.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.8999999999999999,
+    "tags": [
+      "switch",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 7",
+    "back": "# 7.0 Introduction\n\nScroll to begin\n\n# **7.0.1 Why should I take this module?**\n\nWelcome to Ethernet Switching!\n\nIf you are planning to become a network administrator or a network architect, you will definitely need to know about Ethernet and Ethernet switching. The two most prominent LAN technologies in use today are Ethernet and WLAN. Ethernet supports bandwidths of up to 100 Gbps, which explains its popularity. This module contains a lab using Wireshark in which you can look at Ethernet frame"
+  },
+  {
+    "id": "c752d7ce-9470-42a1-a447-d28a7631f05c",
+    "card_id": "networking_bd08a84d-54d3-4ef9-9324-8a67f9269219",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 8",
+      "answer": "8.0 Introduction\nScroll to begin\n\n8.0.1 Why should I take this module?\nWelcome to Network Layer!\n\nBy now you may have noticed that the modules in this course are progressing from the bottom up through the OSI model layers. At the network layer of the OSI model, we introduce you to communication protocols and routing protocols. Say you want to send an email to a friend who lives in another city, or even another country. This person is not on the same network as you. A simple switched network cann"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.8,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "bd08a84d-54d3-4ef9-9324-8a67f9269219",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 8.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.8999999999999999,
+    "tags": [
+      "ip address",
+      "router",
+      "switch",
+      "ospf",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 8",
+    "back": "8.0 Introduction\nScroll to begin\n\n8.0.1 Why should I take this module?\nWelcome to Network Layer!\n\nBy now you may have noticed that the modules in this course are progressing from the bottom up through the OSI model layers. At the network layer of the OSI model, we introduce you to communication protocols and routing protocols. Say you want to send an email to a friend who lives in another city, or even another country. This person is not on the same network as you. A simple switched network cann"
+  },
+  {
+    "id": "d9878a79-d0f5-4d1c-94ca-aa175ae2b2f5",
+    "card_id": "networking_c8f5e782-54ba-47d9-bb03-6b84b0646d6d",
+    "atom_type": "parsons",
+    "content": {
+      "prompt": "CCNA Module 9",
+      "answer": "9.0 Introduction\nScroll to begin\n\n9.0.1 Why should I take this module?\nWelcome to Address Resolution!\n\nHosts and routers both create routing tables to ensure that they can send and receive data across networks. So how does this information get created in a routing table? As a network administrator, you could enter these MAC and IP addresses manually. But that would take a lot of time and the likelihood of making a few mistakes is great. Are you thinking that there must be some way that this coul"
+    },
+    "grading_logic": {
+      "mode": "order_match",
+      "case_sensitive": false
+    },
+    "engagement_mode": "active",
+    "element_interactivity": 0.6,
+    "knowledge_dimension": "procedural",
+    "owner": "cortex",
+    "skill_codes": [],
+    "primary_skill_code": null,
+    "misconception_codes": [],
+    "source_chunk_id": "c8f5e782-54ba-47d9-bb03-6b84b0646d6d",
+    "source_file": "docs\\source-materials\\curriculum\\ccna\\modules\\CCNA Module 9.txt",
+    "source_type": "networking",
+    "is_hydrated": false,
+    "fidelity_type": "heuristic_strategy",
+    "source_fact_basis": "Scaffolded ordering builds procedural schemas (Parsons & Haden, 2006)",
+    "quality_score": 0.8999999999999999,
+    "tags": [
+      "ip address",
+      "default gateway",
+      "router",
+      "switch",
+      "nat"
+    ],
+    "estimated_duration_sec": 30,
+    "front": "CCNA Module 9",
+    "back": "9.0 Introduction\nScroll to begin\n\n9.0.1 Why should I take this module?\nWelcome to Address Resolution!\n\nHosts and routers both create routing tables to ensure that they can send and receive data across networks. So how does this information get created in a routing table? As a network administrator, you could enter these MAC and IP addresses manually. But that would take a lot of time and the likelihood of making a few mistakes is great. Are you thinking that there must be some way that this coul"
+  }
+]

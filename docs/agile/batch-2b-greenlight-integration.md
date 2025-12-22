@@ -2,9 +2,9 @@
 
 **Branch:** `batch-2b-greenlight-integration`
 **Worktree:** `../cortex-batch-2b-greenlight-integration`
-**Priority:** 🟡 MEDIUM (Depends on Batch 2a)
+**Priority:** MEDIUM (Depends on Batch 2a)
 **Estimated Effort:** 2 days
-**Status:** 🔴 Pending
+**Status:** Pending
 
 ## Objective
 
@@ -13,9 +13,9 @@ Integrate Greenlight handoff logic into SessionManager to route runtime atoms to
 ## Dependencies
 
 **Required:**
-- ✅ Batch 2a complete (needs `GreenlightClient`)
-- ✅ Existing `src/learning/session_manager.py`
-- ✅ Rich library for terminal UI
+- Batch 2a complete (needs `GreenlightClient`)
+- Existing `src/learning/session_manager.py`
+- Rich library for terminal UI
 
 **Blocks:**
 - None (independent of other batches)
@@ -89,7 +89,7 @@ class SessionManager:
             f"Atom: {atom.atom_type}\\n"
             f"This requires code execution in a sandboxed environment.\\n\\n"
             f"[dim]Opening Greenlight...[/dim]",
-            title="🚀 Greenlight Handoff",
+            title="Greenlight Handoff",
             border_style="cyan"
         ))
 
@@ -147,7 +147,7 @@ class SessionManager:
         test_table.add_column("Details")
 
         for test in result.test_results:
-            status = "✓ PASS" if test["passed"] else "✗ FAIL"
+            status = "PASS" if test["passed"] else "FAIL"
             status_style = "green" if test["passed"] else "red"
             test_table.add_row(
                 test["name"],
@@ -166,7 +166,7 @@ class SessionManager:
         if result.git_suggestions:
             console.print("\\n[bold cyan]Suggestions:[/bold cyan]")
             for suggestion in result.git_suggestions:
-                console.print(f"  • {suggestion}")
+                console.print(f"  - {suggestion}")
 
         # Error class (if any)
         if result.error_class:
@@ -340,14 +340,14 @@ Added methods:
 - _poll_greenlight_execution(): Poll async execution
 - _handle_greenlight_failure(): Graceful failure handling
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 git add config.py
 git commit -m "feat(batch2b): Add Greenlight configuration options
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
@@ -359,7 +359,7 @@ git push -u origin batch-2b-greenlight-integration
 ```bash
 gh issue create \
   --title "[Batch 2b] Greenlight SessionManager Integration" \
-  --body "Integrate Greenlight handoff into SessionManager.\\n\\n**Files:**\\n- src/learning/session_manager.py\\n- config.py\\n\\n**Features:**\\n- Atom routing logic\\n- Result rendering in terminal\\n- Async execution polling\\n\\n**Status:** ✅ Complete" \
+  --body "Integrate Greenlight handoff into SessionManager.\\n\\n**Files:**\\n- src/learning/session_manager.py\\n- config.py\\n\\n**Features:**\\n- Atom routing logic\\n- Result rendering in terminal\\n- Async execution polling\\n\\n**Status:** Complete" \
   --label "batch-2b,greenlight,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -377,7 +377,7 @@ gh issue create \
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
@@ -388,6 +388,14 @@ gh issue create \
 
 ---
 
-**Status:** 🔴 Pending
+**Status:** Pending
 **AI Coder:** Ready for assignment
-**Start Condition:** ⏳ Wait for Batch 2a to complete and merge to master
+**Start Condition:** Wait for Batch 2a to complete and merge to master
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+
+

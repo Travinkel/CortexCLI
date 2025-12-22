@@ -53,7 +53,9 @@
       "Bash(for f in explanation/*.md how-to/*.md reference/*.md tutorials/*.md)",
       "Bash(do echo \"=== $f ===\")",
       "Bash(set PYTHONPATH=.)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)"
     ],
     "deny": [],
     "ask": []

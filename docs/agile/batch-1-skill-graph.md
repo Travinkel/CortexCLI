@@ -2,9 +2,9 @@
 
 **Branch:** `batch-1-skill-graph`
 **Worktree:** `../cortex-batch-1-skill-graph`
-**Priority:** 🔴 CRITICAL (Infrastructure - Blocks Batches 3a, 3b, 3c)
+**Priority:** CRITICAL (Infrastructure - Blocks Batches 3a, 3b, 3c)
 **Estimated Effort:** 3-5 days
-**Status:** 🟡 In Progress
+**Status:** In Progress
 
 ## Objective
 
@@ -17,9 +17,9 @@ Build many-to-many atom-skill mapping infrastructure to enable:
 ## Dependencies
 
 **Required Before Starting:**
-- ✅ PostgreSQL database running
-- ✅ Existing `learning_atoms` table
-- ✅ Python environment with asyncpg
+- PostgreSQL database running
+- Existing `learning_atoms` table
+- Python environment with asyncpg
 
 **Blocks:**
 - Batch 3a, 3b, 3c (atom handlers need skill linking)
@@ -102,13 +102,15 @@ Build many-to-many atom-skill mapping infrastructure to enable:
   - [ ] 15 skills for networking domain (CCNA)
   - [ ] 10 skills for programming domain (PROGII)
   - [ ] 5 skills for systems domain (SDE2)
-  - [ ] Bloom's taxonomy levels assigned
+  - [ ] ICAP engagement mode assigned
+  - [ ] Element interactivity index assigned
+  - [ ] Knowledge dimension assigned
   - [ ] Cognitive levels (remember, understand, apply, analyze, evaluate, create)
 
 **Acceptance Criteria:**
 - At least 30 skills defined
 - All skills have unique `skill_code`
-- Domain and cognitive_level populated
+- Domain, engagement_mode, element_interactivity_index, knowledge_dimension populated
 - Ready for atom linking
 
 **Example Skills:**
@@ -199,7 +201,7 @@ git push -u origin batch-1-skill-graph
 ```bash
 gh issue create \
   --title "[Batch 1] Skill Graph Database Schema" \
-  --body "Create skill taxonomy and atom-skill linking tables.\n\n**Files:**\n- Migration 030_skill_graph.sql\n- Seed data skill_taxonomy_seed.sql\n\n**Status:** ✅ Complete" \
+  --body "Create skill taxonomy and atom-skill linking tables.\n\n**Files:**\n- Migration 030_skill_graph.sql\n- Seed data skill_taxonomy_seed.sql\n\n**Status:** Complete" \
   --label "batch-1,database,skill-graph,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -208,7 +210,7 @@ gh issue create \
 ```bash
 gh issue create \
   --title "[Batch 1] SkillMasteryTracker with Bayesian Updates" \
-  --body "Implement skill mastery tracking using Bayesian updates and FSRS scheduling.\n\n**Features:**\n- Bayesian update formula\n- Hypercorrection logic\n- FSRS parameter updates\n- Database persistence\n\n**Status:** ✅ Complete" \
+  --body "Implement skill mastery tracking using Bayesian updates and FSRS scheduling.\n\n**Features:**\n- Bayesian update formula\n- Hypercorrection logic\n- FSRS parameter updates\n- Database persistence\n\n**Status:** Complete" \
   --label "batch-1,mastery-tracking,skill-graph,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -217,7 +219,7 @@ gh issue create \
 ```bash
 gh issue create \
   --title "[Batch 1] Skill-Based Atom Selection" \
-  --body "Extend AtomSelector with skill gap targeting.\n\n**Features:**\n- Query weakest skills\n- Target atoms by skill\n- Difficulty appropriateness\n- Z-score ranking\n\n**Status:** ✅ Complete" \
+  --body "Extend AtomSelector with skill gap targeting.\n\n**Features:**\n- Query weakest skills\n- Target atoms by skill\n- Difficulty appropriateness\n- Z-score ranking\n\n**Status:** Complete" \
   --label "batch-1,atom-selection,skill-graph,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -321,21 +323,21 @@ def test_hypercorrection():
 
 3. **Create GitHub issues** for this batch (see above)
 
-4. **Update status** in `docs/agile/README.md` to ✅ Complete
+4. **Update status** in `docs/agile/README.md` to Complete
 
 ## Reference
 
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
@@ -350,5 +352,12 @@ def test_hypercorrection():
 ---
 
 **Last Updated:** 2025-12-21
-**Status:** 🟡 In Progress
+**Status:** In Progress
 **Assigned To:** Claude Code Instance #1
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

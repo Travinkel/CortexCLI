@@ -2,9 +2,9 @@
 
 **Branch:** `batch-1b-skill-tracker`
 **Worktree:** `../cortex-batch-1b-skill-tracker`
-**Priority:** 🟡 HIGH (Infrastructure - Depends on Batch 1a)
+**Priority:** HIGH (Infrastructure - Depends on Batch 1a)
 **Estimated Effort:** 2-3 days
-**Status:** 🔴 Pending
+**Status:** Pending
 
 ## Objective
 
@@ -13,8 +13,8 @@ Implement skill mastery tracking system with Bayesian updates and FSRS parameter
 ## Dependencies
 
 **Required:**
-- ✅ Batch 1a complete (needs `skills`, `learner_skill_mastery` tables)
-- ✅ Existing FSRS tracker in `src/learning/fsrs.py`
+- Batch 1a complete (needs `skills`, `learner_skill_mastery` tables)
+- Existing FSRS tracker in `src/learning/fsrs.py`
 
 **Blocks:**
 - None (independent of other Wave 1 batches)
@@ -502,7 +502,7 @@ async def test():
     )
     print(f'Updated {len(updates)} skills')
     for u in updates:
-        print(f'  {u.skill_code}: {u.old_mastery:.3f} → {u.new_mastery:.3f}')
+        print(f'  {u.skill_code}: {u.old_mastery:.3f} -> {u.new_mastery:.3f}')
 
 asyncio.run(test())
 "
@@ -538,14 +538,14 @@ cd ../cortex-batch-1b-skill-tracker
 git add src/learning/skill_mastery_tracker.py
 git commit -m "feat(batch1b): Add SkillMasteryTracker with Bayesian updates and FSRS integration
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 git add tests/learning/test_skill_mastery_tracker.py
 git commit -m "test(batch1b): Add unit tests for SkillMasteryTracker
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
@@ -557,7 +557,7 @@ git push -u origin batch-1b-skill-tracker
 ```bash
 gh issue create \
   --title "[Batch 1b] Skill Mastery Tracker with Bayesian Updates" \
-  --body "Implement skill mastery tracking system.\\n\\n**File:** src/learning/skill_mastery_tracker.py\\n\\n**Features:**\\n- Bayesian mastery updates\\n- FSRS parameter management per skill\\n- Confidence interval estimation\\n- Skill gap identification\\n\\n**Status:** ✅ Complete" \
+  --body "Implement skill mastery tracking system.\\n\\n**File:** src/learning/skill_mastery_tracker.py\\n\\n**Features:**\\n- Bayesian mastery updates\\n- FSRS parameter management per skill\\n- Confidence interval estimation\\n- Skill gap identification\\n\\n**Status:** Complete" \
   --label "batch-1b,skill-graph,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -575,7 +575,7 @@ gh issue create \
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
@@ -586,6 +586,14 @@ gh issue create \
 
 ---
 
-**Status:** 🔴 Pending
+**Status:** Pending
 **AI Coder:** Ready for assignment
-**Start Condition:** ⏳ Wait for Batch 1a to complete and merge to master
+**Start Condition:** Wait for Batch 1a to complete and merge to master
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+
+

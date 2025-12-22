@@ -2,9 +2,9 @@
 
 **Branch:** `batch-2c-greenlight-database`
 **Worktree:** `../cortex-batch-2c-greenlight-database`
-**Priority:** 🟡 MEDIUM (Independent)
+**Priority:** MEDIUM (Independent)
 **Estimated Effort:** 1 day
-**Status:** 🔴 Pending
+**Status:** Pending
 
 ## Objective
 
@@ -13,8 +13,8 @@ Create database table and indexes for queueing Greenlight atoms for async execut
 ## Dependencies
 
 **Required:**
-- ✅ PostgreSQL database running
-- ✅ Existing `learning_atoms` table
+- PostgreSQL database running
+- Existing `learning_atoms` table
 
 **Blocks:**
 - None (independent of other batches)
@@ -61,7 +61,7 @@ COMMENT ON COLUMN greenlight_queue.execution_id IS 'Greenlight execution ID for 
 - [ ] Verify table created with correct columns
 - [ ] Verify indexes created
 - [ ] Test JSONB columns can store request/result payloads
-- [ ] Test status transitions (pending → executing → complete)
+- [ ] Test status transitions (pending -> executing -> complete)
 
 ## Testing
 
@@ -309,7 +309,7 @@ Created greenlight_queue table with:
 - Retry logic support
 - Indexes for fast queries
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
@@ -317,7 +317,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 git add src/integrations/greenlight_queue_manager.py
 git commit -m "feat(batch2c): Add GreenlightQueueManager for queue operations
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
@@ -329,7 +329,7 @@ git push -u origin batch-2c-greenlight-database
 ```bash
 gh issue create \
   --title "[Batch 2c] Greenlight Database Queue" \
-  --body "Create database queue for Greenlight async execution.\\n\\n**File:** src/db/migrations/031_greenlight_queue.sql\\n\\n**Features:**\\n- Queue table with status tracking\\n- JSONB payloads\\n- Retry logic support\\n- Indexes for fast queries\\n\\n**Status:** ✅ Complete" \
+  --body "Create database queue for Greenlight async execution.\\n\\n**File:** src/db/migrations/031_greenlight_queue.sql\\n\\n**Features:**\\n- Queue table with status tracking\\n- JSONB payloads\\n- Retry logic support\\n- Indexes for fast queries\\n\\n**Status:** Complete" \
   --label "batch-2c,greenlight,database,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -348,7 +348,7 @@ gh issue create \
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
@@ -358,6 +358,14 @@ gh issue create \
 
 ---
 
-**Status:** 🔴 Pending
+**Status:** Pending
 **AI Coder:** Ready for assignment
-**Start Condition:** ⚡ START IMMEDIATELY (no dependencies)
+**Start Condition:** START IMMEDIATELY (no dependencies)
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+
+

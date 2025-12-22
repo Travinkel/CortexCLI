@@ -1,7 +1,7 @@
 # Batch 4a: Declarative Memory Schemas
 
 **Branch:** `batch-4a-schemas-declarative`
-**Priority:** 🟢 MEDIUM | **Effort:** 1-2 days | **Status:** 🔴 Pending
+**Priority:** MEDIUM | **Effort:** 1-2 days | **Status:** Pending
 
 ## Objective
 
@@ -26,18 +26,18 @@ Create JSON Schema validation files for 12 declarative memory atom types.
 
 ```
 docs/reference/atom-subschemas/
-├── flashcard.schema.json
-├── reverse_flashcard.schema.json
-├── image_to_term.schema.json
-├── audio_to_term.schema.json
-├── cloze_deletion.schema.json
-├── cloze_dropdown.schema.json
-├── cloze_bank.schema.json
-├── symbolic_cloze.schema.json
-├── short_answer_exact.schema.json
-├── short_answer_regex.schema.json
-├── list_recall.schema.json
-└── ordered_list_recall.schema.json
+- flashcard.schema.json
+- reverse_flashcard.schema.json
+- image_to_term.schema.json
+- audio_to_term.schema.json
+- cloze_deletion.schema.json
+- cloze_dropdown.schema.json
+- cloze_bank.schema.json
+- symbolic_cloze.schema.json
+- short_answer_exact.schema.json
+- short_answer_regex.schema.json
+- list_recall.schema.json
+- ordered_list_recall.schema.json
 ```
 
 ## Schema Template
@@ -131,7 +131,7 @@ jsonschema.validate(instance=atom, schema=schema)  # Should pass
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
@@ -141,4 +141,11 @@ Plan lines 1084-1160 (Batch 4: JSONB Schema section)
 
 ---
 
-**Status:** 🔴 Pending
+**Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

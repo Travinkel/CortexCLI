@@ -1,7 +1,7 @@
 # Batch 4e: Advanced Structural Schemas
 
 **Branch:** `batch-4e-schemas-advanced`
-**Priority:** 🟢 MEDIUM | **Effort:** 1-2 days | **Status:** 🔴 Pending
+**Priority:** MEDIUM | **Effort:** 1-2 days | **Status:** Pending
 
 ## Atom Types (60+)
 
@@ -25,4 +25,11 @@ git push -u origin batch-4e-schemas-advanced
 
 ---
 
-**Reference:** Plan Batch 4 | **Status:** 🔴 Pending
+**Reference:** Plan Batch 4 | **Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

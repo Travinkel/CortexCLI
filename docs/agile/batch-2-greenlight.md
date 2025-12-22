@@ -2,9 +2,9 @@
 
 **Branch:** `batch-2-greenlight`
 **Worktree:** `../cortex-batch-2-greenlight`
-**Priority:** 🔴 CRITICAL (Infrastructure - Blocks runtime atoms)
+**Priority:** CRITICAL (Infrastructure - Blocks runtime atoms)
 **Estimated Effort:** 4-6 days
-**Status:** 🔴 Pending
+**Status:** Pending
 
 ## Objective
 
@@ -13,9 +13,9 @@ Enable cortex-cli to hand off runtime atoms (code execution, debugging, CLI simu
 ## Dependencies
 
 **Required Before Starting:**
-- ✅ Existing `SessionManager` class
-- ✅ Python httpx library
-- ✅ Greenlight API documentation
+- Existing `SessionManager` class
+- Python httpx library
+- Greenlight API documentation
 
 **Blocks:**
 - All runtime atom types (sandboxed_code, debugging_fix, etc.)
@@ -121,12 +121,12 @@ git push -u origin batch-2-greenlight
 ```bash
 gh issue create \
   --title "[Batch 2] Greenlight API Client" \
-  --body "HTTP client for Greenlight handoff protocol with retry logic.\n\n**Status:** ✅ Complete" \
+  --body "HTTP client for Greenlight handoff protocol with retry logic.\n\n**Status:** Complete" \
   --label "batch-2,greenlight,enhancement"
 
 gh issue create \
   --title "[Batch 2] Session Manager Greenlight Integration" \
-  --body "Route runtime atoms to Greenlight IDE.\n\n**Status:** ✅ Complete" \
+  --body "Route runtime atoms to Greenlight IDE.\n\n**Status:** Complete" \
   --label "batch-2,greenlight,session-manager,enhancement"
 ```
 
@@ -187,4 +187,11 @@ This batch must pass:
 ---
 
 **Reference:** Plan lines 501-892
-**Status:** 🔴 Pending
+**Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

@@ -1,7 +1,7 @@
 # Batch 4b: Procedural & Sequential Schemas
 
 **Branch:** `batch-4b-schemas-procedural`
-**Priority:** 🟢 MEDIUM | **Effort:** 1-2 days | **Status:** 🔴 Pending
+**Priority:** MEDIUM | **Effort:** 1-2 days | **Status:** Pending
 
 ## Atom Types (11)
 
@@ -49,4 +49,11 @@ git push -u origin batch-4b-schemas-procedural
 
 ---
 
-**Reference:** Plan Batch 4 | **Status:** 🔴 Pending
+**Reference:** Plan Batch 4 | **Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

@@ -1,7 +1,7 @@
 # Batch 3c: Metacognitive & Diagnostic Handlers
 
 **Branch:** `batch-3c-handlers-diagnostic`
-**Priority:** 🟡 HIGH | **Effort:** 2-3 days | **Status:** 🔴 Pending
+**Priority:** HIGH | **Effort:** 2-3 days | **Status:** Pending
 
 ## Atom Types (5)
 
@@ -57,4 +57,11 @@ One commit per handler. Total 5 commits + registration.
 
 ---
 
-**Status:** 🔴 Pending
+**Status:** Pending
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+

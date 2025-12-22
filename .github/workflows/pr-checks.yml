@@ -28,6 +28,11 @@ jobs:
       - name: Type check with mypy
         run: mypy src/ --strict --show-error-codes --ignore-missing-imports
 
+      - name: Lint markdown
+        run: |
+          pip install markdownlint-cli
+          markdownlint docs/**/*.md || true
+
       - name: Security scan
         run: |
           bandit -r src/ -ll
@@ -68,6 +73,10 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-fail-under=85
+
+      - name: Run batch-5a script unit
+        run: |
+          pytest tests/test_create_gh_issues.py -q
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
@@ -113,3 +122,32 @@ jobs:
           grep -q "atom_skill_weights" schema.txt || exit 1
         env:
           PGPASSWORD: test
+
+  bdd:
+    if: ${{ hashFiles('tests/bdd/**') != '' }}
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: cortex_test
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -e .[dev,test]
+
+      - name: Run BDD scenarios
+        env:
+          DATABASE_URL: postgresql://postgres:test@localhost:5432/cortex_test
+        run: pytest tests/bdd -v

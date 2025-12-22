@@ -268,3 +268,20 @@ mypy src
 # Lint and format
 ruff check . --fix
 ```
+
+# 100+ Atom Taxonomy (Added in Batch 5b)
+
+A canonical taxonomy of 100+ learning atom types is available in `docs/reference/atom-taxonomy-v2.md`. It organizes atoms by cognitive subsystem (Discrimination, Recognition, Procedural, Diagnostic, Generative, Metacognitive) and includes UI patterns and grading modes.
+
+# Skill Graph (Added in Batch 5b)
+
+High-level skill graph architecture and mastery tracking details are documented in `docs/explanation/skill-graph-architecture.md`. This includes database schema, Bayesian update formulas, and FSRS scheduling notes.
+
+# Greenlight Handoff (Added in Batch 5b)
+
+Runtime handoffs to Greenlight are specified in `docs/reference/greenlight-handoff-v2.md`. This covers the handoff API, webhook result flow, error handling, and recommended client usage.
+
+# Where to start
+- Read the taxonomy: `docs/reference/atom-taxonomy-v2.md`
+- Implement new atoms: `docs/how-to/implement-new-atom-type.md`
+- Validate item quality: `docs/how-to/validate-atom-quality.md`

@@ -2,9 +2,9 @@
 
 **Branch:** `batch-2a-greenlight-client`
 **Worktree:** `../cortex-batch-2a-greenlight-client`
-**Priority:** 🔴 HIGH (Infrastructure - Independent)
+**Priority:** HIGH (Infrastructure - Independent)
 **Estimated Effort:** 2 days
-**Status:** 🔴 Pending
+**Status:** Pending
 
 ## Objective
 
@@ -13,8 +13,8 @@ Implement HTTP client for Greenlight handoff protocol with retry logic, async ex
 ## Dependencies
 
 **Required:**
-- ✅ Python httpx library (`pip install httpx`)
-- ✅ Greenlight API specification (mocked for now)
+- Python httpx library (`pip install httpx`)
+- Greenlight API specification (mocked for now)
 
 **Blocks:**
 - Batch 2b (SessionManager integration needs this client)
@@ -404,14 +404,14 @@ Implemented:
 - queue_atom() and poll_execution() for async execution
 - poll_until_complete() helper method
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 git add tests/integrations/test_greenlight_client.py
 git commit -m "test(batch2a): Add unit tests for Greenlight client
 
-🤖 Generated with Claude Code
+- Generated with Claude Code
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
@@ -423,7 +423,7 @@ git push -u origin batch-2a-greenlight-client
 ```bash
 gh issue create \
   --title "[Batch 2a] Greenlight HTTP Client" \
-  --body "Implement HTTP client for Greenlight handoff protocol.\\n\\n**File:** src/integrations/greenlight_client.py\\n\\n**Features:**\\n- Async HTTP client with httpx\\n- Retry logic with exponential backoff\\n- Async execution and polling\\n\\n**Status:** ✅ Complete" \
+  --body "Implement HTTP client for Greenlight handoff protocol.\\n\\n**File:** src/integrations/greenlight_client.py\\n\\n**Features:**\\n- Async HTTP client with httpx\\n- Retry logic with exponential backoff\\n- Async execution and polling\\n\\n**Status:** Complete" \
   --label "batch-2a,greenlight,enhancement" \
   --milestone "Phase 1: Foundation"
 ```
@@ -441,7 +441,7 @@ gh issue create \
 ### Strategy Documents
 - [BDD Testing Strategy](../explanation/bdd-testing-strategy.md) - Testing approach for cognitive validity
 - [CI/CD Pipeline](../explanation/ci-cd-pipeline.md) - Automated quality gates and deployment
-- [Atom Type Taxonomy](../reference/atom-type-taxonomy.md) - 100+ atom types with ICAP classification
+- [Atom Type Taxonomy](../explanation/learning-atom-taxonomy.md) - 100+ atom types with ICAP classification
 - [Schema Migration Plan](../explanation/schema-migration-plan.md) - Migration to polymorphic JSONB atoms
 
 ### Work Orders
@@ -451,6 +451,13 @@ gh issue create \
 
 ---
 
-**Status:** 🔴 Pending
+**Status:** Pending
 **AI Coder:** Ready for assignment
-**Start Condition:** ⚡ START IMMEDIATELY (no dependencies)
+**Start Condition:** START IMMEDIATELY (no dependencies)
+## testing and ci
+
+- add or update tests relevant to this batch
+- add or update bdd scenarios where applicable
+- ensure pr-checks.yml passes before merge
+
+
