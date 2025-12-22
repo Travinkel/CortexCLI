@@ -5,6 +5,7 @@
 
 # Python
 __pycache__/
+.mypy_cache/
 *.py[cod]
 *$py.class
 *.so
@@ -28,6 +29,7 @@ wheels/
 # IDE
 .idea/
 .vscode/
+.junie/
 *.swp
 *.swo
 
@@ -39,6 +41,11 @@ Thumbs.db
 *.tmp
 *.temp
 nul
+tmp_gh_issues_out.txt
 
 # Backups
 backups/
+
+# Generated content
+docs/source-materials/
+outputs/
