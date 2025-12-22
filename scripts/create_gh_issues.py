@@ -22,21 +22,18 @@ This file keeps external calls optional and testable without GH credentials.
 """
 
 from __future__ import annotations
+
 import argparse
 import json
 import logging
-import os
 import shlex
 import subprocess
-import sys
-from typing import Dict, List
 import time
-import hashlib
 
 logger = logging.getLogger("create_gh_issues")
 
 
-def generate_issues() -> List[Dict]:
+def generate_issues() -> list[dict]:
     """Generate the 135 issues described in docs/agile/batch-5a-github-issues.md.
 
     Returns a list of dicts with keys: title, body, labels (list), milestone (optional).
@@ -52,12 +49,14 @@ def generate_issues() -> List[Dict]:
         "[Batch 1] Integration Tests",
     ]
     for t in sg_titles:
-        issues.append({
-            "title": t,
-            "body": "See docs/agile/batch-1-skill-graph.md and migrations/030_skill_graph.sql\n\nFiles: Migration 030_skill_graph.sql, skill_taxonomy_seed.sql",
-            "labels": ["batch-1", "database", "skill-graph", "enhancement"],
-            "milestone": "Phase 1: Foundation",
-        })
+        issues.append(
+            {
+                "title": t,
+                "body": "See docs/agile/batch-1-skill-graph.md and migrations/030_skill_graph.sql\n\nFiles: Migration 030_skill_graph.sql, skill_taxonomy_seed.sql",
+                "labels": ["batch-1", "database", "skill-graph", "enhancement"],
+                "milestone": "Phase 1: Foundation",
+            }
+        )
 
     # Epic: Greenlight Integration (6 issues)
     gl_titles = [
@@ -69,12 +68,14 @@ def generate_issues() -> List[Dict]:
         "Integration Tests with Mock Server",
     ]
     for t in gl_titles:
-        issues.append({
-            "title": f"[Batch 2] {t}",
-            "body": "Greenlight integration work. See docs/agile and docs/explanation/greenlight-integration.md",
-            "labels": ["batch-2", "greenlight", "integration"],
-            "milestone": "Phase 2: Greenlight",
-        })
+        issues.append(
+            {
+                "title": f"[Batch 2] {t}",
+                "body": "Greenlight integration work. See docs/agile and docs/explanation/greenlight-integration.md",
+                "labels": ["batch-2", "greenlight", "integration"],
+                "milestone": "Phase 2: Greenlight",
+            }
+        )
 
     # Epic: Tier 1 Atom Handlers (18 issues)
     handler_names = [
@@ -95,37 +96,45 @@ def generate_issues() -> List[Dict]:
         "essay_stub",
     ]
     for name in handler_names:
-        issues.append({
-            "title": f"[Batch 3] Handler: {name}",
-            "body": f"Implement handler `{name}` and add unit tests. See docs/agile/batch-3a-handlers-declarative.md",
-            "labels": ["batch-3", "handler"],
-        })
+        issues.append(
+            {
+                "title": f"[Batch 3] Handler: {name}",
+                "body": f"Implement handler `{name}` and add unit tests. See docs/agile/batch-3a-handlers-declarative.md",
+                "labels": ["batch-3", "handler"],
+            }
+        )
     # 3 additional batch-level
     for t in [
         "Handler Registry Updates",
         "Unit Test Suite",
         "Skill Linking Integration",
     ]:
-        issues.append({
-            "title": f"[Batch 3] {t}",
-            "body": "Batch-level handler work",
-            "labels": ["batch-3", "integration"],
-        })
+        issues.append(
+            {
+                "title": f"[Batch 3] {t}",
+                "body": "Batch-level handler work",
+                "labels": ["batch-3", "integration"],
+            }
+        )
 
     # Epic: JSONB Schema & Validation (103 issues)
-    issues.append({
-        "title": "Atom Envelope v2 Schema",
-        "body": "Top-level atom envelope v2 schema",
-        "labels": ["batch-4", "schema"],
-    })
+    issues.append(
+        {
+            "title": "Atom Envelope v2 Schema",
+            "body": "Top-level atom envelope v2 schema",
+            "labels": ["batch-4", "schema"],
+        }
+    )
 
     # One issue per subschema (100 total) — create placeholders
     for i in range(1, 101):
-        issues.append({
-            "title": f"[Batch 4] Schema Subschema {i:03d}",
-            "body": f"Define JSON schema for subschema {i:03d}.",
-            "labels": ["batch-4", "schema", f"subschema-{i:03d}"],
-        })
+        issues.append(
+            {
+                "title": f"[Batch 4] Schema Subschema {i:03d}",
+                "body": f"Define JSON schema for subschema {i:03d}.",
+                "labels": ["batch-4", "schema", f"subschema-{i:03d}"],
+            }
+        )
 
     # 3 more schema-related issues
     for t in [
@@ -133,30 +142,36 @@ def generate_issues() -> List[Dict]:
         "Validation Pipeline Integration",
         "Validation Test Suite",
     ]:
-        issues.append({
-            "title": f"[Batch 4] {t}",
-            "body": "Validation and testing for JSON schemas",
-            "labels": ["batch-4", "validation"],
-        })
+        issues.append(
+            {
+                "title": f"[Batch 4] {t}",
+                "body": "Validation and testing for JSON schemas",
+                "labels": ["batch-4", "validation"],
+            }
+        )
 
     # Epic: Documentation (2 issues)
-    issues.append({
-        "title": "[Batch 5] Update All Documentation Files",
-        "body": "Refresh docs to include atom taxonomy and skill graph overviews",
-        "labels": ["batch-5", "docs"],
-    })
-    issues.append({
-        "title": "[Batch 5] Create Implementation Guide",
-        "body": "Add implementation guide for new atom types and handlers",
-        "labels": ["batch-5", "docs"],
-    })
+    issues.append(
+        {
+            "title": "[Batch 5] Update All Documentation Files",
+            "body": "Refresh docs to include atom taxonomy and skill graph overviews",
+            "labels": ["batch-5", "docs"],
+        }
+    )
+    issues.append(
+        {
+            "title": "[Batch 5] Create Implementation Guide",
+            "body": "Add implementation guide for new atom types and handlers",
+            "labels": ["batch-5", "docs"],
+        }
+    )
 
     # total should be 135
     assert len(issues) == 135, f"Generated {len(issues)} issues, expected 135"
     return issues
 
 
-def build_command(issue: Dict, repo: str = None) -> str:
+def build_command(issue: dict, repo: str = None) -> str:
     """Build a gh CLI command string for printing purposes. Keep single-line by escaping newlines."""
     title = issue.get("title", "Untitled")
     body = issue.get("body", "")
@@ -182,7 +197,7 @@ def build_command(issue: Dict, repo: str = None) -> str:
     return " ".join(shlex.quote(c) for c in cmd)
 
 
-def build_command_args(issue: Dict, repo: str = None) -> List[str]:
+def build_command_args(issue: dict, repo: str = None) -> list[str]:
     """Build gh CLI argument list for subprocess.run (no shell)."""
     title = issue.get("title", "Untitled")
     body = issue.get("body", "")
@@ -239,22 +254,40 @@ def execute_command(cmd: str) -> int:
         return 1
 
 
-def chunked(iterable: List, size: int):
+def chunked(iterable: list, size: int):
     for i in range(0, len(iterable), size):
         yield iterable[i : i + size]
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Create GitHub issues for batch 5a (safe)")
-    parser.add_argument("--dry-run", action="store_true", default=True, help="Only print commands (default)")
-    parser.add_argument("--execute", action="store_true", help="Execute commands (requires gh and/or GITHUB_TOKEN)")
+    parser.add_argument(
+        "--dry-run", action="store_true", default=True, help="Only print commands (default)"
+    )
+    parser.add_argument(
+        "--execute", action="store_true", help="Execute commands (requires gh and/or GITHUB_TOKEN)"
+    )
     parser.add_argument("--repo", type=str, help="GitHub repo in owner/repo format")
-    parser.add_argument("--chunk-size", type=int, default=50, help="Number of issues to create per chunk")
-    parser.add_argument("--confirm", action="store_true", help="Skip interactive confirmation when executing")
-    parser.add_argument("--skip-if-exists", action="store_true", help="Skip creating an issue if a title match exists in the repo")
-    parser.add_argument("--log-file", type=str, help="Path to write a JSON log of created/dry-run commands")
-    parser.add_argument("--wait-per-item", type=float, default=0.0, help="Seconds to wait between each request")
-    parser.add_argument("--wait-between-chunks", type=float, default=1.0, help="Seconds to wait between chunks")
+    parser.add_argument(
+        "--chunk-size", type=int, default=50, help="Number of issues to create per chunk"
+    )
+    parser.add_argument(
+        "--confirm", action="store_true", help="Skip interactive confirmation when executing"
+    )
+    parser.add_argument(
+        "--skip-if-exists",
+        action="store_true",
+        help="Skip creating an issue if a title match exists in the repo",
+    )
+    parser.add_argument(
+        "--log-file", type=str, help="Path to write a JSON log of created/dry-run commands"
+    )
+    parser.add_argument(
+        "--wait-per-item", type=float, default=0.0, help="Seconds to wait between each request"
+    )
+    parser.add_argument(
+        "--wait-between-chunks", type=float, default=1.0, help="Seconds to wait between chunks"
+    )
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -279,14 +312,23 @@ def main(argv=None) -> int:
             logger.error("--execute requires --repo owner/repo")
             return 2
         if not args.confirm:
-            resp = input(f"About to execute {len(commands)} commands against repo {args.repo}. Proceed? [y/N]: ")
+            resp = input(
+                f"About to execute {len(commands)} commands against repo {args.repo}. Proceed? [y/N]: "
+            )
             if resp.lower() not in ("y", "yes"):
                 print("Aborted by user")
                 return 1
 
         # chunk and execute
-        for chunk_idx, chunk in enumerate(chunked(list(zip(issues, commands)), args.chunk_size), start=1):
-            logger.info("Processing chunk %d/%d (size=%d)", chunk_idx, (len(issues) + args.chunk_size - 1) // args.chunk_size, len(chunk))
+        for chunk_idx, chunk in enumerate(
+            chunked(list(zip(issues, commands)), args.chunk_size), start=1
+        ):
+            logger.info(
+                "Processing chunk %d/%d (size=%d)",
+                chunk_idx,
+                (len(issues) + args.chunk_size - 1) // args.chunk_size,
+                len(chunk),
+            )
             for idx_in_chunk, (issue, printed_cmd) in enumerate(chunk, start=1):
                 title = issue.get("title")
                 # skip if exists check
@@ -307,24 +349,49 @@ def main(argv=None) -> int:
                 created = False
                 while attempts < max_attempts and not created:
                     attempts += 1
-                    logger.info("Executing (%d/%d chunk %d/%d): %s (attempt %d)", idx_in_chunk, len(chunk), chunk_idx, (len(issues) + args.chunk_size - 1) // args.chunk_size, title, attempts)
+                    logger.info(
+                        "Executing (%d/%d chunk %d/%d): %s (attempt %d)",
+                        idx_in_chunk,
+                        len(chunk),
+                        chunk_idx,
+                        (len(issues) + args.chunk_size - 1) // args.chunk_size,
+                        title,
+                        attempts,
+                    )
                     try:
                         proc = subprocess.run(cmd_args, capture_output=True, text=True)
                         if proc.returncode == 0:
                             created = True
-                            log_records.append({"title": title, "status": "created", "stdout": proc.stdout.strip()})
+                            log_records.append(
+                                {"title": title, "status": "created", "stdout": proc.stdout.strip()}
+                            )
                             logger.info("Created issue: %s", title)
                         else:
                             stderr = (proc.stderr or "").lower()
-                            logger.warning("Failed to create issue '%s' rc=%d stderr=%s", title, proc.returncode, proc.stderr.strip())
+                            logger.warning(
+                                "Failed to create issue '%s' rc=%d stderr=%s",
+                                title,
+                                proc.returncode,
+                                proc.stderr.strip(),
+                            )
                             # simple rate-limit/backoff heuristic
-                            if "rate limit" in stderr or "rate limited" in stderr or proc.returncode in (1, 2, 126, 127, 128):
+                            if (
+                                "rate limit" in stderr
+                                or "rate limited" in stderr
+                                or proc.returncode in (1, 2, 126, 127, 128)
+                            ):
                                 logger.info("Retrying after backoff %.1fs", backoff)
                                 time.sleep(backoff)
                                 backoff *= 2
                                 continue
                             else:
-                                log_records.append({"title": title, "status": f"failed_rc_{proc.returncode}", "stderr": proc.stderr.strip()})
+                                log_records.append(
+                                    {
+                                        "title": title,
+                                        "status": f"failed_rc_{proc.returncode}",
+                                        "stderr": proc.stderr.strip(),
+                                    }
+                                )
                                 break
                     except Exception as e:
                         logger.error("Exception executing gh command for title %s: %s", title, e)

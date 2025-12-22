@@ -1,8 +1,3 @@
-import sys
-import json
-import os
-
-
 def test_dry_run_prints_135_commands():
     # Import the module directly to avoid spawning an external python process
     from scripts import create_gh_issues as m

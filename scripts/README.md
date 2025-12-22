@@ -32,5 +32,3 @@ Safety notes:
 - Default is dry-run: do not run `--execute` until you review output.
 - `--skip-if-exists` performs a simple title search and is not perfect; manual review recommended.
 - The script uses `gh issue create` under the hood; make sure `gh` is installed and you are logged in.
-
-
